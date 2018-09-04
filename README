@@ -1,0 +1,7 @@
+To see the help please run the command run_localSSBselection.sh without arguments
+
+Installation
+
+git clone git@github.com:T-Heide/local_dnds.git
+
+Go to data folder and unzip file EnsembletranscriptID.fasta.gz
