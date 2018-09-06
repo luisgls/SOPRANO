@@ -2,8 +2,6 @@ rm(list=ls())
 library(ggplot2)
 library(reshape)
 library(tidyr)
-source("~/Rscripts/qqplot_check.R")
-
 
 #input data sources
 args <- commandArgs(trailingOnly = TRUE)

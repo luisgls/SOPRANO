@@ -87,7 +87,7 @@ fi
 ##Exclude positively selected genes
 if [[ $DRIVER = "false" ]];
     then
-        echo "#Option excluding driver disabled, running dN/dS for matching target region length without using Driver genes"
+        echo "#Option excluding driver disabled"
         cp $TMP/$NAME.epitopes.ori2 $TMP/$NAME.epitopes.bed
 else
     ##

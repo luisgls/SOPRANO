@@ -3,7 +3,6 @@ library(ggplot2)
 library(reshape)
 library(tidyr)
 library(graphics)
-source("~/Rscripts/qqplot_check.R")
 
 
 #input data sources
