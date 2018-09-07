@@ -1,7 +1,7 @@
 rm(list=ls())
-library(ggplot2)
-library(reshape)
-library(tidyr)
+library("ggplot2")
+library("reshape")
+library("tidyr")
 
 #input data sources
 args <- commandArgs(trailingOnly = TRUE)
