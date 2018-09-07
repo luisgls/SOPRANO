@@ -1,1 +1,1 @@
-# SOPRANO: Selecton On PRotein ANnotated regiOns
+# SOPRANO: Selection On PRotein ANnotated regiOns
