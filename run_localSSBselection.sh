@@ -137,14 +137,18 @@ awk '{NA+=$8}{NS+=$9}END{print NA"\t"NS}' $TMP/$NAME.final_corrected_matrix_B.tx
 egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|upstream|incomplete|retained|\?' $FILE | grep -w synonymous_variant |
 awk '{if(length($3)>1){}else{print}}' | cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" |  grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.silent.bed
 
-
 ##nonsilent
 egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|upstream|incomplete|retained|\?' $FILE | grep -w -v synonymous_variant |
 awk '{if(length($3)>1){}else{print}}'  |cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.nonsilent.bed
 
+##missense only
+egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|upstream|incomplete|retained|\?' $FILE | grep -w -v synonymous_variant | grep -w missense_variant |
+awk '{if(length($3)>1){}else{print}}'  |cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.missense.bed
+
 ##intronic
 grep -v "^#" $FILE | grep -w "intron_variant" | grep -v "splice" | awk -F"\t|_" '{FS="\t|_"}{print $1"_"$7"\t"$2"\t"$2"\t"$3}' > $TMP/$NAME.intronic.bed
 
+##Silent
 if [ -s "$TMP/$NAME.silent.bed" ]
 then
         sils=`wc -l $TMP/$NAME.silent.bed | awk '{ print $1 }'`
@@ -154,6 +158,7 @@ else
         echo "file silent mutations empty"
 fi
 
+##Nonsilent (nonsense + missense)
 if [ -s "$TMP/$NAME.nonsilent.bed" ]
 then
         nonsils=`wc -l $TMP/$NAME.nonsilent.bed | awk '{ print $1 }'`
@@ -161,6 +166,16 @@ then
         
 else
         echo "file nonsilent mutations empty"
+fi
+
+##Missense only
+if [ -s "$TMP/$NAME.missense.bed" ]
+then
+        missense=`wc -l $TMP/$NAME.missense.bed | awk '{ print $1 }'`
+        echo "$nmissense number of missense mutations in file"
+        
+else
+        echo "file missense mutations empty"
 fi
 
 ###ntersect different regions from the protein to calculate dNdS
@@ -172,17 +187,22 @@ else
         echo "Checking for previous data file."
 fi
 
-intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_missense_variant"}' >> $TMP/$NAME.data_epitopes
+###Modified from nonsilent to missense to calculate for missense only
+
+intersectBed -b $TMP/$NAME.missense.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_missense_variant"}' >> $TMP/$NAME.data_epitopes
 intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
 intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 10 -o count | cut -f1,4 | awk '{print $0"\tintra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
-intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 10 -o count | cut -f1,4 | awk '{print $0"\tintra_missense_variant"}' >> $TMP/$NAME.data_epitopes
+intersectBed -b $TMP/$NAME.missense.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 10 -o count | cut -f1,4 | awk '{print $0"\tintra_missense_variant"}' >> $TMP/$NAME.data_epitopes
 
     innonsil=`intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.epitopes.bed -wo | wc -l | awk '{ print $1 }'`
+    inmissen=`intersectBed -b $TMP/$NAME.missense.bed -a $TMP/$NAME.epitopes.bed -wo | wc -l | awk '{ print $1 }'`
     insil=`intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.epitopes.bed -wo | wc -l | awk '{ print $1 }'`
     outnonsil=`intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | wc -l | awk '{ print $1 }'`
+    outmissen=`intersectBed -b $TMP/$NAME.missense.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | wc -l | awk '{ print $1 }'`
     outsil=`intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | wc -l | awk '{ print $1 }'`
     
-echo "There are $innonsil non-silent and $insil silent mutations in the target region"    
+echo "There are $innonsil non-silent, $inmissen missense-only, and $insil silent mutations in the target region"
+echo "There are $outnonsil non-silent, $outmissen missense-only, and $outsil silent mutations in the non-target region"
     
 ### For intronic
 intersectBed -a data/transcript_intron_length.bed -b $TMP/$NAME.intronic.bed -wo | mergeBed -i stdin -c 4,5,6,10,11 -o mode,mode,mode,collapse,count | awk '{print $4"\t"$8/($6+1)"\t"$8"\t"$6}' >  $TMP/$NAME.intronic.rate
