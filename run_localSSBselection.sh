@@ -172,7 +172,7 @@ fi
 if [ -s "$TMP/$NAME.missense.bed" ]
 then
         missense=`wc -l $TMP/$NAME.missense.bed | awk '{ print $1 }'`
-        echo "$nmissense number of missense mutations in file"
+        echo "$missense number of missense mutations in file"
         
 else
         echo "file missense mutations empty"
