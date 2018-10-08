@@ -41,15 +41,19 @@ while (my $line = <FH>){
     if (exists $bed{$enstid}{in}) {
         foreach my $dump( @{$bed{$enstid}{coord}}){
             my ($start,$stop)=split("_",$dump);    
-            my ($targetlengthwt)=($stop-$start)+1;
-            my ($targetlengthmut)=($stop-$start)+1;
+            my ($targetlengthwt)=($stop-$start);
+            my ($targetlengthmut)=($stop-$start);
             
             if ($altaa eq "*") {
-                $targetlengthmut=($posENSP-$start)+1;
+                $targetlengthmut=($posENSP-$start);
             }
             
-            my $wtPEP=substr($seq{$enstid}{'seq'},$start-1,$targetlengthwt);
-            my $mutPEP=substr($finalseq,$start-1,$targetlengthmut);
+            #If 0-based
+            #my $wtPEP=substr($seq{$enstid}{'seq'},$start-1,$targetlengthwt);
+            #my $mutPEP=substr($finalseq,$start-1,$targetlengthmut);
+            #if 1-based
+            my $wtPEP=substr($seq{$enstid}{'seq'},$start,$targetlengthwt);
+            my $mutPEP=substr($finalseq,$start,$targetlengthmut);
             
             
             if ($posENSP>=$start && $posENSP <= $stop) {
