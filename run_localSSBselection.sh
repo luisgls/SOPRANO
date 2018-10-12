@@ -16,8 +16,9 @@ if (($# < 8));  then
          -b Bed file - Provide bed file with Protein coordinates named by Transcript (ENSTXXXXXX 123 135)
          -o Results - Directory
          -n Name - Give name to results
-         -r (target)/random - (optional, to calculate a dNdS value for a random region similar to the target)
-         -e (true)/false - exclude driver genes (optional, to calculate a dNdS value excluding driver genes)
+         Optional arguments:
+         -r (target)/random - Calculate a dNdS value for a random region similar to the target)
+         -e (true)/false - Exclude driver genes from calculation
 "
 	exit 1
 fi	
