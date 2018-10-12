@@ -226,6 +226,7 @@ fi
 if [ -s "$TMP/$NAME.data_epitopes" ]
 then
         rm $TMP/$NAME.data_epitopes
+        rm $NAME.finalVEP.triplets.counts
 else
         echo "Checking for previous data file."
 fi
