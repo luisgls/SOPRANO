@@ -148,7 +148,8 @@ fi
 
         echo "Estimating 7 rate parameters"
         perl scripts/transform192to7.pl $NAME.finalVEP.triplets.counts data/final_translate_SSB192toSSB7 | awk -F "\t" '{OFS="\t"}{print $3,1,2,$2}' | sortBed -i stdin | mergeBed -i stdin -c 4 -o sum | awk '{OFS="\t"}{print "Estimated",$1,$4}' | sed 's/_/\//g' > tmp_to_7
-        mv tmp_to_7 $NAME.finalVEP.triplets.counts
+        cp $NAME.finalVEP.triplets.counts $NAME.finalVEP.triplets192.counts
+	mv tmp_to_7 $NAME.finalVEP.triplets.counts
 
 
 ##Check if triplet counts exist and how many possibilities there were (expected 192 or 7)
@@ -226,9 +227,15 @@ fi
 if [ -s "$TMP/$NAME.data_epitopes" ]
 then
         rm $TMP/$NAME.data_epitopes
-        rm $NAME.finalVEP.triplets.counts
 else
         echo "Checking for previous data file."
+fi
+
+if [ -s "$NAME.finalVEP.triplets.counts" ]
+then
+    rm $NAME.finalVEP.triplets.counts
+else
+    echo ""
 fi
 
 ###Modified from nonsilent to missense to calculate for missense only
