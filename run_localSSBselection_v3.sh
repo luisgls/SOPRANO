@@ -278,15 +278,15 @@ awk '{NA+=$4}{NS+=$6}END{print NA"\t"NS}' $TMP/$NAME.final_corrected_matrix_B.tx
 
 #####Get variant counts from vep annotated file, split into silent and nonsilent
 ##silent
-egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|upstream|incomplete|retained|\?' $FILE | grep -w synonymous_variant |
+egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|upstream|incomplete|regulatory_region_variant|retained|\?' $FILE | grep -w synonymous_variant |
 awk '{if(length($3)>1){}else{print}}' | cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" |  grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.silent.bed
 
 ##nonsilent
-egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|upstream|incomplete|retained|\?' $FILE | grep -w -v synonymous_variant |
+egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|upstream|incomplete|regulatory_region_variant|retained|\?' $FILE | grep -w -v synonymous_variant |
 awk '{if(length($3)>1){}else{print}}'  |cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.nonsilent.bed
 
 ##missense only
-egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|upstream|incomplete|retained|\?' $FILE | grep -w -v synonymous_variant | grep -w missense_variant |
+egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|upstream|incomplete|regulatory_region_variant|retained|\?' $FILE | grep -w -v synonymous_variant | grep -w missense_variant |
 awk '{if(length($3)>1){}else{print}}'  |cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.missense.bed
 
 ##intronic
