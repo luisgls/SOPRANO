@@ -26,6 +26,7 @@ if (($# < 8));  then
 fi	
 
 ##Read all arguments
+echo "STEP 1: Reading all arguments and input files"
 while getopts "i:b:o:n:m:r:e:t:" opt; do
     case $opt in
 	i)
@@ -70,6 +71,9 @@ while getopts "i:b:o:n:m:r:e:t:" opt; do
 	;;	
     esac
 done
+
+
+echo "STEP 2: Preparing coordinate files to intersect data"
 
 ###Get list of transcript from annotated Bed file, filter out those transcripts not present in the database.
 cut -f1 $BED | sort -u | fgrep -w -f - $SUPA/ensemble_transcript_protein.length > $TMP/$NAME.protein_length_filt.txt
@@ -136,6 +140,9 @@ cut -f1 $TMP/$NAME.epitopes.bed | sort -u | fgrep -w -f - $TMP/$NAME.intra_epito
 
 ##get transcript sequence or epitopes and nonepitopes
 ## get fasta sequence for each epitope peptide
+
+###
+echo "STEP 3: Obtaining target and non-target fasta regions"
 bedtools getfasta -fi $TRANS -bed $TMP/$NAME.epitopes_cds.bed -fo $TMP/$NAME.epitopes_cds.fasta
 bedtools getfasta -fi $TRANS -bed $TMP/$NAME.intra_epitopes_cds.bed -fo $TMP/$NAME.intra_epitopes_cds.fasta
 
@@ -144,6 +151,7 @@ grep ">" $TMP/$NAME.epitopes_cds.fasta | sed 's/>//g' > $TMP/$NAME.listA
 grep ">" $TMP/$NAME.intra_epitopes_cds.fasta | sed 's/>//g' > $TMP/$NAME.listB
 
 
+echo "STEP 4: Running analysis"
 ####################################### Running with SSB192 #############################################
 if [[ $MUTRATE = "ssb192" ]];
     then
@@ -270,7 +278,7 @@ else
 fi
 ####################################### Finish running with SSB7 #############################################
 
-
+echo "STEP 5: Intersecting information from variants and target regions"
 ##By frequency of mutations
 awk '{NA+=$4}{NS+=$6}END{print NA"\t"NS}' $TMP/$NAME.final_corrected_matrix_A.txt > $TMP/$NAME.epitope_NaNs.txt
 awk '{NA+=$4}{NS+=$6}END{print NA"\t"NS}' $TMP/$NAME.final_corrected_matrix_B.txt > $TMP/$NAME.nonepitope_NaNs.txt
@@ -357,6 +365,7 @@ echo "There are $innonsil non-silent, $inmissen missense-only, and $insil silent
 echo "There are $outnonsil non-silent, $outmissen missense-only, and $outsil silent mutations in the non-target region"
     
 ### For intronic
+echo "STEP 6:  Calculating dN/dS on target and off target regions"
 intersectBed -a data/transcript_intron_length.bed -b $TMP/$NAME.intronic.bed -wo | mergeBed -i stdin -c 4,5,6,10,11 -o mode,mode,mode,collapse,count | awk '{print $4"\t"$8/($6+1)"\t"$8"\t"$6}' >  $TMP/$NAME.intronic.rate
     
 Rscript scripts/calculateKaKsEpiCorrected_CI_intron_V2.R $TMP/$NAME.data_epitopes $TMP/$NAME.epitope_NaNs.txt $TMP/$NAME.nonepitope_NaNs.txt $TMP/$NAME.intronic.rate > $OUT/$NAME.SSB_dNdS.txt
