@@ -1,8 +1,8 @@
 rm(list=ls())
-library("ggplot2")
-library("reshape")
-library("tidyr")
-library("graphics")
+suppressMessages(library("ggplot2"))
+suppressMessages(library("reshape"))
+suppressMessages(library("tidyr"))
+suppressMessages(library("graphics"))
 
 
 #input data sources

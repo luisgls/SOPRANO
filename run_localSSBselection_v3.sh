@@ -1,6 +1,5 @@
 #!/bin/bash
 ##Luis Zapata 2018. SOPRANO: Calculate selection using dN/dS in target regions
-
 ###Important to edit before running
 ####Hardcode where genome and fasta file are
 SUPA=data 
@@ -9,7 +8,7 @@ TMP=tmp
 FASTA=data/hg19.fasta
 GENOME=data/hg19.genome
 
-##Check arguments before running
+###Check arguments before running
 if (($# < 8));  then
 	echo "Please provide the four mandatory arguments and optionals (default in parenthesis)
 	 -i Annotation - VEP annotated file
@@ -24,6 +23,7 @@ if (($# < 8));  then
 "
 	exit 1
 fi	
+
 
 ##Read all arguments
 echo "STEP 1: Reading all arguments and input files"
@@ -204,10 +204,20 @@ if [[ $MUTRATE = "ssb192" ]];
                 echo "Rate parameter file $NAME.finalVEP.triplets.counts has $back lines of data."
                 rm $NAME.tmp $NAME.tmp.bed $NAME.flag 
                 echo "Proccesed $muts mutations from VEP file. $fails mutations were discarded (indels or reference conflicts)"
+                
+            if [ "$back" -lt 7 ]
+                then
+                        echo "Very few rate parameters to analyse data, please provide rate parameter file with option -c"
+                        exit 1
+                    fi
+                    
+                
         else
                 echo "$NAME.finalVEP.triplets.counts is empty."
                 exit 1
         fi
+        
+ 
         
         
         echo "#Make correction based on total sites" 
@@ -266,6 +276,12 @@ else
             echo "Rate parameter file $NAME.finalVEP.triplets.counts has $back lines of data."
             rm $NAME.tmp $NAME.tmp.bed $NAME.flag 
             echo "Proccesed $muts mutations from VEP file. $fails mutations were discarded (indels or reference conflicts)"
+            
+            if [ "$back" -lt 7 ]
+                then
+                    echo "Very few rate parameters to analyse data, please provide rate parameter file with option -c"
+                    exit 1
+            fi
     else
             echo "$NAME.finalVEP.triplets.counts is empty."
             exit 1
@@ -286,16 +302,16 @@ awk '{NA+=$4}{NS+=$6}END{print NA"\t"NS}' $TMP/$NAME.final_corrected_matrix_B.tx
 
 #####Get variant counts from vep annotated file, split into silent and nonsilent
 ##silent
-egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|upstream|incomplete|regulatory_region_variant|retained|\?' $FILE | grep -w synonymous_variant |
-awk '{if(length($3)>1){}else{print}}' | cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" |  grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.silent.bed
+egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|TF_binding_site_variant|upstream|incomplete|regulatory_region_variant|retained|\?' $FILE | grep -w synonymous_variant |
+awk '{if(length($3)>1||$10=="-"){}else{print}}' | cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" |  grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.silent.bed
 
 ##nonsilent
-egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|upstream|incomplete|regulatory_region_variant|retained|\?' $FILE | grep -w -v synonymous_variant |
-awk '{if(length($3)>1){}else{print}}'  |cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.nonsilent.bed
+egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|TF_binding_site_variant|upstream|incomplete|regulatory_region_variant|retained|\?' $FILE | grep -w -v synonymous_variant |
+awk '{if(length($3)>1||$10=="-"){}else{print}}'  |cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.nonsilent.bed
 
 ##missense only
-egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|upstream|incomplete|regulatory_region_variant|retained|\?' $FILE | grep -w -v synonymous_variant | grep -w missense_variant |
-awk '{if(length($3)>1){}else{print}}'  |cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.missense.bed
+egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|TF_binding_site_variant|upstream|incomplete|regulatory_region_variant|retained|\?' $FILE | grep -w -v synonymous_variant | grep -w missense_variant |
+awk '{if(length($3)>1||$10=="-"){}else{print}}'  |cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.missense.bed
 
 ##intronic
 grep -v "^#" $NAME | grep -w "intron_variant" | grep -v "splice" | awk -F"\t|_" '{FS="\t|_"}{print $1"_"$7"\t"$2"\t"$2"\t"$3}' > $TMP/$NAME.intronic.bed
@@ -334,17 +350,18 @@ fi
 ##Check if counts has value larger than 0
 if [ -s "$TMP/$NAME.data_epitopes" ]
 then
+        echo "Removing epitope-associated files"
         rm $TMP/$NAME.data_epitopes
 else
-        echo "Checking for previous data file."
+        echo "WARNING:data_epitopes not present"
 fi
 
 if [ -s "$NAME.finalVEP.triplets.counts" ]
 then
-	echo ""
+	echo "Removing rate parameter files"
     rm $NAME.finalVEP.triplets.counts $NAME.finalVEP.triplets192.counts $NAME
 else
-    echo ""
+    echo "WARNING:triplets counts not present"
 fi
 
 ###Modified from nonsilent to missense to calculate for missense only
@@ -363,9 +380,27 @@ intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -
     
 echo "There are $innonsil non-silent, $inmissen missense-only, and $insil silent mutations in the target region"
 echo "There are $outnonsil non-silent, $outmissen missense-only, and $outsil silent mutations in the non-target region"
+
+if [  "$innonsil" -eq 0 ] && [ "$inmissen" -eq 0 ] && [ "$insil" -eq 0 ];
+then
+    echo "FAILED: 0 Mutations in target region"
+    exit 1
+else   
+    ### For intronic
+    echo "STEP 6:  Calculating dN/dS on target and off target regions"
+    intersectBed -a data/transcript_intron_length.bed -b $TMP/$NAME.intronic.bed -wo | mergeBed -i stdin -c 4,5,6,10,11 -o mode,mode,mode,collapse,count | awk '{print $4"\t"$8/($6+1)"\t"$8"\t"$6}' >  $TMP/$NAME.intronic.rate
+        
+    Rscript scripts/calculateKaKsEpiCorrected_CI_intron_V2.R $TMP/$NAME.data_epitopes $TMP/$NAME.epitope_NaNs.txt $TMP/$NAME.nonepitope_NaNs.txt $TMP/$NAME.intronic.rate > $OUT/$NAME.SSB_dNdS.txt
     
-### For intronic
-echo "STEP 6:  Calculating dN/dS on target and off target regions"
-intersectBed -a data/transcript_intron_length.bed -b $TMP/$NAME.intronic.bed -wo | mergeBed -i stdin -c 4,5,6,10,11 -o mode,mode,mode,collapse,count | awk '{print $4"\t"$8/($6+1)"\t"$8"\t"$6}' >  $TMP/$NAME.intronic.rate
+    if [ -s "$OUT/$NAME.SSB_dNdS.txt" ]
+    then
+            echo "SOPRANO SUCCESS ... removing tmp files"
+            rm "$TMP/$NAME."*
+            
+            echo
+    else
+            echo "SOPRANO FAILED "
+            echo
+    fi
+fi
     
-Rscript scripts/calculateKaKsEpiCorrected_CI_intron_V2.R $TMP/$NAME.data_epitopes $TMP/$NAME.epitope_NaNs.txt $TMP/$NAME.nonepitope_NaNs.txt $TMP/$NAME.intronic.rate > $OUT/$NAME.SSB_dNdS.txt
