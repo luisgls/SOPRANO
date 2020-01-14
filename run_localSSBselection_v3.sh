@@ -2,11 +2,12 @@
 ##Luis Zapata 2018. SOPRANO: Calculate selection using dN/dS in target regions
 ###Important to edit before running
 ####Hardcode where genome and fasta file are
-SUPA=data 
-TRANS=data/ensemble_transcriptID.fasta
-TMP=tmp
-FASTA=data/hg19.fasta
-GENOME=data/hg19.genome
+BASEDIR=/scratch/DMP/shared/histoevomics/SOPRANOv2/
+SUPA=$BASEDIR/data 
+TRANS=$BASEDIR/data/ensemble_transcriptID.fasta
+TMP=$BASEDIR/tmp
+FASTA=$BASEDIR/data/hg19.fasta
+GENOME=$BASEDIR/data/hg19.genome
 
 ###Check arguments before running
 if (($# < 8));  then
@@ -156,8 +157,8 @@ echo "STEP 4: Running analysis"
 if [[ $MUTRATE = "ssb192" ]];
     then
         echo "#Estimate all theoretically possible 192 substitutions in target and non-target regions"
-        perl scripts/calculate_sites_signaturesLZ_192.pl $TMP/$NAME.epitopes_cds.fasta $TMP/$NAME.listA > $TMP/$NAME.listA.sites
-        perl scripts/calculate_sites_signaturesLZ_192.pl $TMP/$NAME.intra_epitopes_cds.fasta $TMP/$NAME.listB > $TMP/$NAME.listB.sites
+        perl $BASEDIR/scripts/calculate_sites_signaturesLZ_192.pl $TMP/$NAME.epitopes_cds.fasta $TMP/$NAME.listA > $TMP/$NAME.listA.sites
+        perl $BASEDIR/scripts/calculate_sites_signaturesLZ_192.pl $TMP/$NAME.intra_epitopes_cds.fasta $TMP/$NAME.listB > $TMP/$NAME.listB.sites
         
         #Sum all possible accross the target region and the non-target region
         awk '{print "test_"$2"_"$3"\t0\t1\t"$0}' $TMP/$NAME.listA.sites | sortBed -i stdin |
@@ -171,7 +172,7 @@ if [[ $MUTRATE = "ssb192" ]];
         
         #1
         echo "In case file starts with column 1 in alternative format"
-        perl scripts/fixsimulated.pl $FILE > $NAME
+        perl $BASEDIR/scripts/fixsimulated.pl $FILE > $NAME
         cut -f1,5,7,11,12 $NAME | grep -v "#" | sed 's/_/\t/1' | sed 's/_/\t/1' | awk -F"\t" '{OFS="\t"}{if($6!="-"&&length($3)==3){print $1,$2-1,$2,$0}}' > $NAME.tmp
         #2 For context correction
         bedtools slop -i $NAME.tmp -b 1 -g $GENOME | bedtools getfasta -fi $FASTA -bed stdin -tab | sed 's/:\|-/\t/g' > $NAME.tmp.bed
@@ -190,7 +191,7 @@ if [[ $MUTRATE = "ssb192" ]];
         fi
         
                 echo "Estimating 192 rate parameters"
-        #        perl scripts/transform192to7.pl $NAME.finalVEP.triplets.counts data/final_translate_SSB192toSSB7 | awk -F "\t" '{OFS="\t"}{print $3,1,2,$2}' | sortBed -i stdin | mergeBed -i stdin -c 4 -o sum | awk '{OFS="\t"}{print "Estimated",$1,$4}' | sed 's/_/\//g' > tmp_to_7
+        #        perl $BASEDIR/scripts/transform192to7.pl $NAME.finalVEP.triplets.counts data/final_translate_SSB192toSSB7 | awk -F "\t" '{OFS="\t"}{print $3,1,2,$2}' | sortBed -i stdin | mergeBed -i stdin -c 4 -o sum | awk '{OFS="\t"}{print "Estimated",$1,$4}' | sed 's/_/\//g' > tmp_to_7
                 cp $NAME.finalVEP.triplets.counts $NAME.finalVEP.triplets192.counts
         #	mv tmp_to_7 $NAME.finalVEP.triplets.counts
         
@@ -221,15 +222,15 @@ if [[ $MUTRATE = "ssb192" ]];
         
         
         echo "#Make correction based on total sites" 
-        perl scripts/correct_update_epitope_sitesV3.pl $TMP/$NAME.listA.totalsites $NAME.finalVEP.triplets.counts > $TMP/$NAME.final_corrected_matrix_A.txt
-        perl scripts/correct_update_epitope_sitesV3.pl $TMP/$NAME.listB.totalsites $NAME.finalVEP.triplets.counts  > $TMP/$NAME.final_corrected_matrix_B.txt
+        perl $BASEDIR/scripts/correct_update_epitope_sitesV3.pl $TMP/$NAME.listA.totalsites $NAME.finalVEP.triplets.counts > $TMP/$NAME.final_corrected_matrix_A.txt
+        perl $BASEDIR/scripts/correct_update_epitope_sitesV3.pl $TMP/$NAME.listB.totalsites $NAME.finalVEP.triplets.counts  > $TMP/$NAME.final_corrected_matrix_B.txt
 
 ####################################END of running with SSB192###############################################
 else
 ####################################### Running with SSB7 #############################################
     echo "#Estimate all theoretically possible 7 substitutions in target and non-target regions"
-    perl scripts/calculate_sites_signaturesLZ.pl $TMP/$NAME.epitopes_cds.fasta $TMP/$NAME.listA > $TMP/$NAME.listA.sites
-    perl scripts/calculate_sites_signaturesLZ.pl $TMP/$NAME.intra_epitopes_cds.fasta $TMP/$NAME.listB > $TMP/$NAME.listB.sites
+    perl $BASEDIR/scripts/calculate_sites_signaturesLZ.pl $TMP/$NAME.epitopes_cds.fasta $TMP/$NAME.listA > $TMP/$NAME.listA.sites
+    perl $BASEDIR/scripts/calculate_sites_signaturesLZ.pl $TMP/$NAME.intra_epitopes_cds.fasta $TMP/$NAME.listB > $TMP/$NAME.listB.sites
     
     #Sum all possible accross the target region and the non-target region
     awk '{print "test_"$2"_"$3"\t0\t1\t"$0}' $TMP/$NAME.listA.sites | sortBed -i stdin |
@@ -242,7 +243,7 @@ else
     #1 Transform the ENST from simulated mutations coming frmo SISMO to chr pos start using eprl script
     
     echo "In case file starts with column 1 in alternative format"
-    perl scripts/fixsimulated.pl $FILE > $NAME
+    perl $BASEDIR/scripts/fixsimulated.pl $FILE > $NAME
     
     cut -f1,5,7,11,12 $NAME | grep -v "#" | sed 's/_/\t/1' | sed 's/_/\t/1' | awk -F"\t" '{OFS="\t"}{if($6!="-"&&length($3)==3){print $1,$2-1,$2,$0}}' > $NAME.tmp
     #2 For context correction
@@ -262,7 +263,7 @@ else
     fi
     
             echo "Estimating 7 rate parameters"
-            perl scripts/transform192to7.pl $NAME.finalVEP.triplets.counts data/final_translate_SSB192toSSB7 | awk -F "\t" '{OFS="\t"}{print $3,1,2,$2}' | sortBed -i stdin | mergeBed -i stdin -c 4 -o sum | awk '{OFS="\t"}{print "Estimated",$1,$4}' | sed 's/_/\//g' > tmp_to_7
+            perl $BASEDIR/scripts/transform192to7.pl $NAME.finalVEP.triplets.counts $BASEDIR/data/final_translate_SSB192toSSB7 | awk -F "\t" '{OFS="\t"}{print $3,1,2,$2}' | sortBed -i stdin | mergeBed -i stdin -c 4 -o sum | awk '{OFS="\t"}{print "Estimated",$1,$4}' | sed 's/_/\//g' > tmp_to_7
             cp $NAME.finalVEP.triplets.counts $NAME.finalVEP.triplets192.counts
             mv tmp_to_7 $NAME.finalVEP.triplets.counts
     
@@ -288,8 +289,8 @@ else
     fi
     
     echo "#Make correction based on total sites" 
-    perl scripts/correct_update_epitope_sitesV2.pl $TMP/$NAME.listA.totalsites $NAME.finalVEP.triplets.counts > $TMP/$NAME.final_corrected_matrix_A.txt
-    perl scripts/correct_update_epitope_sitesV2.pl $TMP/$NAME.listB.totalsites $NAME.finalVEP.triplets.counts  > $TMP/$NAME.final_corrected_matrix_B.txt
+    perl $BASEDIR/scripts/correct_update_epitope_sitesV2.pl $TMP/$NAME.listA.totalsites $NAME.finalVEP.triplets.counts > $TMP/$NAME.final_corrected_matrix_A.txt
+    perl $BASEDIR/scripts/correct_update_epitope_sitesV2.pl $TMP/$NAME.listB.totalsites $NAME.finalVEP.triplets.counts  > $TMP/$NAME.final_corrected_matrix_B.txt
 
 fi
 ####################################### Finish running with SSB7 #############################################
@@ -388,9 +389,9 @@ then
 else   
     ### For intronic
     echo "STEP 6:  Calculating dN/dS on target and off target regions"
-    intersectBed -a data/transcript_intron_length.bed -b $TMP/$NAME.intronic.bed -wo | mergeBed -i stdin -c 4,5,6,10,11 -o mode,mode,mode,collapse,count | awk '{print $4"\t"$8/($6+1)"\t"$8"\t"$6}' >  $TMP/$NAME.intronic.rate
+    intersectBed -a $BASEDIR/data/transcript_intron_length.bed -b $TMP/$NAME.intronic.bed -wo | mergeBed -i stdin -c 4,5,6,10,11 -o mode,mode,mode,collapse,count | awk '{print $4"\t"$8/($6+1)"\t"$8"\t"$6}' >  $TMP/$NAME.intronic.rate
         
-    Rscript scripts/calculateKaKsEpiCorrected_CI_intron_V2.R $TMP/$NAME.data_epitopes $TMP/$NAME.epitope_NaNs.txt $TMP/$NAME.nonepitope_NaNs.txt $TMP/$NAME.intronic.rate > $OUT/$NAME.SSB_dNdS.txt
+    Rscript $BASEDIR/scripts/calculateKaKsEpiCorrected_CI_intron_V2.R $TMP/$NAME.data_epitopes $TMP/$NAME.epitope_NaNs.txt $TMP/$NAME.nonepitope_NaNs.txt $TMP/$NAME.intronic.rate > $OUT/$NAME.SSB_dNdS.txt
     
     if [ -s "$OUT/$NAME.SSB_dNdS.txt" ]
     then
