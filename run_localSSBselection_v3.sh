@@ -2,7 +2,7 @@
 ##Luis Zapata 2018. SOPRANO: Calculate selection using dN/dS in target regions
 ###Important to edit before running
 ####Hardcode where genome and fasta file are
-BASEDIR=/scratch/DMP/shared/histoevomics/SOPRANOv2/
+BASEDIR=/Users/lzapata/tools/SOPRANO
 SUPA=$BASEDIR/data 
 TRANS=$BASEDIR/data/ensemble_transcriptID.fasta
 TMP=$BASEDIR/tmp
