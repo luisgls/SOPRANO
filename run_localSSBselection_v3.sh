@@ -73,6 +73,11 @@ while getopts "i:b:o:n:m:r:e:t:" opt; do
     esac
 done
 
+###Check if file exists and is not empty
+if [[ ! -s $FILE ]] ; then
+    echo "File $FILE is not there or is empty, aborting."
+    exit 1
+fi
 
 echo "STEP 2: Preparing coordinate files to intersect data"
 
@@ -384,7 +389,7 @@ echo "There are $outnonsil non-silent, $outmissen missense-only, and $outsil sil
 
 if [  "$innonsil" -eq 0 ] && [ "$inmissen" -eq 0 ] && [ "$insil" -eq 0 ];
 then
-    echo "FAILED: 0 Mutations in target region"
+    echo "$FILE FAILED: 0 Mutations in target region"
     exit 1
 else   
     ### For intronic
