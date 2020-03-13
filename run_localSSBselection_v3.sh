@@ -326,7 +326,7 @@ grep -v "^#" $NAME | grep -w "intron_variant" | grep -v "splice" | awk -F"\t|_" 
 if [ -s "$TMP/$NAME.silent.bed" ]
 then
         sils=`wc -l $TMP/$NAME.silent.bed | awk '{ print $1 }'`
-        echo "$sils number of silent mutations in file"
+        #echo "$sils number of silent mutations in file"
         
 else
         echo "file silent mutations empty"
@@ -336,7 +336,7 @@ fi
 if [ -s "$TMP/$NAME.nonsilent.bed" ]
 then
         nonsils=`wc -l $TMP/$NAME.nonsilent.bed | awk '{ print $1 }'`
-        echo "$nonsils number of nonsilent mutations in file"
+        #echo "$nonsils number of nonsilent mutations in file"
         
 else
         echo "file nonsilent mutations empty"
@@ -346,7 +346,7 @@ fi
 if [ -s "$TMP/$NAME.missense.bed" ]
 then
         missense=`wc -l $TMP/$NAME.missense.bed | awk '{ print $1 }'`
-        echo "$missense number of missense mutations in file"
+        #echo "$missense number of missense mutations in file"
         
 else
         echo "file missense mutations empty"
@@ -354,28 +354,16 @@ fi
 
 ###ntersect different regions from the protein to calculate dNdS
 ##Check if counts has value larger than 0
-if [ -s "$TMP/$NAME.data_epitopes" ]
-then
-        echo "Removing epitope-associated files"
-        rm $TMP/$NAME.data_epitopes
-else
-        echo "WARNING:data_epitopes not present"
-fi
 
 if [ -s "$NAME.finalVEP.triplets.counts" ]
 then
 	echo "Removing rate parameter files"
-    rm $NAME.finalVEP.triplets.counts $NAME.finalVEP.triplets192.counts $NAME
+        rm $NAME.finalVEP.triplets.counts $NAME.finalVEP.triplets192.counts $NAME
 else
-    echo "WARNING:triplets counts not present"
+        echo "WARNING:triplets counts not present"
 fi
 
-###Modified from nonsilent to missense to calculate for missense only
-
-intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_missense_variant"}' >> $TMP/$NAME.data_epitopes
-intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
-intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 10 -o count | cut -f1,4 | awk '{print $0"\tintra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
-intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 10 -o count | cut -f1,4 | awk '{print $0"\tintra_missense_variant"}' >> $TMP/$NAME.data_epitopes
+###Count number of mutations intersecting ON and OFF regions for selected transcripts.
 
     innonsil=`intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.epitopes.bed -wo | wc -l | awk '{ print $1 }'`
     inmissen=`intersectBed -b $TMP/$NAME.missense.bed -a $TMP/$NAME.epitopes.bed -wo | wc -l | awk '{ print $1 }'`
@@ -383,9 +371,42 @@ intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -
     outnonsil=`intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | wc -l | awk '{ print $1 }'`
     outmissen=`intersectBed -b $TMP/$NAME.missense.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | wc -l | awk '{ print $1 }'`
     outsil=`intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | wc -l | awk '{ print $1 }'`
-    
-echo "There are $innonsil non-silent, $inmissen missense-only, and $insil silent mutations in the target region"
-echo "There are $outnonsil non-silent, $outmissen missense-only, and $outsil silent mutations in the non-target region"
+
+echo "From a total of $nonsils non-silent, $missense missense-only, and $sils silent mutations in input file:"    
+echo "There are $innonsil non-silent, $inmissen missense-only, and $insil silent in the (ON) target region"
+echo "There are $outnonsil non-silent, $outmissen missense-only, and $outsil silent in the (OFF) non-target region"
+
+###Modified from nonsilent to missense to calculate for missense only
+
+if [ -s "$TMP/$NAME.data_epitopes" ]
+then
+        rm $TMP/$NAME.data_epitopes
+        echo "INFO: past epitope-associated file, removing"
+else
+        echo "INFO: intersected file (data_epitopes) not present, creating"
+fi
+
+
+if [ "$innonsil" -gt 0 ];
+then
+intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_missense_variant"}' >> $TMP/$NAME.data_epitopes
+fi
+
+if [ "$insil" -gt 0 ];
+then
+intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
+fi
+
+if [ "$outsil" -gt 0 ];
+then
+intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 10 -o count | cut -f1,4 | awk '{print $0"\tintra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
+fi
+
+if [ "$outnonsil" -gt 0 ];
+then
+intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 10 -o count | cut -f1,4 | awk '{print $0"\tintra_missense_variant"}' >> $TMP/$NAME.data_epitopes
+fi
+
 
 if [  "$innonsil" -eq 0 ] && [ "$inmissen" -eq 0 ] && [ "$insil" -eq 0 ];
 then
