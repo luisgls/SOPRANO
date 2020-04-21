@@ -2,7 +2,7 @@
 ##Luis Zapata 2018. SOPRANO: Calculate selection using dN/dS in target regions
 ###Important to edit before running
 ####Hardcode where genome and fasta file are
-BASEDIR=/Users/lzapata/tools/SOPRANO
+BASEDIR=/home/luiszapata/tools/SOPRANO
 SUPA=$BASEDIR/data 
 TRANS=$BASEDIR/data/ensemble_transcriptID.fasta
 TMP=$BASEDIR/tmp
@@ -416,7 +416,14 @@ else
     ### For intronic
     echo "STEP 6:  Calculating dN/dS on target and off target regions"
     intersectBed -a $BASEDIR/data/transcript_intron_length.bed -b $TMP/$NAME.intronic.bed -wo | mergeBed -i stdin -c 4,5,6,10,11 -o mode,mode,mode,collapse,count | awk '{print $4"\t"$8/($6+1)"\t"$8"\t"$6}' >  $TMP/$NAME.intronic.rate
-        
+       
+    
+     #check fot existence of outdir of not create
+if [ ! -d $OUT ]
+then
+	mkdir $OUT
+fi
+
     Rscript $BASEDIR/scripts/calculateKaKsEpiCorrected_CI_intron_V2.R $TMP/$NAME.data_epitopes $TMP/$NAME.epitope_NaNs.txt $TMP/$NAME.nonepitope_NaNs.txt $TMP/$NAME.intronic.rate > $OUT/$NAME.SSB_dNdS.txt
     
     if [ -s "$OUT/$NAME.SSB_dNdS.txt" ]
