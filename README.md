@@ -102,3 +102,23 @@ OFF_ns = Number of silent sites (corrected) OFF target
 
 OFF_NS = Number of silent sites (corrected) OFF target
 
+## Obtain patient specific dN/dS values
+To determine the patient specific immunopeptidome you should run the script get_epitope_HLA.pl:
+
+As an example for :
+```{bash}
+perl scripts/get_epitope_HLA.pl examples/TCGA_hlaTypesTEST.tsv 
+```
+
+This will create a command that you can run in a HPC cluster.
+In our example case, the command is:
+
+```{bash}
+egrep -w -e "HLA-A2402|HLA-A0301|HLA-B1501|HLA-B1801|HLA-C0701|HLA-C0303|" data/allhlaBinders_exprmean1.IEDBpeps.mgd.bed | sortBed -i stdin | mergeBed -i stdin > TCGA-HQ-A5ND.exprmean1.IEDBpeps.SB.epitope.bed
+egrep -w -e "HLA-A0205|HLA-A3303|HLA-B5301|HLA-B5301|HLA-C0401|HLA-C0401|" data/allhlaBinders_exprmean1.IEDBpeps.mgd.bed | sortBed -i stdin | mergeBed -i stdin > TCGA-FD-A6TC.exprmean1.IEDBpeps.SB.epitope.bed
+```
+
+After obtaining the immunopeptidome file, you can run SOPRANO using the command following:
+```{bash}
+./run_localSSBselection_v3.sh -i  TCGA-FD-A6TC.annotated -b TCGA-FD-A6TC.exprmean1.IEDBpeps.SB.epitope.bed -n TCGA-FD-A6TC.ssb192 -o results_immuno -m ssb192"; done
+```
