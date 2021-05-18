@@ -2,12 +2,14 @@
 ##Luis Zapata 2018. SOPRANO: Calculate selection using dN/dS in target regions
 ###Important to edit before running
 ####Hardcode where genome and fasta file are
-BASEDIR=/home/luiszapata/tools/SOPRANO
+####Version 3.1
+
+BASEDIR=/home/lortiz/tools/SOPRANO
 SUPA=$BASEDIR/data 
 TRANS=$BASEDIR/data/ensemble_transcriptID.fasta
-TMP=$BASEDIR/tmp
-FASTA=$BASEDIR/data/hg19.fasta
-GENOME=$BASEDIR/data/hg19.genome
+TMP=/tmp/
+FASTA=/home/lortiz/lortiz/databases/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa
+GENOME=/home/lortiz/lortiz/databases/Homo_sapiens.GRCh37.75.dna.primary_assembly.genome
 
 ###Check arguments before running
 if (($# < 8));  then
@@ -389,22 +391,22 @@ fi
 
 if [ "$innonsil" -gt 0 ];
 then
-intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_missense_variant"}' >> $TMP/$NAME.data_epitopes
+intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | cut -f1-11 -| sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_missense_variant"}' >> $TMP/$NAME.data_epitopes
 fi
 
 if [ "$insil" -gt 0 ];
 then
-intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
+intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | cut -f1-11 -| sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
 fi
 
 if [ "$outsil" -gt 0 ];
 then
-intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 10 -o count | cut -f1,4 | awk '{print $0"\tintra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
+intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | cut -f1-11 -| sortBed -i stdin | mergeBed -i stdin -c 10 -o count | cut -f1,4 | awk '{print $0"\tintra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
 fi
 
 if [ "$outnonsil" -gt 0 ];
 then
-intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | sortBed -i stdin | mergeBed -i stdin -c 10 -o count | cut -f1,4 | awk '{print $0"\tintra_missense_variant"}' >> $TMP/$NAME.data_epitopes
+intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.intra_epitopes_prot.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | cut -f1-11 - | sortBed -i stdin | mergeBed -i stdin -c 10 -o count | cut -f1,4 | awk '{print $0"\tintra_missense_variant"}' >> $TMP/$NAME.data_epitopes
 fi
 
 
@@ -424,7 +426,7 @@ then
 	mkdir $OUT
 fi
 
-    Rscript $BASEDIR/scripts/calculateKaKsEpiCorrected_CI_intron_V2.R $TMP/$NAME.data_epitopes $TMP/$NAME.epitope_NaNs.txt $TMP/$NAME.nonepitope_NaNs.txt $TMP/$NAME.intronic.rate > $OUT/$NAME.SSB_dNdS.txt
+    Rscript $BASEDIR/scripts/calculateKaKsEpiCorrected_CI_intron_V3.R $TMP/$NAME.data_epitopes $TMP/$NAME.epitope_NaNs.txt $TMP/$NAME.nonepitope_NaNs.txt $TMP/$NAME.intronic.rate > $OUT/$NAME.SSB_dNdS.txt
     
     if [ -s "$OUT/$NAME.SSB_dNdS.txt" ]
     then
