@@ -9,7 +9,7 @@ SOPRANO was developed to analyse selection in specific regions of the genome. It
 mkdir /my/home/directory/SOPRANO
 cd /my/home/directory/SOPRANO
 
-git clone https://github.com/luisgls/SOPRANO.git .
+git clone https://github.com/luisgls/SOPRANO.git 
 ```
 #### Edit the head of the master script: run_localSSBselection_v3.sh
 - Specify the basedirectory of the installation
@@ -17,14 +17,21 @@ BASEDIR=/my/home/directory/SOPRANO/
 
 - Copy or link the genome file (e.g. hg19.genome) and the fasta file (e.g. hg19.fasta) to /my/home/directory/SOPRANO/data/
 
+#### Make sure you have your data folder with all necessary files to run SOPRANO
+```{bash}
+cd data
+gzip ensemble_transcriptID.fasta.gz
+```
 #### Now you should be able to run the tool if all the dependencies are met.
 
 ### Dependencies
-- bedtools 2.26.0
+- bedtools 2.26.0 or higher
 - R-3.3.3 or higher.
 - R library tidyr
 - perl 5
 - GNU command line tools
+
+#The input for SOPRANO is the same as for SSB_selection, A VEP annotated TAB delimited input file.
 - Ensembl variant effect predictor v89 or higher (VEP)
 
 #### Important Notes
@@ -36,7 +43,7 @@ BASEDIR=/my/home/directory/SOPRANO/
 ## Input file
 The input file is the standard output of variant effect predictor using the following command line (by providing to vep the ensembl default input file format)
 perl variant_effect_predictor.pl -i input -o input.annotated --cache --all_refseq --assembly GRCh37 --pick --symbol --no_stats --fasta genome.fasta
-If you want to filter putative germline variants use the option --plugin ExAC when running VEP.
+If you want to filter putative germline variants use the option --plugin ExAC when running VEP. It is important that you restrict your analysis to the list of ensemb transcripts observed in data folder, be aware of updates on the EnsemblID from previous versions.
 
 Example input files can be found on synapse: ID syn11681983
 
