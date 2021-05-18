@@ -20,7 +20,7 @@ BASEDIR=/my/home/directory/SOPRANO/
 #### Make sure you have your data folder with all necessary files to run SOPRANO
 ```{bash}
 cd data
-gzip ensemble_transcriptID.fasta.gz
+gzip -d ensemble_transcriptID.fasta.gz
 ```
 #### Now you should be able to run the tool if all the dependencies are met.
 
