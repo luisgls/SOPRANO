@@ -127,5 +127,5 @@ egrep -w -e "HLA-A0205|HLA-A3303|HLA-B5301|HLA-B5301|HLA-C0401|HLA-C0401|" data/
 
 After obtaining the immunopeptidome file, you can run SOPRANO using the command following:
 ```{bash}
-./run_localSSBselection_v3.sh -i  TCGA-FD-A6TC.annotated -b TCGA-FD-A6TC.exprmean1.IEDBpeps.SB.epitope.bed -n TCGA-FD-A6TC.ssb192 -o results_immuno -m ssb192"; done
+./run_localSSBselection_v3.sh -i  TCGA-FD-A6TC.annotated -b TCGA-FD-A6TC.exprmean1.IEDBpeps.SB.epitope.bed -n TCGA-FD-A6TC.ssb192 -o results_immuno -m ssb192
 ```
