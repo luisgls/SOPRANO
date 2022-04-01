@@ -8,8 +8,11 @@ BASEDIR=/home/lortiz/tools/SOPRANO
 SUPA=$BASEDIR/data 
 TRANS=$BASEDIR/data/ensemble_transcriptID.fasta
 TMP=/tmp/
-FASTA=/home/lortiz/lortiz/databases/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa
-GENOME=/home/lortiz/lortiz/databases/Homo_sapiens.GRCh37.75.dna.primary_assembly.genome
+#FASTA=/home/lortiz/lortiz/databases/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa
+#GENOME=/home/lortiz/lortiz/databases/Homo_sapiens.GRCh37.75.dna.primary_assembly.genome
+FASTA=/home/lortiz/lortiz/databases/GRCh38_full_analysis_set_plus_decoy_hla_noCHR.fa
+GENOME=/home/lortiz/lortiz/databases/GRCh38_full_analysis_set_plus_decoy_hla_noCHR.genome
+
 
 ###Check arguments before running
 if (($# < 8));  then
@@ -426,8 +429,13 @@ then
 	mkdir $OUT
 fi
 
+if [ -s $TMP/$NAME.intronic.rate ]
+then
     Rscript $BASEDIR/scripts/calculateKaKsEpiCorrected_CI_intron_V3.R $TMP/$NAME.data_epitopes $TMP/$NAME.epitope_NaNs.txt $TMP/$NAME.nonepitope_NaNs.txt $TMP/$NAME.intronic.rate > $OUT/$NAME.SSB_dNdS.txt
-    
+else
+    Rscript $BASEDIR/scripts/calculateKaKsEpiCorrected_CI.R $TMP/$NAME.data_epitopes $TMP/$NAME.epitope_NaNs.txt $TMP/$NAME.nonepitope_NaNs.txt > $OUT/$NAME.SSB_dNdS.txt
+fi
+
     if [ -s "$OUT/$NAME.SSB_dNdS.txt" ]
     then
             echo "SOPRANO SUCCESS ... removing tmp files"
@@ -438,5 +446,4 @@ fi
             echo "SOPRANO FAILED "
             echo
     fi
-fi
-    
+fi  
