@@ -1,5 +1,8 @@
 # SOPRANO: Selection On PRotein ANnotated regiOns
-SOPRANO was developed to analyse selection in specific regions of the genome. It uses a VEP annotated file to estimate ON target dN/dS values and OFF target dN/dS values.
+SOPRANO was developed to analyse selection in specific regions of the genome. It uses a VEP annotated file to estimate ON-target dN/dS values and OFF-target dN/dS values. Two input files are mandatory:
+
+a) The set of mutations (missense/truncating) and their respective functional annotation using ensemblVEP. Mutations can be filtered a priori for specific purposes (i,e,   mutations leading to a neoantigen, mutations in non-expressed regions)
+b) The set of transcript coordinates where selection will be estimated. ON-dN/dS is the value calculated inside the coordinates provided using a 192-trinucleotide correction signature obtained "on-the-fly" from the input mutation file. Alternatively, the user can provide a pre-calculated trinucleotide mutation frequency file. Importantly, ON dN/dS and OFF dN/dS (the portion outside the coordinates provided) will be calculated only in transcripts defined in this file. 
 
 ## Installation
 
@@ -125,7 +128,7 @@ egrep -w -e "HLA-A2402|HLA-A0301|HLA-B1501|HLA-B1801|HLA-C0701|HLA-C0303|" data/
 egrep -w -e "HLA-A0205|HLA-A3303|HLA-B5301|HLA-B5301|HLA-C0401|HLA-C0401|" data/allhlaBinders_exprmean1.IEDBpeps.mgd.bed | sortBed -i stdin | mergeBed -i stdin > TCGA-FD-A6TC.exprmean1.IEDBpeps.SB.epitope.bed
 ```
 
-After obtaining the immunopeptidome file, you can run SOPRANO using the command following:
+After obtaining the immunopeptidome file following the steps before, you can run SOPRANO using the command following:
 ```{bash}
-./run_localSSBselection_v3.sh -i  TCGA-FD-A6TC.annotated -b TCGA-FD-A6TC.exprmean1.IEDBpeps.SB.epitope.bed -n TCGA-FD-A6TC.ssb192 -o results_immuno -m ssb192
+./run_localSSBselection_v4.sh -i  TCGA-FD-A6TC.annotated -b TCGA-FD-A6TC.exprmean1.IEDBpeps.SB.epitope.bed -n TCGA-FD-A6TC.ssb192 -o results_immuno -m ssb192
 ```
