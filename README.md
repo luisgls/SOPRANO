@@ -73,8 +73,9 @@ wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.chrom.sizes
 ```
 
 ## Output
-The output of SOPRANO consists of two lines and the header is:
 
+The output of SOPRANO consists of two lines and the header is:
+```{bash}
 coverage ON_dnds ON_lowci ON_highci ON_muts OFF_dnds OFF_lowci OFF_highci OFF_muts P-val ON_na ON_NA ON_ns ON_NS OFF_na OFF_NA OFF_ns OFF_NS
 
 coverage = Two options: ExonicOnly and ExonicIntronic. The latest should be used if there are intronic mutations in the mutation file. The algorithm uses intronic mutations to improve the background counts of silent mutations.
@@ -112,6 +113,8 @@ OFF_NA = Number of nonsilent sites (corrected) OFF target
 OFF_ns = Number of silent sites (corrected) OFF target
 
 OFF_NS = Number of silent sites (corrected) OFF target
+```
+
 
 ## Obtain patient specific dN/dS values
 To determine the patient specific immunopeptidome you should run the script get_epitope_HLA.pl:
