@@ -81,6 +81,11 @@ if [[ ! -s $FILE ]] ; then
     exit 1
 fi
 
+if [[ ! -s $FILE ]] ; then
+    echo "File $FILE is not there or is empty, aborting."
+    exit 1
+fi
+
 echo "STEP 2: Preparing coordinate files to intersect data"
 
 ###Get list of transcript from annotated Bed file, filter out those transcripts not present in the database.

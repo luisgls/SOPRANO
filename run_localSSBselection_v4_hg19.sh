@@ -83,6 +83,10 @@ if [[ ! -s $FILE ]] ; then
     echo "File $FILE is not there or is empty, aborting."
     exit 1
 fi
+if [[ ! -s $BED ]] ; then
+    echo "File $BED is not there or is empty, aborting."
+    exit 1
+fi
 
 echo "STEP 2: Preparing coordinate files to intersect data"
 
