@@ -139,7 +139,7 @@ egrep -w -e "HLA-A2402|HLA-A0301|HLA-B1501|HLA-B1801|HLA-C0701|HLA-C0303|" data/
 egrep -w -e "HLA-A0205|HLA-A3303|HLA-B5301|HLA-B5301|HLA-C0401|HLA-C0401|" data/allhlaBinders_exprmean1.IEDBpeps.mgd.bed | sortBed -i stdin | mergeBed -i stdin > TCGA-FD-A6TC.exprmean1.IEDBpeps.SB.epitope.bed
 ```
 
-In this previous case, the global immunopeptidome (containing all possible HLA alleles) was filtered by expression and similarity to positive T-cell assays epitopes from IEDB as described in the manuscript. Alternatively, users can obtain an unfiltered global immunopeptidome (now provided in https://www.synapse.org/#!Synapse:syn30371735) and perform the post-processing of each patient specific immunopeptidome with user-defined filters  
+In this previous case, the global immunopeptidome (containing all possible HLA alleles) was filtered by expression and similarity to positive T-cell assays epitopes from IEDB as described in the manuscript. Alternatively, users can obtain an unfiltered global immunopeptidome (now provided in https://www.synapse.org/#!Synapse:syn30371735) and perform the post-processing of each patient specific immunopeptidome with user-defined filters.  
 
 After obtaining the immunopeptidome file following the steps before, you can run SOPRANO using the command following:
 ```{bash}
@@ -147,5 +147,5 @@ After obtaining the immunopeptidome file following the steps before, you can run
 ```
 
 ## Important notes
-SOPRANO fails if there are 0 synonymous mutations inside the immunopeptidome. 
-
+- SOPRANO fails if there are 0 synonymous mutations inside the immunopeptidome.
+- Only mutations in those transcript IDs present on the immunopeptidome file will be used to estimate ON and OFF dN/dS. The rest of mutations will be discarded.
