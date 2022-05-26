@@ -62,6 +62,13 @@ filter_vep -i input.annotated -f "ExAC_AF < 0.1 or not ExAC_AF" --ontology --fil
   - g) The genome file used in SSB is a two column file that contains the info of the name of the fasta id (column 1) and the length of that sequence (column 2).
   - h) The UNIX system used should be able to recognize \t as a tab separator
 
+#### Using VCF annotated instead of ensembl format
+To convert a VCF annotated file to the input format for SOPRANO, the user can run vep-annotation-reporter from (https://vatools.readthedocs.io/en/latest/vep_annotation_reporter.html) using the following command:
+
+```{bash
+vep-annotation-reporter -o OUTPUT.tsv INPUT.vcf.annotated Allele Gene Feature Feature_type Consequence cDNA_position CDS_position Protein_position Amino_acids Codons Existing_variation 
+```
+
 ## Genomes
 To get hg19 fasta genome, you can download it from UCSC:
 
