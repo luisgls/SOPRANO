@@ -145,3 +145,7 @@ After obtaining the immunopeptidome file following the steps before, you can run
 ```{bash}
 ./run_localSSBselection_v4.sh -i  TCGA-FD-A6TC.annotated -b TCGA-FD-A6TC.exprmean1.IEDBpeps.SB.epitope.bed -n TCGA-FD-A6TC.ssb192 -o results_immuno -m ssb192
 ```
+
+## Important notes
+SOPRANO fails if there are 0 synonymous mutations inside the immunopeptidome. 
+
