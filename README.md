@@ -1,10 +1,9 @@
 # SOPRANO: Selection On PRotein ANnotated regiOns
-SOPRANO method was developed to quantify selection in specific regions of the genome (Zapata et al, in revision). It calculates ON- and OFF-target dN/dS using a set of annotated somatic point mutations and a genomic coordinates file. 
+SOPRANO method was developed to quantify selection in specific regions of the genome (Zapata et al, in revision). It calculates ON- and OFF-target dN/dS using a set of annotated somatic point mutations and a transcript coordinates file. 
 
-The two mandatory input files are:
-> The set of mutations (missense/truncating) and their respective functional annotation using ensemblVEP. Mutations can be filtered a priori by the user (i.e.   only using , mutations in non-expressed regions)
+> The set of mutations (missense/truncating) and their respective functional annotation using ensemblVEP. Mutations can be filtered a priori by the user (i.e. by predicted biding affinity of the mutated peptide or by expression status).
 
-> The set of transcript coordinates where selection will be estimated. ON-dN/dS is the value calculated inside the coordinates provided using a 192-trinucleotide correction signature obtained "on-the-fly" from the input mutation file. Alternatively, the user can provide a pre-calculated trinucleotide mutation frequency file. Importantly, ON dN/dS and OFF dN/dS (the portion outside the coordinates provided) will be calculated only in transcripts defined in this file. 
+> The set of ensembl transcript coordinates where selection will be estimated. ON-dN/dS is the value calculated inside the coordinates provided using a 192-trinucleotide correction signature obtained "on-the-fly" from the input mutation file. Alternatively, the user can provide a pre-calculated trinucleotide mutation frequency file. Importantly, ON dN/dS and OFF dN/dS (the portion outside the coordinates provided) will be calculated only in transcripts defined in this file. 
 
 ## Installation
 
@@ -16,7 +15,7 @@ cd /my/home/directory/SOPRANO
 
 git clone https://github.com/luisgls/SOPRANO.git 
 ```
-#### Edit the head of the master script: run_localSSBselection_v3.sh
+#### Edit the head of the master script (run_localSSBselection_v4_hg19.sh 
 - Specify the basedirectory of the installation
 BASEDIR=/my/home/directory/SOPRANO/
 
@@ -66,23 +65,23 @@ filter_vep -i input.annotated -f "ExAC_AF < 0.1 or not ExAC_AF" --ontology --fil
 #### Using VCF annotated instead of ensembl format
 To convert a VCF annotated file to the input format for SOPRANO, the user can run vep-annotation-reporter from (https://vatools.readthedocs.io/en/latest/vep_annotation_reporter.html) using the following command:
 
-```{bash
+```{bash}
 vep-annotation-reporter -o OUTPUT.tsv INPUT.vcf.annotated Allele Gene Feature Feature_type Consequence cDNA_position CDS_position Protein_position Amino_acids Codons Existing_variation 
 ```
 
 ## Genomes
 To get hg19 fasta genome, you can download it from UCSC:
 
-```{bash
+```{bash}
 wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.fa.gz
 
 wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.chrom.sizes
-
 ```
 
 ## Output
 
-The output of SOPRANO consists of two lines and the header is:
+The output of SOPRANO consists on:
+
 ```{bash}
 coverage ON_dnds ON_lowci ON_highci ON_muts OFF_dnds OFF_lowci OFF_highci OFF_muts P-val ON_na ON_NA ON_ns ON_NS OFF_na OFF_NA OFF_ns OFF_NS
 
@@ -94,7 +93,7 @@ ON_lowci = lower value for the 95% CI of the target
 
 ON_highci = upper value for the 95% CI of the target
 
-ON_muts = number of mutations observed within the target
+ON_muts = number of mutations observed inside the target region
 
 OFF_dnds = dN/dS of the OFF-target region provided in the bed file
 
@@ -102,7 +101,7 @@ OFF_lowci = lower value for the 95% CI of the OFF-target
 
 OFF_highci = upper value for the 95% CI of the OFF-target
 
-OFF_muts = number of mutations observed within the OFF-target
+OFF_muts = number of mutations observed outside the target region
 
 P-val = P-value estimated from the comparison of the confidence intervals from ON and OFF dN/dS values
 
@@ -122,7 +121,6 @@ OFF_ns = Number of silent sites (corrected) OFF target
 
 OFF_NS = Number of silent sites (corrected) OFF target
 ```
-
 
 ## Obtain patient specific dN/dS values
 To determine the patient specific immunopeptidome you should run the script get_epitope_HLA.pl:
@@ -147,6 +145,7 @@ After obtaining the immunopeptidome file following the steps before, you can run
 ./run_localSSBselection_v4.sh -i  TCGA-FD-A6TC.annotated -b TCGA-FD-A6TC.exprmean1.IEDBpeps.SB.epitope.bed -n TCGA-FD-A6TC.ssb192 -o results_immuno -m ssb192
 ```
 
-## Important notes
-- SOPRANO fails if there are 0 synonymous mutations inside the immunopeptidome.
+## Limitations
+- SOPRANO will fail if there are 0 synonymous mutations inside the immunopeptidome.
 - Only mutations in those transcript IDs present on the immunopeptidome file will be used to estimate ON and OFF dN/dS. The rest of mutations will be discarded.
+
