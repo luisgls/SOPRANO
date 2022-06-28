@@ -15,8 +15,8 @@ cd /my/home/directory/SOPRANO
 
 git clone https://github.com/luisgls/SOPRANO.git 
 ```
-#### Edit the head of the master script (run_localSSBselection_v4_hg19.sh 
-- Specify the basedirectory of the installation
+#### Edit the head of the master script (run_localSSBselection_v4_hg19.sh or run_localSSBselection_v4_grch38.sh)
+- Specify the base directory of the installation
 BASEDIR=/my/home/directory/SOPRANO/
 
 - Copy or link the genome file (e.g. hg19.genome) and the fasta file (e.g. hg19.fasta) to /my/home/directory/SOPRANO/data/
@@ -34,8 +34,6 @@ gzip -d ensemble_transcriptID.fasta.gz
 - R library tidyr
 - perl 5
 - GNU command line tools
-
-#The input for SOPRANO is the same as for SSB_selection, A VEP annotated TAB delimited input file.
 - Ensembl variant effect predictor v89 or higher (VEP)
 
 #### Important Notes
@@ -43,6 +41,7 @@ gzip -d ensemble_transcriptID.fasta.gz
 - tab encoding should be \t (might be a problem for windows/OSX versions)
 - genome file is a two column file specifying the fasta id and the length of the sequence (see how to obtain it at the bottom)
 - Restrict your input dataset to chromosomes 1-22 and X and Y. Remove the rest.
+- Genome file input chromosome format must coincide 
 
 ## Input file
 The input file is the standard output of variant effect predictor using the following command line (by providing to vep the ensembl default input file format)
@@ -122,7 +121,7 @@ OFF_ns = Number of silent sites (corrected) OFF target
 OFF_NS = Number of silent sites (corrected) OFF target
 ```
 
-## Obtain patient specific dN/dS values
+## Obtain patient specific immmune dN/dS values
 To determine the patient specific immunopeptidome you should run the script get_epitope_HLA.pl:
 
 As an example for :
