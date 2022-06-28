@@ -1,7 +1,7 @@
 # SOPRANO: Selection On PRotein ANnotated regiOns
-SOPRANO was developed to analyse selection in specific regions of the genome. It uses a VEP annotated file to estimate ON-target dN/dS values and OFF-target dN/dS values. Two input files are mandatory:
+SOPRANO method was developed to quantify selection in specific regions of the genome (Zapata et al, in revision). It calculates ON- and OFF-target dN/dS using a set of annotated somatic point mutations and a genomic coordinates file. 
 
-##### a) The set of mutations (missense/truncating) and their respective functional annotation using ensemblVEP. Mutations can be filtered a priori for specific purposes (i,e,   mutations leading to a neoantigen, mutations in non-expressed regions)
+##### a) The set of mutations (missense/truncating) and their respective functional annotation using ensemblVEP. Mutations can be filtered a priori by the user (i.e.   only using , mutations in non-expressed regions)
 
 ##### b) The set of transcript coordinates where selection will be estimated. ON-dN/dS is the value calculated inside the coordinates provided using a 192-trinucleotide correction signature obtained "on-the-fly" from the input mutation file. Alternatively, the user can provide a pre-calculated trinucleotide mutation frequency file. Importantly, ON dN/dS and OFF dN/dS (the portion outside the coordinates provided) will be calculated only in transcripts defined in this file. 
 
