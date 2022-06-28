@@ -1,9 +1,9 @@
 # SOPRANO: Selection On PRotein ANnotated regiOns
 SOPRANO method was developed to quantify selection in specific regions of the genome (Zapata et al, in revision). It calculates ON- and OFF-target dN/dS using a set of annotated somatic point mutations and a transcript coordinates file. 
 
-> The set of mutations (missense/truncating) and their respective functional annotation using ensemblVEP. Mutations can be filtered a priori by the user (i.e. by predicted biding affinity of the mutated peptide or by expression status).
+> The set of mutations (missense/truncating) and their respective functional annotation using ensemblVEP. Mutations can be filtered a priori by the user (i.e. by predicted binding affinity or by expression status).
 
-> The set of ensembl transcript coordinates where selection will be estimated. ON-dN/dS is the value calculated inside the coordinates provided using a 192-trinucleotide correction signature obtained "on-the-fly" from the input mutation file. Alternatively, the user can provide a pre-calculated trinucleotide mutation frequency file. Importantly, ON dN/dS and OFF dN/dS (the portion outside the coordinates provided) will be calculated only in transcripts defined in this file. 
+> The set of ensembl transcript coordinates where selection will be estimated. ON-dN/dS is the value calculated inside the coordinates provided using a 192-trinucleotide correction signature obtained "on-the-fly" from the input mutation file. Alternatively, the user can provide a pre-calculated trinucleotide mutation frequency file. Importantly, ON dN/dS and OFF dN/dS (the portion outside the coordinates provided) will be calculated only using transcripts defined in this file. 
 
 ## Installation
 
@@ -147,5 +147,6 @@ After obtaining the immunopeptidome file following the steps before, you can run
 
 ## Limitations
 - SOPRANO will fail if there are 0 synonymous mutations inside the immunopeptidome.
+- Results must be taken cautiously when low number of synonymous mutations inside the immunopeptidome.
 - Only mutations in those transcript IDs present on the immunopeptidome file will be used to estimate ON and OFF dN/dS. The rest of mutations will be discarded.
 
