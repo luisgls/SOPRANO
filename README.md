@@ -148,5 +148,5 @@ After obtaining the immunopeptidome file following the steps before, you can run
 - SOPRANO will fail if there are 0 synonymous mutations inside the immunopeptidome.
 - Results must be taken cautiously when low number of synonymous mutations inside the immunopeptidome.
 - Only mutations in those transcript IDs present on the immunopeptidome file will be used to estimate ON and OFF dN/dS. The rest of mutations will be discarded.
-- SOPRANO can use mutations in intronic regions when using whole genome sequencing data to improve the estimate of the neutral mutation rate of the gene. However, this strategy is experimental since not every study will have information on all possible mutations falling into intronic regions. 
+- SOPRANO can use mutations in intronic regions when using whole genome sequencing data to improve the estimate of the neutral mutation rate of the gene. However, this strategy is experimental since not every study will have information on all possible mutations falling into intronic regions (the length of the intronic region was estimated using hg19 reference). 
 
