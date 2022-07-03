@@ -146,7 +146,7 @@ After obtaining the immunopeptidome file following the steps before, you can run
 
 ## Limitations
 - SOPRANO will fail if there are 0 synonymous mutations inside the immunopeptidome.
-- Results must be taken cautiously when low number of synonymous mutations inside the immunopeptidome. See tutorial where we show the dependency of synonymous events versus the confidence interval of our estimate. In summary, one synonymous mutation in the immunopeptidome leads to 
+- Results must be taken cautiously when low number of synonymous mutations inside the immunopeptidome. See tutorial where we show the dependency of synonymous events versus the confidence interval length. In brief, one synonymous mutation in the immunopeptidome leads to a confidence interval length of ~0.6 and an 85% of misclassified cases
 - Only mutations in those transcript IDs present on the immunopeptidome file will be used to estimate ON and OFF dN/dS. The rest of mutations will be discarded.
 - SOPRANO can use mutations in intronic regions when using whole genome sequencing data to improve the estimate of the neutral mutation rate of the gene. However, this strategy is experimental since not every study will have information on all possible mutations falling into intronic regions (the length of the intronic region was estimated using hg19 reference). 
 
