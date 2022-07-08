@@ -15,11 +15,18 @@ cd /my/home/directory/SOPRANO
 
 git clone https://github.com/luisgls/SOPRANO.git 
 ```
-#### Edit the head of the master script (run_localSSBselection_v4_hg19.sh or run_localSSBselection_v4_grch38.sh)
+#### Edit the head content of the master script (run_localSSBselection_v4.sh)
 - Specify the base directory of the installation
 BASEDIR=/my/home/directory/SOPRANO/
 
-- Copy or link the genome file (e.g. hg19.genome) and the fasta file (e.g. hg19.fasta) to /my/home/directory/SOPRANO/data/
+- Specify a tmp directory
+TMP=/my/tmp/
+
+- Specify the reference genome sequence fasta file (e.g. hg19.fasta)
+FASTA=/my/directory/to/hg19.fasta
+
+- Specify the reference genome length file (e.g. hg19.genome)
+GENOME=/my/directory/to/hg19.genome
 
 #### Make sure you have your data folder with all necessary files to run SOPRANO
 ```{bash}
