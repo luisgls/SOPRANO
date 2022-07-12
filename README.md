@@ -16,7 +16,7 @@ cd tools
 git clone https://github.com/luisgls/SOPRANO.git 
 ```
 ### Install dependencies
-- bedtools 2.26.0 or higher (https://bedtools.readthedocs.io/en/latest/content/installation.html
+- bedtools 2.26.0 or higher (https://bedtools.readthedocs.io/en/latest/content/installation.html)
 - R-3.3.3 or higher (https://www.r-project.org/)
 - R library tidyr (https://tidyr.tidyverse.org/)
 - perl 5 (https://www.perl.org/get.html)
