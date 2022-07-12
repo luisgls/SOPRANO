@@ -23,6 +23,19 @@ git clone https://github.com/luisgls/SOPRANO.git
 - GNU command line tools (https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/)
 - Ensembl variant effect predictor v89 or higher (VEP) (https://www.ensembl.org/info/docs/tools/vep/index.html)
 
+#### Edit the head content of the master script (run_localSSBselection_v4.sh)
+- Specify the base directory of the installation
+BASEDIR=/my/home/directory/SOPRANO/
+
+- Specify a tmp directory
+TMP=/my/tmp/
+
+- Specify the reference genome sequence fasta file (e.g. hg19.fasta)
+FASTA=/my/directory/to/hg19.fasta
+
+- Specify the reference genome length file (e.g. hg19.genome)
+GENOME=/my/directory/to/hg19.genome
+
 #### Important Notes
 - earlier versions of bedtools will not work
 - tab encoding should be \t (might be a problem for windows/OSX versions)
