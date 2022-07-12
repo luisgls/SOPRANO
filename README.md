@@ -12,13 +12,9 @@ SOPRANO method was developed to quantify selection in specific regions of the ge
 ```{bash}
 mkdir tools
 cd tools
-mkdir SOPRANO
-cd SOPRANO
 
 git clone https://github.com/luisgls/SOPRANO.git 
 ```
-
-
 ### Install dependencies
 - bedtools 2.26.0 or higher (https://bedtools.readthedocs.io/en/latest/content/installation.html
 - R-3.3.3 or higher (https://www.r-project.org/)
