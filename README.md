@@ -10,8 +10,10 @@ SOPRANO method was developed to quantify selection in specific regions of the ge
 #### To install first create a directory called SOPRANO and then clone the tool to this directory
 
 ```{bash}
-mkdir /my/home/directory/SOPRANO
-cd /my/home/directory/SOPRANO
+mkdir tools
+cd tools
+mkdir SOPRANO
+cd SOPRANO
 
 git clone https://github.com/luisgls/SOPRANO.git 
 ```
