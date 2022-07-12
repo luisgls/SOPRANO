@@ -16,11 +16,11 @@ cd tools
 git clone https://github.com/luisgls/SOPRANO.git 
 ```
 ### Install dependencies
-- bedtools 2.26.0 or higher (https://bedtools.readthedocs.io/en/latest/content/installation.html)
-- R-3.3.3 or higher (https://www.r-project.org/)
+- GNU command line tools (https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/)
+- bedtools 2.26.0 or later (https://bedtools.readthedocs.io/en/latest/content/installation.html)
+- R-3.3.3 or later (https://www.r-project.org/). For quick install if you have brew (https://formulae.brew.sh/formula/r)
 - R library tidyr (https://tidyr.tidyverse.org/)
 - perl 5 (https://www.perl.org/get.html)
-- GNU command line tools (https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/)
 - Ensembl variant effect predictor v89 or higher (VEP) (https://www.ensembl.org/info/docs/tools/vep/index.html)
 
 #### Edit the head content of the master script (run_localSSBselection_v4.sh)
