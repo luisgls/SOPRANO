@@ -17,33 +17,15 @@ cd SOPRANO
 
 git clone https://github.com/luisgls/SOPRANO.git 
 ```
-#### Edit the head content of the master script (run_localSSBselection_v4.sh)
-- Specify the base directory of the installation
-> BASEDIR=/my/home/directory/SOPRANO/
 
-- Specify a tmp directory
-> TMP=/my/tmp/
 
-- Specify the reference genome sequence fasta file (e.g. hg19.fasta)
-> FASTA=/my/directory/to/hg19.fasta
-
-- Specify the reference genome length file (e.g. hg19.genome)
-> GENOME=/my/directory/to/hg19.genome
-
-#### Make sure you have your data folder with all necessary files to run SOPRANO
-```{bash}
-cd data
-gzip -d ensemble_transcriptID.fasta.gz
-```
-#### Now you should be able to run the tool if all the dependencies are met.
-
-### Dependencies
-- bedtools 2.26.0 or higher
-- R-3.3.3 or higher.
-- R library tidyr
-- perl 5
-- GNU command line tools
-- Ensembl variant effect predictor v89 or higher (VEP)
+### Install dependencies
+- bedtools 2.26.0 or higher (https://bedtools.readthedocs.io/en/latest/content/installation.html
+- R-3.3.3 or higher (https://www.r-project.org/)
+- R library tidyr (https://tidyr.tidyverse.org/)
+- perl 5 (https://www.perl.org/get.html)
+- GNU command line tools (https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/)
+- Ensembl variant effect predictor v89 or higher (VEP) (https://www.ensembl.org/info/docs/tools/vep/index.html)
 
 #### Important Notes
 - earlier versions of bedtools will not work
