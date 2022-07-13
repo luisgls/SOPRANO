@@ -16,14 +16,14 @@ file.name3 <- args[3]
 df<-read.csv(file.name,header=F,sep="\t")
 colnames(df)<-c("EnsembleID","Total","Class")
 
-df2<-pivot_wider(df, names_from = Class, values_from = Total, values_fill = 0, values_fn= length)
+df2<-pivot_wider(df, names_from = Class, values_from = Total, values_fill = list(Total = 0), values_fn= list(Total = length))
 
 ##Read calculation for total sites
 df.sites.extra<-read.csv(file.name2,header=F,sep="\t")
 df.sites.intra<-read.csv(file.name3,header=F,sep="\t")
 
 
-df3<-df2
+df3<-as.data.frame(df2)
 df3[is.na(df3)] <- 0
 
 na_epi<-sum(df3$extra_missense_variant)
