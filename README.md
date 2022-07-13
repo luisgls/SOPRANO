@@ -30,7 +30,7 @@ cp run_localSSBselection_v4.sh run_localSSBselection_v4_local.sh
 ```
 
 - Specify the base directory of the installation
-BASEDIR=/my/home/directory/SOPRANO/
+BASEDIR=/the/home/directory/SOPRANO/
 
 - Specify a tmp directory
 TMP=/my/tmp/
