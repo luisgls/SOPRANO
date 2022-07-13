@@ -7,11 +7,9 @@
 BASEDIR=/home/lortiz/tools/SOPRANO
 SUPA=$BASEDIR/data 
 TRANS=$BASEDIR/data/ensemble_transcriptID.fasta
-TMP=/tmp/
-FASTA=/home/lortiz/lortiz/databases/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa
-GENOME=/home/lortiz/lortiz/databases/Homo_sapiens.GRCh37.75.dna.primary_assembly.genome
-#FASTA=/home/lortiz/lortiz/databases/GRCh38_full_analysis_set_plus_decoy_hla_noCHR.fa
-#GENOME=/home/lortiz/lortiz/databases/GRCh38_full_analysis_set_plus_decoy_hla_noCHR.genome
+TMP=$BASEDIR/tmp/
+FASTA=/location/to/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa
+GENOME=/location/to/Homo_sapiens.GRCh37.75.dna.primary_assembly.genome
 
 
 ###Check arguments before running
@@ -23,7 +21,7 @@ if (($# < 8));  then
          -n Name - Give name to results
          Optional arguments:
 	 -m (ssb7)/ssb192
-         -r (target)/random - Calculate a dNdS value for a random region similar to the target)
+         -r (target)/random - Calculate a dNdS value for a random region similar to the target
          -e (true)/false - Exclude driver genes from calculation
          -t (bed file with regions to randomize)
 "
@@ -189,7 +187,7 @@ if [[ $MUTRATE = "ssb192" ]];
         perl $BASEDIR/scripts/fixsimulated.pl $FILE > $NAME
         cut -f1,5,7,11,12 $NAME | grep -v "#" | sed 's/_/\t/1' | sed 's/_/\t/1' | awk -F"\t" '{OFS="\t"}{if($6!="-"&&length($3)==3){print $1,$2-1,$2,$0}}' > $NAME.tmp
         #2 For context correction
-        bedtools slop -i $NAME.tmp -b 1 -g $GENOME | bedtools getfasta -fi $FASTA -bed stdin -tab | sed 's/:\|-/\t/g' > $NAME.tmp.bed
+        bedtools slop -i $NAME.tmp -b 1 -g $GENOME | bedtools getfasta -fi $FASTA -bed stdin -tab | sed 's/:/\t/g' | sed 's/-/\t/g' > $NAME.tmp.bed
         #3
         paste $NAME.tmp $NAME.tmp.bed | cut -f6,14 - |  awk -F "/" '{FS="/"}{OFS="\t"}{print $1,$2}' |  awk -F "" '{FS=""}{OFS="\t"}{if( ($1==$6) && ($3!="-") ){print "GOOD"}else{print "FAIL"}}' > $NAME.flag
         #4
@@ -261,7 +259,7 @@ else
     
     cut -f1,5,7,11,12 $NAME | grep -v "#" | sed 's/_/\t/1' | sed 's/_/\t/1' | awk -F"\t" '{OFS="\t"}{if($6!="-"&&length($3)==3){print $1,$2-1,$2,$0}}' > $NAME.tmp
     #2 For context correction
-    bedtools slop -i $NAME.tmp -b 1 -g $GENOME | bedtools getfasta -fi $FASTA -bed stdin -tab | sed 's/:\|-/\t/g' > $NAME.tmp.bed
+    bedtools slop -i $NAME.tmp -b 1 -g $GENOME | bedtools getfasta -fi $FASTA -bed stdin -tab | sed 's/:/\t/g' | sed 's/-/\t/g' > $NAME.tmp.bed
     #3
     paste $NAME.tmp $NAME.tmp.bed | cut -f6,14 - |  awk -F "/" '{FS="/"}{OFS="\t"}{print $1,$2}' |  awk -F "" '{FS=""}{OFS="\t"}{if( ($1==$6) && ($3!="-") ){print "GOOD"}else{print "FAIL"}}' > $NAME.flag
     #4
