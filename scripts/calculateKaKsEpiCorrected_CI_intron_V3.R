@@ -22,7 +22,7 @@ colnames(df)<-c("EnsembleID","Total","Class")
 ##From long to wide format
 #df2<-spread(df,Class,Total,fill=0)
 
-df2<-pivot_wider(df, names_from = Class, values_from = Total, values_fill = list(Total = 0), values_fn= list(length))
+df2<-pivot_wider(df, names_from = Class, values_from = Total, values_fill = list(Total = 0), values_fn= list(Total = length))
 df2<-as.data.frame(df2)
 
 ##Read calculation for total sites
