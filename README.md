@@ -16,14 +16,19 @@ cd tools
 git clone https://github.com/luisgls/SOPRANO.git 
 ```
 ### Install dependencies
-- GNU command line tools (https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/)
+- (For MacOSX users) GNU command line tools (https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/)
 - bedtools 2.26.0 or later (https://bedtools.readthedocs.io/en/latest/content/installation.html)
 - R-3.3.3 or later (https://www.r-project.org/). For quick install if you have brew (https://formulae.brew.sh/formula/r)
 - R library tidyr (https://tidyr.tidyverse.org/)
 - perl 5 (https://www.perl.org/get.html)
 - Ensembl variant effect predictor v89 or higher (VEP) (https://www.ensembl.org/info/docs/tools/vep/index.html)
 
-#### Edit the head content of the master script (run_localSSBselection_v4.sh)
+#### copy a local version and edit the master script to run locally (run_localSSBselection_v4.sh)
+
+```{bash}
+cp run_localSSBselection_v4.sh run_localSSBselection_v4_local.sh
+```
+
 - Specify the base directory of the installation
 BASEDIR=/my/home/directory/SOPRANO/
 
@@ -37,11 +42,11 @@ FASTA=/my/directory/to/hg19.fasta
 GENOME=/my/directory/to/hg19.genome
 
 #### Important Notes
-- earlier versions of bedtools will not work
-- tab encoding should be \t (might be a problem for windows/OSX versions)
-- genome file is a two column file specifying the fasta id and the length of the sequence (see how to obtain it at the bottom)
+- Earlier versions of bedtools will not work
+- Tab encoding should be \t (might be a problem for windows/OSX versions)
+- Genome length file is a two column file specifying the fasta id and the length of the sequence (see how to obtain it at the bottom)
 - Restrict your input dataset to chromosomes 1-22 and X and Y. Remove the rest.
-- Genome file input chromosome format must coincide 
+- Input chromosome number must coincide with reference genome and annotation (chr1 vs 1)
 
 ## Input file
 The input file is the standard output of variant effect predictor using the following command line (by providing to vep the ensembl default input file format)
@@ -50,7 +55,7 @@ If you want to filter putative germline variants use the option --plugin ExAC wh
 
 Example input files can be found on synapse: ID syn11681983
 
-#### Important points before running
+#### Notes before running
   - a) No header needed for input VEP file
   - b) VEP annotated first column must be in the format (chr_pos_ref/alt)
   - c) VEP annotated file must only have chromosomes that are 1,2,3,4...22 or uppercase X,Y
@@ -59,7 +64,7 @@ filter_vep -i input.annotated -f "ExAC_AF < 0.1 or not ExAC_AF" --ontology --fil
   - e) Be sure that you are using the GNU command line if you are running in a MacOS (https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/)
   - f) Add dependencies to your path for easy running or hardcode the scripts
   - g) The genome file used in SOPRANO or SSB is a two column file that contains the info of the name of the fasta id (column 1) and the length of that sequence (column 2).
-  - h) The UNIX system used should be able to recognize \t as a tab separator
+  - h) The UNIX system used should be able to recognize \t as a tab separator, some encodings may have problems on recognizing special characters
 
 #### Using VCF annotated instead of ensembl format
 To convert a VCF annotated file to the input format for SOPRANO, the user can run vep-annotation-reporter from (https://vatools.readthedocs.io/en/latest/vep_annotation_reporter.html) using the following command:
