@@ -23,7 +23,7 @@ git clone https://github.com/luisgls/SOPRANO.git
 - perl 5 (https://www.perl.org/get.html)
 - Ensembl variant effect predictor v89 or higher (VEP) (https://www.ensembl.org/info/docs/tools/vep/index.html)
 
-#### copy a local version and edit the master script to run locally (run_localSSBselection_v4.sh)
+#### Copy a local version and edit the master script to run locally (run_localSSBselection_v4.sh)
 
 ```{bash}
 cp run_localSSBselection_v4.sh run_localSSBselection_v4_local.sh
@@ -41,13 +41,6 @@ FASTA=/my/directory/to/hg19.fasta
 - Specify the reference genome length file (e.g. hg19.genome)
 GENOME=/my/directory/to/hg19.genome
 
-#### Important Notes
-- Earlier versions of bedtools will not work
-- Tab encoding should be \t (might be a problem for windows/OSX versions)
-- Genome length file is a two column file specifying the fasta id and the length of the sequence (see how to obtain it at the bottom)
-- Restrict your input dataset to chromosomes 1-22 and X and Y. Remove the rest.
-- Input chromosome number must coincide with reference genome and annotation (chr1 vs 1)
-
 ## Input file
 The input file is the standard output of variant effect predictor using the following command line (by providing to vep the ensembl default input file format)
 perl variant_effect_predictor.pl -i input -o input.annotated --cache --all_refseq --assembly GRCh37 --pick --symbol --no_stats --fasta genome.fasta
@@ -55,34 +48,7 @@ If you want to filter putative germline variants use the option --plugin ExAC wh
 
 Example input files can be found on synapse: ID syn11681983
 
-#### Notes before running
-  - a) No header needed for input VEP file
-  - b) VEP annotated first column must be in the format (chr_pos_ref/alt)
-  - c) VEP annotated file must only have chromosomes that are 1,2,3,4...22 or uppercase X,Y
-  - d) After you run vep with the option for ExAC frequencies, it would be necessary to remove all variants present in more than 0.1 percent of the population. You could apply the   filter using:
-filter_vep -i input.annotated -f "ExAC_AF < 0.1 or not ExAC_AF" --ontology --filter "Consequence is coding_sequence_variant" 
-  - e) Be sure that you are using the GNU command line if you are running in a MacOS (https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/)
-  - f) Add dependencies to your path for easy running or hardcode the scripts
-  - g) The genome file used in SOPRANO or SSB is a two column file that contains the info of the name of the fasta id (column 1) and the length of that sequence (column 2).
-  - h) The UNIX system used should be able to recognize \t as a tab separator, some encodings may have problems on recognizing special characters
-
-#### Using VCF annotated instead of ensembl format
-To convert a VCF annotated file to the input format for SOPRANO, the user can run vep-annotation-reporter from (https://vatools.readthedocs.io/en/latest/vep_annotation_reporter.html) using the following command:
-
-```{bash}
-vep-annotation-reporter -o OUTPUT.tsv INPUT.vcf.annotated Allele Gene Feature Feature_type Consequence cDNA_position CDS_position Protein_position Amino_acids Codons Existing_variation 
-```
-
-## Genomes
-To get hg19 fasta genome, you can download it from UCSC:
-
-```{bash}
-wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.fa.gz
-
-wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.chrom.sizes
-```
-
-## Output
+## Output file
 
 The output of SOPRANO consists on:
 
@@ -126,6 +92,38 @@ OFF_ns = Number of silent sites (corrected) OFF target
 OFF_NS = Number of silent sites (corrected) OFF target
 ```
 
+#### Notes before running
+- No header needed for input VEP file
+- VEP annotated first column must be in the format (chr_pos_ref/alt)
+- VEP annotated file must only have chromosomes that are 1,2,3,4...22 or uppercase X,Y
+- After you run vep with the option for ExAC frequencies, it would be necessary to remove all variants present in more than 0.1 percent of the population. You could apply the   filter using:
+filter_vep -i input.annotated -f "ExAC_AF < 0.1 or not ExAC_AF" --ontology --filter "Consequence is coding_sequence_variant" 
+-Be sure that you are using the GNU command line if you are running in a MacOS 
+- Add dependencies to your path for easy running or hardcode the scripts
+- The genome file used in SOPRANO or SSB is a two column file that contains the info of the name of the fasta id (column 1) and the length of that sequence (column 2).
+- The UNIX system used should be able to recognize \t as a tab separator, some encodings may have problems on recognizing special characters
+- Earlier versions of bedtools will not work
+- Tab encoding should be \t (might be a problem for windows/OSX versions)
+- Genome length file is a two column file specifying the fasta id and the length of the sequence (see how to obtain it at the bottom)
+- Restrict your input dataset to chromosomes 1-22 and X and Y. Remove the rest.
+- Input chromosome number must coincide with reference genome and annotation (chr1 vs 1)
+
+#### Using VCF annotated instead of ensembl format
+To convert a VCF annotated file to the input format for SOPRANO, the user can run vep-annotation-reporter from (https://vatools.readthedocs.io/en/latest/vep_annotation_reporter.html) using the following command:
+
+```{bash}
+vep-annotation-reporter -o OUTPUT.tsv INPUT.vcf.annotated Allele Gene Feature Feature_type Consequence cDNA_position CDS_position Protein_position Amino_acids Codons Existing_variation 
+```
+
+## Genomes
+To get hg19 fasta genome, you can download it from UCSC ():
+
+```{bash}
+wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.fa.gz
+
+wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.chrom.sizes
+```
+
 ## Obtain patient specific immmune dN/dS values
 To determine the patient specific immunopeptidome you should run the script get_epitope_HLA.pl:
 
@@ -145,8 +143,11 @@ egrep -w -e "HLA-A0205|HLA-A3303|HLA-B5301|HLA-B5301|HLA-C0401|HLA-C0401|" data/
 In this previous case, the global immunopeptidome (containing all possible HLA alleles) was filtered by expression and similarity to positive T-cell assays epitopes from IEDB as described in the manuscript. Alternatively, users can obtain an unfiltered global immunopeptidome (now provided in https://www.synapse.org/#!Synapse:syn30371735) and perform the post-processing of each patient specific immunopeptidome with user-defined filters.  
 
 After obtaining the immunopeptidome file following the steps before, you can run SOPRANO using the command following:
+
 ```{bash}
-./run_localSSBselection_v4.sh -i  TCGA-FD-A6TC.annotated -b TCGA-FD-A6TC.exprmean1.IEDBpeps.SB.epitope.bed -n TCGA-FD-A6TC.ssb192 -o results_immuno -m ssb192
+mkdir results_SOPRANO
+
+./run_localSSBselection_v4.sh -i examples/TCGA-05-4396-01A-21D-1855-08.annotated -b immunopeptidomes/human/TCGA-05-4396.Expressed.IEDBpeps.SB.epitope.bedd -n TCGA-05-4396 -o results_SOPRANO -m ssb192
 ```
 
 ## Limitations
