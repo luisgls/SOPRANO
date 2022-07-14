@@ -124,7 +124,7 @@ wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.fa.gz
 wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.chrom.sizes
 ```
 
-## Obtain patient specific immmune dN/dS values
+## Obtain patient specific immune dN/dS values
 To determine the patient specific immunopeptidome you should run the script get_epitope_HLA.pl:
 
 As an example for :
