@@ -7,7 +7,7 @@ SOPRANO method was developed to quantify selection in specific regions of the ge
 
 ## Installation
 
-#### To install first create a directory called SOPRANO and then clone the tool to this directory
+#### Create a directory and clone the repository
 
 ```{bash}
 mkdir tools
@@ -41,12 +41,24 @@ FASTA=/my/directory/to/hg19.fasta
 - Specify the reference genome length file (e.g. hg19.genome)
 GENOME=/my/directory/to/hg19.genome
 
-## Input file
+## Input file : Mutations 
+- Mutations annotated with VEP using default output format (https://www.ensembl.org/info/docs/tools/vep/vep_formats.html)
 The input file is the standard output of variant effect predictor using the following command line (by providing to vep the ensembl default input file format)
 perl variant_effect_predictor.pl -i input -o input.annotated --cache --all_refseq --assembly GRCh37 --pick --symbol --no_stats --fasta genome.fasta
 If you want to filter putative germline variants use the option --plugin ExAC when running VEP. It is important that you restrict your analysis to the list of ensemb transcripts observed in data folder, be aware of updates on the EnsemblID from previous versions.
 
+- VCF file annotated with VEP using VCF format
+To convert a VCF annotated file to the input format for SOPRANO, the user can run vep-annotation-reporter from (https://vatools.readthedocs.io/en/latest/vep_annotation_reporter.html) using the following command:
+
+```{bash}
+vep-annotation-reporter -o OUTPUT.tsv INPUT.vcf.annotated Allele Gene Feature Feature_type Consequence cDNA_position CDS_position Protein_position Amino_acids Codons Existing_variation 
+```
 Example input files can be found on synapse: ID syn11681983
+
+## Input file : Immunopeptidomes
+- A bed file containing the transcript name (ensembl transcript identifier), the start and end of the peptide that binds the MHC complex
+
+Example immunopeptidome files can be found under the immunopeptidome directory
 
 ## Output file
 
@@ -94,7 +106,7 @@ OFF_NS = Number of silent sites (corrected) OFF target
 
 #### Notes before running
 - No header needed for input VEP file
-- VEP annotated first column must be in the format (chr_pos_ref/alt)
+- VEP annotated first column must be in the format (chr_pos_ref/alt as described in https://www.ensembl.org/info/docs/tools/vep/vep_formats.html)
 - VEP annotated file must only have chromosomes that are 1,2,3,4...22 or uppercase X,Y
 - After you run vep with the option for ExAC frequencies, it would be necessary to remove all variants present in more than 0.1 percent of the population. You could apply the   filter using:
 filter_vep -i input.annotated -f "ExAC_AF < 0.1 or not ExAC_AF" --ontology --filter "Consequence is coding_sequence_variant" 
@@ -107,13 +119,6 @@ filter_vep -i input.annotated -f "ExAC_AF < 0.1 or not ExAC_AF" --ontology --fil
 - Genome length file is a two column file specifying the fasta id and the length of the sequence (see how to obtain it at the bottom)
 - Restrict your input dataset to chromosomes 1-22 and X and Y. Remove the rest.
 - Input chromosome number must coincide with reference genome and annotation (chr1 vs 1)
-
-#### Using VCF annotated instead of ensembl format
-To convert a VCF annotated file to the input format for SOPRANO, the user can run vep-annotation-reporter from (https://vatools.readthedocs.io/en/latest/vep_annotation_reporter.html) using the following command:
-
-```{bash}
-vep-annotation-reporter -o OUTPUT.tsv INPUT.vcf.annotated Allele Gene Feature Feature_type Consequence cDNA_position CDS_position Protein_position Amino_acids Codons Existing_variation 
-```
 
 ## Genomes
 To get hg19 fasta genome, you can download it from UCSC ():
