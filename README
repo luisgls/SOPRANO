@@ -1,9 +1,0 @@
-To see the help please run the command run_localSSBselection.sh without arguments
-
-Installation
-
-git clone git@github.com:luisgls/SOPRANO
-
-Go to data folder and unzip file EnsembletranscriptID.fasta.gz
-
-Also for version 2 (automatic correction of triplet frequencies) follow the instructions of luisgls/SSB_selection to install the genome and the fasta sequence file
