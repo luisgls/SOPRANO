@@ -4,7 +4,7 @@ open(FH, $ARGV[0]);
 use strict;
 
 #my $DIR="~/Projects/Immunopeptidome/binder";
-my $database="data/allhlaBinders_exprmean1.IEDBpeps.mgd.bed";
+my $database="data/allhlaBinders_exprmean1.IEDBpeps.bed";
 #my $database="/home/haem/lortiz/Projects/Immunopeptidome/run_all/allhlaBinders.IEDBpeps.bed";
 my $query="";
 
