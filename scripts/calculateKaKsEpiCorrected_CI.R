@@ -140,6 +140,11 @@ if(PVAL2 > 0 & PVAL2 <= 1) {
 } else {
   PVAL = PVAL1
 }
+cat(paste(paste("coverage","ON_dnds","ON_lowci","ON_highci","ON_muts",
+                "OFF_dnds","OFF_lowci","OFF_highci","OFF_muts",
+                "Pval",
+                "ON_na","ON_NA","ON_ns","ON_NS",
+                "OFF_na","OFF_NA","OFF_ns","OFF_NS","\t"),"\n"))
 
 cat(paste(paste("ExonicOnly",ALL.extraKaKs,finalLowCI,finalHighCI,N,
                 ALL.intraKaKs,finalLowCI2,finalHighCI2,N2,

@@ -107,6 +107,13 @@ if (PVAL < 0.0001) {
 
 ###PRint the results: TYPE,dNdS_target,lowCI_target,highCI_target,TotalMuts_Target,dNdS_nonTarget,lowCI_nontarget,highCI_nontarget,TotalMuts_nonTarget,Pvalue,
 ### nonsyn_target,nonsynsites_target,syn_target,synsites_target,nonsyn_nontarget,nonsynsites_nontarget,syn_nontarget,synsites_nontarget
+cat(paste(paste("coverage","ON_dnds","ON_lowci","ON_highci","ON_muts",
+                "OFF_dnds","OFF_lowci","OFF_highci","OFF_muts",
+                "Pval",
+                "ON_na","ON_NA","ON_ns","ON_NS",
+                "OFF_na","OFF_NA","OFF_ns","OFF_NS","\t"),"\n"))
+
+
 cat(paste(paste("ExonicOnly",ALL.extraKaKs,finalLowCI,finalHighCI,N,
                 ALL.intraKaKs,finalLowCI2,finalHighCI2,N2,
                 PVAL,
