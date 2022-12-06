@@ -16,7 +16,8 @@ file.name3 <- args[3]
 df<-read.csv(file.name,header=F,sep="\t")
 colnames(df)<-c("EnsembleID","Total","Class")
 
-df2<-pivot_wider(df, names_from = Class, values_from = Total, values_fill = list(Total = 0), values_fn= list(Total = length))
+#df2<-pivot_wider(df, names_from = Class, values_from = Total, values_fill = list(Total = 0), values_fn= list(Total = length))
+df2<-spread(df,Class,Total,fill=0)
 
 ##Read calculation for total sites
 df.sites.extra<-read.csv(file.name2,header=F,sep="\t")
