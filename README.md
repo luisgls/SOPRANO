@@ -120,13 +120,13 @@ filter_vep -i input.annotated -f "ExAC_AF < 0.1 or not ExAC_AF" --ontology --fil
 - Restrict your input dataset to chromosomes 1-22 and X and Y. Remove the rest.
 - Input chromosome number must coincide with reference genome and annotation (chr1 vs 1)
 
-## Genomes
-To get hg19 fasta genome, you can download it from UCSC ():
+## Genomes (Updated)
+To get hg19 fasta genome, you can download it from ensembl. Now we provide the matching chrom sizes file in the data directory:
 
 ```{bash}
-wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.fa.gz
+wget https://ftp.ensembl.org/pub/grch37/current/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.toplevel.fa.gz
 
-wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.chrom.sizes
+GENOME=~/tools/SOPRANO/data/chrom_GRCh37.sizes
 ```
 
 ## Obtain patient specific immune dN/dS values
