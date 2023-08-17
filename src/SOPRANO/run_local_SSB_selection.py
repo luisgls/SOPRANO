@@ -1,4 +1,5 @@
 import argparse
+import pathlib
 
 
 def main(*args, **kwargs):
@@ -12,7 +13,7 @@ if __name__ == "__main__":
         "--input",
         "-i",
         dest="input",
-        type=str,
+        type=pathlib.PosixPath,
         help="Prove the path to the input VEP annotated file.",
         required=True
     )
@@ -21,7 +22,7 @@ if __name__ == "__main__":
         "--bed_file",
         "-b",
         dest="bed_file",
-        type=str,
+        type=pathlib.PosixPath,
         help="Provide the path to the bed file with protein coordinates named "
              "by Transcript (ENSTXXXXXX 123 135)",
         required=True
@@ -31,7 +32,7 @@ if __name__ == "__main__":
         "--output",
         "-o",
         dest="output",
-        type=str,
+        type=pathlib.PosixPath,
         help="Provide the path to the output directory in which dN/dS results "
              "will be cached.",
         required=True
@@ -50,6 +51,7 @@ if __name__ == "__main__":
     analysis_params_group.add_argument(
         "-t",
         dest="bed_regions",
+        type=pathlib.PosixPath,
         help="Provide a bed file with regions to randomize."
     )
 
@@ -76,3 +78,4 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
