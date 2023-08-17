@@ -87,3 +87,5 @@ if __name__ == "__main__":
     _validate_input_path(args.bed_file)
     _validate_input_path(args.output)
     _validate_input_path(args.bed_regions, optional=True)
+
+    main(**args.__dict__)
