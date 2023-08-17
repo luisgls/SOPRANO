@@ -9,6 +9,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SOPRANO input arguments")
 
     parser.add_argument(
+        "--input",
+        "-i",
+        dest="input",
+        type=str,
+        help="Prove the path to the input VEP annotated file.",
+        required=True
+    )
+
+    parser.add_argument(
         "--bed_file",
         "-b",
         dest="bed_file",
