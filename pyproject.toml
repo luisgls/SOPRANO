@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "SOPRANO"
+description = "SOPRANO: Selection On PRotein ANnotated regiOns"
+readme = "README.md"
+authors = [
+    { name = "Luis Zapata", email = "Luis.Zapata@icr.ac.uk" },
+    { name = "ICR Scientific Software Group", email = "scientificcomputingteam@icr.ac.uk"},
+]
+maintainers = [
+    { name = "Luis Zapata", email = "Luis.Zapata@icr.ac.uk" },
+    { name = "ICR Scientific Software Group", email = "scientificcomputingteam@icr.ac.uk"},
+]
+requires-python = ">=3.8"
+dependencies = [
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Perl",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+  "Intended Audience :: Science/Research"
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "ruff",
+    "pytest",
+    "pytest-cov",
+    "isort",
+    "pre-commit",
+    "mypy"
+]
+
+[project.urls]
+Homepage = "https://github.com/instituteofcancerresearch/SOPRANO"
+"Bug Tracker" = "https://github.com/instituteofcancerresearch/SOPRANO/issues"
+Discussions = "https://github.com/bkmarzouk/symflation/discussions"
+
+[tool.hatch]
+version.source = "vcs"
+build.hooks.vcs.version-file = "src/SOPRANO/version.py"
+
+[tool.black]
+skip-string-normalization = false
+line-length = 79
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+line-length = 79
