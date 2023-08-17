@@ -7,7 +7,10 @@ def main(*args, **kwargs):
 
 
 def _validate_input_path(cli_path: pathlib.PosixPath, optional=False):
-    pass
+    if optional and cli_path is None:
+        pass
+    elif not cli_path.exists():
+        raise Exception(f"CLI input path does not exist: {cli_path}")
 
 
 if __name__ == "__main__":
