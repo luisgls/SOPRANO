@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     analysis_params_group.add_argument(
         "-t",
-        dest="bed_regions",
+        dest="target",
         type=pathlib.PosixPath,
         help="Provide a bed file with regions to randomize.",
     )
