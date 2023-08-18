@@ -1,4 +1,5 @@
 import pathlib
+import subprocess
 import tempfile
 
 
@@ -6,7 +7,7 @@ def filter_bed_file_transcript(
     bed_file: pathlib.PosixPath,
     transcript_file: pathlib.PosixPath,
     cache_dir: pathlib.PosixPath,
-):
+) -> pathlib.PosixPath:
     """
     cut -f1 $BED | sort -u |
         fgrep -w -f - $SUPA/ensemble_transcript_protein.length >
@@ -17,7 +18,27 @@ def filter_bed_file_transcript(
     :param cache_dir: cache directory
     :return: PosixPath to filtered file
     """
-    pass
+
+    # Get transcript file name and build filtered filename
+    transcript_file_name = transcript_file.name
+    transcript_filt_name = transcript_file_name.replace(
+        ".length", "_filt.length"
+    )
+
+    # Rebuild path for filtered file
+    transcript_filt_file = cache_dir.joinpath(transcript_filt_name)
+
+    # Create list of cmd line args and pass to subprocess
+    cli_str_cmd = (
+        f"cut -f1 {bed_file} | "
+        f"sort -u | "
+        f"fgrep -w -f - {transcript_file} > "
+        f"{transcript_filt_file}"
+    )
+    cli_cmd = cli_str_cmd.split(sep=" ")
+    subprocess.run(cli_cmd)
+
+    return transcript_filt_file
 
 
 def prepare_coordinate_files(
