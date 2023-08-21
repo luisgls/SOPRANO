@@ -3,12 +3,15 @@ import subprocess
 import tempfile
 
 
-def filter_bed_file_transcript(
+def _filter_transcript_file(
     bed_file: pathlib.PosixPath,
     transcript_file: pathlib.PosixPath,
     cache_dir: pathlib.PosixPath,
 ) -> pathlib.PosixPath:
     """
+
+    Implementation of methods in line 92-93
+
     cut -f1 $BED | sort -u |
         fgrep -w -f - $SUPA/ensemble_transcript_protein.length >
             $TMP/$NAME.protein_length_filt.txt
@@ -41,12 +44,15 @@ def filter_bed_file_transcript(
     return transcript_filt_file
 
 
-def prepare_coordinate_files(
+def filter_transcript_files(
     bed_file: pathlib.PosixPath,
     ensembl_transcript_protein: pathlib.PosixPath,
     ensembl_transcript: pathlib.PosixPath,
 ):
     """
+
+    Implementation of lines 92-93
+
     Get list of transcripts from annotated bed files, filtering out
     those transcripts not present in the database
 
@@ -58,11 +64,63 @@ def prepare_coordinate_files(
     tmp = tempfile.TemporaryDirectory()
     tmp_dir = pathlib.PosixPath(tmp.name)
 
-    ensemble_trans_prot_filt = filter_bed_file_transcript(
+    ensemble_trans_prot_filt = _filter_transcript_file(
         bed_file, ensembl_transcript_protein, tmp_dir
     )
-    ensemble_trans_filt = filter_bed_file_transcript(
+    ensemble_trans_filt = _filter_transcript_file(
         bed_file, ensembl_transcript, tmp_dir
     )
 
     return ensemble_trans_prot_filt, ensemble_trans_filt, tmp
+
+
+def randomize_protein_positions(*args, **kwargs):
+    """
+    Implementation of line 96
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    pass
+
+
+def randomize_target_regions(*args, **kwargs):
+    """
+    Implementatino of line 111
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    pass
+
+
+def exclude_positively_selected_genes(*args, **kwargs):
+    """
+    Implmentation of line 128
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    pass
+
+
+def get_protein_complement(*args, **kwargs):
+    """
+    Implmentatino of line 139
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    pass
+
+
+def transform_protein_coordinates(*args, **kwargs):
+    """
+    Implementation of line 144
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    pass
