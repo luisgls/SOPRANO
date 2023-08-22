@@ -1,0 +1,16 @@
+name: soprano
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - perl
+  - perl-dbi
+  - perl-bioperl
+  - perl-dbd-mysql
+  - biopython
+  - pyfaidx
+  - pip
+  - ca-certificates
+  - openssl
+  - pip:
+    - vatools
