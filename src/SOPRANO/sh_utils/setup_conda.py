@@ -7,9 +7,9 @@ CONDA_DIR = SOPRANO_SRC_DIR / "conda_env"
 
 def _create_new_condarc(conda_env_location: str, condarc_path: str) -> None:
     condarc_lines = [
-        "envs_dirs:",
-        "  - ~/.conda/envs",
-        f"  - {conda_env_location}",
+        "envs_dirs:\n",
+        "  - ~/.conda/envs\n",
+        f"  - {conda_env_location}\n",
     ]
 
     with open(condarc_path, "w") as f:
@@ -61,4 +61,4 @@ def prepare_condarc():
         _update_condarc(CONDA_DIR.as_posix(), conda_rc_path.as_posix())
 
 
-prepare_condarc()
+# prepare_condarc()
