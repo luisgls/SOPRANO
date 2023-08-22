@@ -1,8 +1,11 @@
+import os
 import pathlib
 import subprocess
 
 SH_UTILS_DIR = pathlib.Path(__file__).resolve().parent
 SOPRANO_SRC_DIR = SH_UTILS_DIR.parent
+
+# This should be pointed to within the ~/.condarc file
 CONDA_DIR = SOPRANO_SRC_DIR / "conda_env"
 
 
@@ -58,13 +61,21 @@ def _update_condarc(conda_env_location: str, condarc_path: str) -> None:
 
 def _has_conda():
     which_conda = subprocess.run(["which", "conda"], stdout=subprocess.PIPE)
+    return which_conda.returncode == 0
 
-    if which_conda.returncode != 0:
-        raise SystemError("Conda not detected!")
+
+def _has_mamba():
+    which_mamba = subprocess.run(["which", "mamba"], stdout=subprocess.PIPE)
+    return which_mamba.returncode == 0
+
+
+def _conda_env_exists() -> bool:
+    grep_env = os.system("conda env list | grep SOPRANO")
+    return grep_env == 0
 
 
 def _build_conda_env(conda_env_location: str):
-    pass
+    pass  # yml_path = SOPRANO_SRC_DIR / "local.yml"
 
 
 def prepare_condarc():
