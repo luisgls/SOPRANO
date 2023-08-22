@@ -1,4 +1,5 @@
 import pathlib
+import subprocess
 
 SH_UTILS_DIR = pathlib.Path(__file__).resolve().parent
 SOPRANO_SRC_DIR = SH_UTILS_DIR.parent
@@ -53,6 +54,17 @@ def _update_condarc(conda_env_location: str, condarc_path: str) -> None:
 
         with open(condarc_path, "w") as f:
             f.writelines(condarc_lines)
+
+
+def _has_conda():
+    which_conda = subprocess.run(["which", "conda"], stdout=subprocess.PIPE)
+
+    if which_conda.returncode != 0:
+        raise SystemError("Conda not detected!")
+
+
+def _build_conda_env(conda_env_location: str):
+    pass
 
 
 def prepare_condarc():
