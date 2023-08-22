@@ -76,7 +76,7 @@ def test_prepare_condarc():
 
 @pytest.mark.dependency(name="has_conda")
 def test__has_conda():
-    setup_conda._has_conda()
+    assert setup_conda._has_conda() or setup_conda._has_mamba()
 
 
 @pytest.mark.dependency(depends=["has_conda"])
