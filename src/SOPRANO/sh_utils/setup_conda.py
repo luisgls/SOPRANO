@@ -19,7 +19,7 @@ def _create_new_condarc(conda_env_location: str, condarc_path: str) -> None:
 def _update_condarc(conda_env_location: str, condarc_path: str) -> None:
     local_env_in_rc = False
     envs_clause_in_rc = False
-    envs_clause = "envs_dirs:"
+    envs_clause = "envs_dirs:\n"
     envs_clause_idx = -1
 
     # Read lines from condarc file
@@ -40,16 +40,19 @@ def _update_condarc(conda_env_location: str, condarc_path: str) -> None:
             # crate new line with custom location
             # and insert into list of original lines
             yml_tab_spacing = condarc_lines[envs_clause_idx + 1].split("-")[0]
-            new_line = f"{yml_tab_spacing}- {conda_env_location}"
+            new_line = f"{yml_tab_spacing}- {conda_env_location}\n"
             condarc_lines.insert(envs_clause_idx + 2, new_line)
         else:
             # Insert envs clause into start of rc file
             # then insert standard and custom locations line
-            std_line = "  - ~/.conda/envs"
-            new_line = f"  - {conda_env_location}"
+            std_line = "  - ~/.conda/envs\n"
+            new_line = f"  - {conda_env_location}\n"
             condarc_lines.insert(0, envs_clause)
             condarc_lines.insert(1, std_line)
             condarc_lines.insert(2, new_line)
+
+        with open(condarc_path, "w") as f:
+            f.writelines(condarc_lines)
 
 
 def prepare_condarc():
