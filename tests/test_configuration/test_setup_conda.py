@@ -1,15 +1,9 @@
 import pathlib
 import tempfile
 
+import pytest
+
 from SOPRANO.sh_utils import setup_conda
-
-
-def test_running_conda():
-    """
-    TODO: Check whether python interpreter is linked to conda env
-    :return:
-    """
-    pass
 
 
 def test__create_new_condarc():
@@ -74,4 +68,14 @@ def test__update_condarc():
 
 
 def test_prepare_condarc():
+    pass  # assert False
+
+
+@pytest.mark.dependency(name="has_conda")
+def test__has_conda():
+    setup_conda._has_conda()
+
+
+@pytest.mark.dependency(depends=["has_conda"])
+def test__build_conda_env():
     assert False
