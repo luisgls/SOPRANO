@@ -147,3 +147,9 @@ def vep_installed():
     which_vep = subprocess.run(["which", "vep"], stdout=subprocess.PIPE)
     # TODO: add secondary check that vep is inside of conda env
     return which_vep.returncode == 0
+
+
+def bedtools_installed():
+    which_vep = subprocess.run(["which", "bedtools"], stdout=subprocess.PIPE)
+    # TODO: add secondary check that bedtools is inside of conda env
+    return which_vep.returncode == 0

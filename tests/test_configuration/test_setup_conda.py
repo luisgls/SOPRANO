@@ -90,3 +90,7 @@ def test_running_soprano_env():
 
 def test_vep_installed():
     assert setup_conda.vep_installed()
+
+
+def test_bedtools_installed():
+    assert setup_conda.bedtools_installed()
