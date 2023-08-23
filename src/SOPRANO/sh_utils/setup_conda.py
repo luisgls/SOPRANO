@@ -6,10 +6,12 @@ SH_UTILS_DIR = pathlib.Path(__file__).resolve().parent
 SOPRANO_SRC_DIR = SH_UTILS_DIR.parent
 
 # This should be pointed to within the ~/.condarc file
+# TODO: no longer needed...
 CONDA_DIR = SOPRANO_SRC_DIR / "conda_env"
 
 
 def _create_new_condarc(conda_env_location: str, condarc_path: str) -> None:
+    # TODO: no longer needed...
     condarc_lines = [
         "envs_dirs:\n",
         "  - ~/.conda/envs\n",
@@ -21,6 +23,7 @@ def _create_new_condarc(conda_env_location: str, condarc_path: str) -> None:
 
 
 def _update_condarc(conda_env_location: str, condarc_path: str) -> None:
+    # TODO: no longer needed...
     local_env_in_rc = False
     envs_clause_in_rc = False
     envs_clause = "envs_dirs:\n"
@@ -69,16 +72,64 @@ def _has_mamba():
     return which_mamba.returncode == 0
 
 
-def _conda_env_exists() -> bool:
-    grep_env = os.system("conda env list | grep SOPRANO")
-    return grep_env == 0
+def _conda_env_exists(_flavor="conda") -> bool:
+    # TODO: no longer needed...
+    grep_env = subprocess.run([_flavor, "env", "list"], stdout=subprocess.PIPE)
+    return grep_env.returncode == 0
+
+
+def _update_conda_env(conda_env_location: str):
+    # TODO: no longer needed...
+    pass
+
+
+class CondaEnvironmentFailure(Exception):
+    pass
 
 
 def _build_conda_env(conda_env_location: str):
-    pass  # yml_path = SOPRANO_SRC_DIR / "local.yml"
+    # TODO: no longer needed...
+    yml_path = SOPRANO_SRC_DIR / "local.yml"
+
+    if _conda_env_exists():
+        #     _update_conda_env(conda_env_location)
+        # else:
+        conda_exec = "mamba" if _has_mamba() else "conda"
+
+        soprano_env_location = os.path.join(conda_env_location, "SOPRANO")
+
+        if os.path.exists(soprano_env_location):
+            raise OSError(
+                f"'SOPRANO' environment directory already exists: "
+                f"{soprano_env_location}"
+            )
+
+        print("-- Building conda environment, this will take some time...")
+        os.environ["CONDA_ALWAYS_YES"] = "true"
+        env_build_output = subprocess.run(
+            [
+                f"{conda_exec}",
+                "env",
+                "create",
+                "--prefix",
+                f"{soprano_env_location}",
+                "--file",
+                f"{yml_path}",
+            ],
+            stdout=subprocess.PIPE,
+        )
+
+        if env_build_output.returncode != 0:
+            raise CondaEnvironmentFailure(
+                "Non-zero exit code generated from conda environment build."
+            )
+
+
+_build_conda_env(CONDA_DIR.as_posix())
 
 
 def prepare_condarc():
+    # TODO: no longer needed...
     conda_rc_path = pathlib.Path.home() / ".condarc"
 
     if not conda_rc_path.exists():
