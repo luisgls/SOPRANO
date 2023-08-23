@@ -125,9 +125,6 @@ def _build_conda_env(conda_env_location: str):
             )
 
 
-_build_conda_env(CONDA_DIR.as_posix())
-
-
 def prepare_condarc():
     # TODO: no longer needed...
     conda_rc_path = pathlib.Path.home() / ".condarc"
@@ -138,4 +135,9 @@ def prepare_condarc():
         _update_condarc(CONDA_DIR.as_posix(), conda_rc_path.as_posix())
 
 
-# prepare_condarc()
+def running_soprano_env():
+    try:
+        return os.environ["CONDA_DEFAULT_ENV"] == "soprano-dev"
+    except KeyError:
+        print("-- Warning: No conda env de")
+        return False

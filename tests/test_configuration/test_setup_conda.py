@@ -82,3 +82,7 @@ def test__has_conda():
 @pytest.mark.dependency(depends=["has_conda"])
 def test__build_conda_env():
     pass  # assert False
+
+
+def test_running_soprano_env():
+    assert setup_conda.running_soprano_env()
