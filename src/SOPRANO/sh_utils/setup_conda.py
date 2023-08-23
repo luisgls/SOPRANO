@@ -141,3 +141,9 @@ def running_soprano_env():
     except KeyError:
         print("-- Warning: No conda env de")
         return False
+
+
+def vep_installed():
+    which_vep = subprocess.run(["which", "vep"], stdout=subprocess.PIPE)
+    # TODO: add secondary check that vep is inside of conda env
+    return which_vep.returncode == 0

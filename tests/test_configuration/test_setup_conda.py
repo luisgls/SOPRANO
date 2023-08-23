@@ -86,3 +86,7 @@ def test__build_conda_env():
 
 def test_running_soprano_env():
     assert setup_conda.running_soprano_env()
+
+
+def test_vep_installed():
+    assert setup_conda.vep_installed()
