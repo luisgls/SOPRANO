@@ -1,6 +1,12 @@
 name: SOPRANO Tests
 
-on: [push]
+on:
+  push:
+    branches:
+      - python-dev
+  pull_request:
+    branches:
+      - python
 
 jobs:
   lint:
@@ -20,4 +26,4 @@ jobs:
           pip install ruff
       - name: Lint with ruff
         run: |
-          ruff --format=github --target-version=py311 --line-length=79.
+          ruff --format=github --target-version=py311 --line-length 79 .
