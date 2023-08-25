@@ -38,6 +38,7 @@ dev = [
     "ruff",
     "pytest",
     "pytest-cov",
+    "pytest-dependency",
     "isort",
     "pre-commit",
     "mypy"
