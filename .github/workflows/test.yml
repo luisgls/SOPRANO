@@ -42,22 +42,18 @@ jobs:
         with:
           environment-file: src/SOPRANO/local.yml
           init-shell: bash
-#      - uses: conda-incubator/setup-miniconda@v2
-#        with:
-#          environment-file: src/SOPRANO/local.yml
-#          python-version: ${{ matrix.python-version }}
-#          auto-activate-base: false
-      - name: Activate environment
+      - name: Install SOPRANO
         shell: bash -l {0}
         run: |
-          cat ~/.bashrc
           micromamba activate soprano-dev
-      - name: Install SOPRANO
-        run: |
           pip install -e .[ci]
       - name: Test conda environment
+        shell: bash -l {0}
         run: |
+          micromamba activate soprano-dev
           pytest tests/test_configuration
       - name: Test units
+        shell: bash -l {0}
         run: |
+          micromamba activate soprano-dev
           pytest tests/test_units
