@@ -4,9 +4,6 @@ channels:
   - bioconda
 dependencies:
   - perl
-#  - perl-dbi
-#  - perl-bioperl
-#  - perl-dbd-mysql
   - ensembl-vep=110.1
   - bedtools=2.31.0
   - python==3.11
