@@ -37,17 +37,15 @@ jobs:
     name: test with python ${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
+      - uses: actions/checkout@v3
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          auto-update-conda: true
+          environment-file: src/SOPRANO/local.yml
           python-version: ${{ matrix.python-version }}
-      - uses: actions/checkout@v3
-      - name: Configure environment
-        shell: bash
+          auto-activate-base: false
+      - name: Install SOPRANO
         run: |
-          chmod +x setup.sh
-          chmod +x src/SOPRANO/bash_installers/.setup_env.sh
-          . setup.sh ci
+          pip install -e .[ci]
       - name: Test conda environment
         run: |
           pytest tests/test_configuration
