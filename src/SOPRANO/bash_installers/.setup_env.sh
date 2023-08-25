@@ -55,4 +55,4 @@ else
 	echo "No conda variant available to build environment!"
 fi
 
-pip install -e .[dev]
+eval $_PIP_CMD
