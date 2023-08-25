@@ -38,11 +38,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: src/SOPRANO/local.yml
-          python-version: ${{ matrix.python-version }}
-          auto-activate-base: false
+#      - uses: conda-incubator/setup-miniconda@v2
+#        with:
+#          environment-file: src/SOPRANO/local.yml
+#          python-version: ${{ matrix.python-version }}
+#          auto-activate-base: false
+      - name: Activate environment
+        run: |
+          mamba activate soprano-dev
       - name: Install SOPRANO
         run: |
           pip install -e .[ci]
