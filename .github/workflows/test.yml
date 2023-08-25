@@ -22,13 +22,16 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install ruff
+      - name: Install ruff and black
         run: |
           python -m pip install --upgrade pip
-          pip install ruff
-      - name: Lint with ruff
+          pip install ruff black
+      - name: Lint check with ruff
         run: |
           ruff --format=github --target-version=py311 --line-length 79 .
+      - name: Style check with black
+        run: |
+          black ./ --check --line-length 79
   test:
     strategy:
       matrix:
