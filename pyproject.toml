@@ -43,6 +43,11 @@ dev = [
     "pre-commit",
     "mypy"
 ]
+ci = [
+    "pytest",
+    "pytest-dependency",
+    "ruff"
+]
 
 [project.urls]
 Homepage = "https://github.com/instituteofcancerresearch/SOPRANO"
