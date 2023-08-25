@@ -48,7 +48,7 @@ jobs:
 #          auto-activate-base: false
       - name: Activate environment
         run: |
-          mamba activate soprano-dev
+          micromamba activate soprano-dev
       - name: Install SOPRANO
         run: |
           pip install -e .[ci]
