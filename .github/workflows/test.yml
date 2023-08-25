@@ -10,10 +10,12 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
+        os: ["ubuntu-latest"]
         python-version: ["3.11"]
+    name: lint with python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -27,3 +29,25 @@ jobs:
       - name: Lint with ruff
         run: |
           ruff --format=github --target-version=py311 --line-length 79 .
+  test:
+    strategy:
+      matrix:
+        os: ["ubuntu-latest"]  # To include macos-latest
+        python-version: ["3.11"]
+    name: test with python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+      - name: Configure environment
+        shell: bash -el {0}
+        run: |
+          . setup.sh ci
+      - name: Test conda environment
+        run: |
+          pytest tests/test_configuration
+      - name: Test units
+        run: |
+          pytest tests/test_units
