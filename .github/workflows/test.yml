@@ -41,6 +41,7 @@ jobs:
       - uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: src/SOPRANO/local.yml
+          init-shell: bash
 #      - uses: conda-incubator/setup-miniconda@v2
 #        with:
 #          environment-file: src/SOPRANO/local.yml
