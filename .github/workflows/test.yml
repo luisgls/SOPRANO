@@ -43,8 +43,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: actions/checkout@v3
       - name: Configure environment
-        shell: bash -el {0}
+        shell: bash
         run: |
+          chmod +x setup.sh
+          chmod +x src/SOPRANO/bash_installers/.setup_env.sh
           . setup.sh ci
       - name: Test conda environment
         run: |
