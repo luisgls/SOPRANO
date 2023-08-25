@@ -3,7 +3,7 @@ import tempfile
 
 import pytest
 
-from SOPRANO.sh_utils import setup_conda
+from SOPRANO.env_utils import setup_conda
 
 
 @pytest.mark.dependency(name="create_rc")
