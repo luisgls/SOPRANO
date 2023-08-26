@@ -39,4 +39,4 @@ def test__filter_transcript_file():
         #       expected
 
 
-# test__filter_transcript_file()
+test__filter_transcript_file()

@@ -13,7 +13,7 @@ def process_output_to_file(
         raise FileExistsError(path)
 
     with open(path, "w") as f:
-        f.writelines(ps.stdout)
+        f.writelines(process_output_to_string(ps))
 
 
 def pipe(
