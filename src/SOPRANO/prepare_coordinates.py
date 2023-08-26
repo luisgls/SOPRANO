@@ -1,5 +1,4 @@
 import pathlib
-import tempfile
 
 from SOPRANO.sh_utils import subprocess_pipes
 
@@ -67,9 +66,10 @@ def _filter_transcript_file(
 
 
 def filter_transcript_files(
-    bed_file: pathlib.PosixPath,
-    ensembl_transcript_protein: pathlib.PosixPath,
-    ensembl_transcript: pathlib.PosixPath,
+    bed_file: pathlib.Path,
+    ensembl_transcript_protein: pathlib.Path,
+    ensembl_transcript: pathlib.Path,
+    cache_dir: pathlib.Path,
 ):
     """
 
@@ -78,22 +78,21 @@ def filter_transcript_files(
     Get list of transcripts from annotated bed files, filtering out
     those transcripts not present in the database
 
-    :param bed_file:
-    :param ensembl_transcript_protein:
-    :param ensembl_transcript:
-    :return: Posix paths to filtered transcripts and temporary directory object
+    :param bed_file: input bedfile
+    :param ensembl_transcript_protein: ensembl transcript for protein
+    :param ensembl_transcript: ensembl transcript for (?)
+    :param cache_dir: directory to cache results into
+    :return: Posix paths to filtered transcripts
     """
-    tmp = tempfile.TemporaryDirectory()
-    tmp_dir = pathlib.PosixPath(tmp.name)
 
     ensemble_trans_prot_filt = _filter_transcript_file(
-        bed_file, ensembl_transcript_protein, tmp_dir
+        bed_file, ensembl_transcript_protein, cache_dir
     )
     ensemble_trans_filt = _filter_transcript_file(
-        bed_file, ensembl_transcript, tmp_dir
+        bed_file, ensembl_transcript, cache_dir
     )
 
-    return ensemble_trans_prot_filt, ensemble_trans_filt, tmp
+    return ensemble_trans_prot_filt, ensemble_trans_filt
 
 
 def randomize_protein_positions(*args, **kwargs):
