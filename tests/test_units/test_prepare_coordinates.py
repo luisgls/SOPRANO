@@ -16,7 +16,7 @@ def test__filter_transcript_file():
         "ENST00000000002 12\n",
     ]
 
-    # expected_content = ["ENST00000000001\n", "ENST00000000002\n"]
+    expected_content = ["ENST00000000001", "ENST00000000002"]
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmp_dir = pathlib.Path(tmp_dir)
@@ -35,8 +35,8 @@ def test__filter_transcript_file():
 
         assert filt_path.exists(), filt_path
 
-        # TODO: Check output from filtered lines is as
-        #       expected
+        with open(filt_path, "r") as f:
+            written_content = f.readlines()
 
-
-test__filter_transcript_file()
+        for e, w in zip(expected_content, written_content):
+            assert e == w.strip()

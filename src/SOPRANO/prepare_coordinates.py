@@ -1,6 +1,7 @@
 import pathlib
-import subprocess
 import tempfile
+
+from SOPRANO.sh_utils import subprocess_pipes
 
 
 def _filter_transcript_file(
@@ -54,24 +55,13 @@ def _filter_transcript_file(
     # Rebuild path for filtered file
     transcript_filt_file = cache_dir.joinpath(transcript_filt_name)
 
-    # Create list of cmd line args and pass to subprocess
-    cli_str_cmd = (
-        f"cut -f1 {bed_file} | "
-        f"sort -u | "
-        f"fgrep -w -f - {transcript_file} > "
-        f"{transcript_filt_file}"
+    # Perform filtering
+    subprocess_pipes.pipe(
+        ["cut", "f1", bed_file.as_posix()],
+        ["sort", "-u"],
+        ["fgrep", "-w", "-f", "-", transcript_file.as_posix()],
+        output_path=transcript_filt_file,
     )
-    cli_cmd = cli_str_cmd.split(sep=" ")
-
-    print(cli_cmd)
-
-    x = subprocess.run(cli_cmd, stdout=subprocess.PIPE)
-    print(x.stdout)
-    print(x.stderr)
-
-    # TODO: Clearly need generalization of piping since
-    #       this doesn't work out of the box with subprocess
-    #       without invoking shell :S
 
     return transcript_filt_file
 
