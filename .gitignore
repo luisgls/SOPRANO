@@ -65,3 +65,4 @@ dmypy.json
 
 # Ruff linting
 /.ruff_cache/
+src/SOPRANO/tmp/
