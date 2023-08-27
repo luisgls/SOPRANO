@@ -144,22 +144,44 @@ def _define_excluded_regions_for_randomization(
     :return:
     """
     # Original cut on bed file (path)
-    cut_bed_path = tmpdir.joinpath(f"{name}.exclusion.ori")
+    ori_path = tmpdir.joinpath(f"{name}.exclusion.ori")
 
-    x = subprocess.run(
+    cut_bed_proc = subprocess.run(
         ["cut", "-f1,2,3", bed_path.as_posix()], capture_output=True
     )
 
-    subprocess_pipes.process_output_to_file(x, path=cut_bed_path)
+    subprocess_pipes.process_output_to_file(cut_bed_proc, path=ori_path)
 
     subprocess_pipes.pipe(
         ["cut", "-f1", bed_path.as_posix()],
         ["awk", '{OFS="\t"}{print $1,0,2}'],
         ["sortBed", "-i", "stdin"],
-        output_path=cut_bed_path,
+        output_path=ori_path,
         mode="a",
         overwrite=True,
     )
+
+
+def _sort_excluded_regions_for_randomization(
+    name: str, bed_path: pathlib.Path, tmpdir: pathlib.Path
+):
+    """
+    Implement
+    sortBed -i $TMP/$NAME.exclusion.ori > $TMP/$NAME.exclusion.bed
+    bedtools shuffle -i $BED -g $TMP/$NAME.protein_length_filt.txt
+        -excl $TMP/$NAME.exclusion.bed -chrom > $TMP/$NAME.epitopes.ori2
+
+
+    :param name:
+    :param bed_path:
+    :param tmpdir:
+    :return:
+    """
+
+    pass
+
+    # ori_path = tmpdir.joinpath(f"{name}.exclusion.ori")
+    # sorted_path = tmpdir.joinpath(f"{name}.exclusion.bed")
 
 
 def randomize_protein_positions(*args, **kwargs):
