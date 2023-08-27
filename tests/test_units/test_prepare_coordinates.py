@@ -6,6 +6,10 @@ import pytest
 import SOPRANO.prepare_coordinates as prep_coords
 
 
+def tab_line(*args):
+    return "\t".join([str(arg) for arg in args]) + "\n"
+
+
 @pytest.mark.dependency(name="_filter_transcript_file")
 def test__filter_transcript_file():
     mock_bed_content = [
@@ -85,3 +89,47 @@ def test_filter_transcript_files():
 
         assert filt_trans_path.exists()
         assert filt_protein_path.exists()
+
+
+def test__define_excluded_regions_for_randomization():
+    mock_bed_content = [
+        tab_line("chr1", 800, 1000, 24),
+        tab_line("chr1", 80, 180, 24),
+        tab_line("chr1", 1, 10, 24),
+        tab_line("chr1", 750, 10000, 24),
+    ]
+    expected_bed_content = [
+        tab_line("chr1", 800, 1000),
+        tab_line("chr1", 80, 180),
+        tab_line("chr1", 1, 10),
+        tab_line("chr1", 750, 10000),
+        tab_line("chr1", 0, 2),
+        tab_line("chr1", 0, 2),
+        tab_line("chr1", 0, 2),
+        tab_line("chr1", 0, 2),
+    ]
+
+    with tempfile.TemporaryDirectory() as _tmpdir:
+        tmpdir = pathlib.Path(_tmpdir)
+        name = "test"
+        bed_path = tmpdir.joinpath("bed.file")
+
+        with open(bed_path, "w") as f:
+            f.writelines(mock_bed_content)
+
+        result_path = tmpdir.joinpath(f"{name}.exclusion.ori")
+
+        prep_coords._define_excluded_regions_for_randomization(
+            name, bed_path, tmpdir
+        )
+
+        assert result_path.exists()
+
+        with open(result_path, "r") as f:
+            written_content = f.readlines()
+
+        print(written_content)
+        assert len(expected_bed_content) == len(written_content)
+
+        for e, w in zip(expected_bed_content, written_content):
+            assert e.strip() == w.strip()

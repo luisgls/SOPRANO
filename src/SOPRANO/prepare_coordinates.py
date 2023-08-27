@@ -1,6 +1,11 @@
 import pathlib
+import subprocess
 
 from SOPRANO.sh_utils import subprocess_pipes
+
+
+class DependentDataError(Exception):
+    pass
 
 
 def _filter_transcript_file(
@@ -93,6 +98,68 @@ def filter_transcript_files(
     )
 
     return ensemble_trans_prot_filt, ensemble_trans_filt
+
+
+def _define_excluded_regions_for_randomization(
+    name: str, bed_path: pathlib.Path, tmpdir: pathlib.Path
+):
+    """
+    We want to execute the commands
+    cut -f1,2,3 $BED > $TMP/$NAME.exclusion.ori
+    cut -f1 $BED |
+        awk '{OFS="\t"}{print $1,0,2}' |
+            sortBed -i stdin  >> $TMP/$NAME.exclusion.ori
+
+    the first command simply extracts the first 3 cols of the bed file
+    and stores them in a tmp file *.exclusion.ori
+
+    the second command pipes the following:
+    1 - cut -f1 $BED
+        extract the first col from bed file; then
+    2 - awk '{OFS="\t"}{print $1,0,2}'
+        uses awk to process the output from 1;
+        {OFS='\t'} tab delimits the output
+        {print $1,0,2} prints the first column ($1) then
+        delimits the numbers 0 and 2
+
+        Summary: this pipe tab delimits the first col, followed
+        by the numbers 0 and 2
+    3 - sortBed -i stdin
+        sortBed sorts input files by features (e.g. chrom size).
+        by passing -i stdin, this is telling bed to use the
+        standard input stream. Therefore, it can be used in pipes.
+
+        By default, sorts a BED file by chromosome and then by start position
+        in ascending order.
+
+    Net result of this function:
+
+    Take a bed file and extract the first 3 cols.
+    Append to the bottom of this file the sorted list of chromosomes,
+    followed by the numbers 0 and 2.
+
+    :param name:
+    :param bed_path:
+    :param tmpdir:
+    :return:
+    """
+    # Original cut on bed file (path)
+    cut_bed_path = tmpdir.joinpath(f"{name}.exclusion.ori")
+
+    x = subprocess.run(
+        ["cut", "-f1,2,3", bed_path.as_posix()], capture_output=True
+    )
+
+    subprocess_pipes.process_output_to_file(x, path=cut_bed_path)
+
+    subprocess_pipes.pipe(
+        ["cut", "-f1", bed_path.as_posix()],
+        ["awk", '{OFS="\t"}{print $1,0,2}'],
+        ["sortBed", "-i", "stdin"],
+        output_path=cut_bed_path,
+        mode="a",
+        overwrite=True,
+    )
 
 
 def randomize_protein_positions(*args, **kwargs):
