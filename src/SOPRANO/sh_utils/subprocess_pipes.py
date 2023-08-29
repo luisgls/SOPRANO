@@ -54,8 +54,6 @@ def pipe(
 
     ps = subprocess.run(args[0], input=_input, capture_output=True)
 
-    print(args[0])
-
     if len(args) > 1:
         return pipe(
             *args[1:],

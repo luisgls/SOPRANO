@@ -1,6 +1,7 @@
 import pathlib
 import subprocess
 
+from SOPRANO.objects import AnalysisPaths, TranscriptPaths
 from SOPRANO.sh_utils import subprocess_pipes
 
 
@@ -11,8 +12,8 @@ class DependentDataError(Exception):
 def _filter_transcript_file(
     bed_file: pathlib.Path,
     transcript_file: pathlib.Path,
-    cache_dir: pathlib.Path,
-) -> pathlib.Path:
+    transcript_filt: pathlib.Path,
+) -> None:
     """
 
     Implementation of methods in line 92-93
@@ -50,58 +51,50 @@ def _filter_transcript_file(
     :return: PosixPath to filtered file
     """
 
-    # Get transcript file name and build filtered filename
-    transcript_file_name = transcript_file.name
-    transcript_filt_name = transcript_file_name.replace(
-        ".length", "_filt.length"
-    )
-
-    # Rebuild path for filtered file
-    transcript_filt_file = cache_dir.joinpath(transcript_filt_name)
-
     # Perform filtering
     subprocess_pipes.pipe(
         ["cut", "f1", bed_file.as_posix()],
         ["sort", "-u"],
         ["fgrep", "-w", "-f", "-", transcript_file.as_posix()],
-        output_path=transcript_filt_file,
+        output_path=transcript_filt,
     )
-
-    return transcript_filt_file
 
 
 def filter_transcript_files(
-    bed_file: pathlib.Path,
-    ensembl_transcript_protein: pathlib.Path,
-    ensembl_transcript: pathlib.Path,
-    cache_dir: pathlib.Path,
-):
+    path: AnalysisPaths, transcripts: TranscriptPaths
+) -> None:
     """
-
     Implementation of lines 92-93
 
     Get list of transcripts from annotated bed files, filtering out
     those transcripts not present in the database
 
-    :param bed_file: input bedfile
-    :param ensembl_transcript_protein: ensembl transcript for protein
-    :param ensembl_transcript: ensembl transcript for (?)
-    :param cache_dir: directory to cache results into
-    :return: Posix paths to filtered transcripts
+    :param path: AnalysisPaths instance (contains e.g. bedfile path)
+    :param transcripts: TranscriptsPath instance
+    :return:
     """
+    bed_file = path.bed_path
+    transcript_protein_path = transcripts.protein_transcript_length
+    transcript_path = transcripts.transcript_length
 
-    ensemble_trans_prot_filt = _filter_transcript_file(
-        bed_file, ensembl_transcript_protein, cache_dir
-    )
-    ensemble_trans_filt = _filter_transcript_file(
-        bed_file, ensembl_transcript, cache_dir
+    transcript_protein_filt = path.filtered_protein_transcript
+    transcript_filt = path.filtered_transcript
+
+    _filter_transcript_file(
+        bed_file,
+        transcript_protein_path,
+        transcript_protein_filt,
     )
 
-    return ensemble_trans_prot_filt, ensemble_trans_filt
+    _filter_transcript_file(
+        bed_file,
+        transcript_path,
+        transcript_filt,
+    )
 
 
 def _define_excluded_regions_for_randomization(
-    name: str, bed_path: pathlib.Path, tmpdir: pathlib.Path
+    paths: AnalysisPaths,
 ):
     """
     We want to execute the commands
@@ -143,20 +136,20 @@ def _define_excluded_regions_for_randomization(
     :param tmpdir:
     :return:
     """
-    # Original cut on bed file (path)
-    ori_path = tmpdir.joinpath(f"{name}.exclusion.ori")
 
     cut_bed_proc = subprocess.run(
-        ["cut", "-f1,2,3", bed_path.as_posix()], capture_output=True
+        ["cut", "-f1,2,3", paths.bed_path.as_posix()], capture_output=True
     )
 
-    subprocess_pipes.process_output_to_file(cut_bed_proc, path=ori_path)
+    subprocess_pipes.process_output_to_file(
+        cut_bed_proc, path=paths.exclusions
+    )
 
     subprocess_pipes.pipe(
-        ["cut", "-f1", bed_path.as_posix()],
+        ["cut", "-f1", paths.bed_path.as_posix()],
         ["awk", '{OFS="\t"}{print $1,0,2}'],
         ["sortBed", "-i", "stdin"],
-        output_path=ori_path,
+        output_path=paths.exclusions,
         mode="a",
         overwrite=True,
     )

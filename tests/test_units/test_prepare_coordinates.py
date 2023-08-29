@@ -4,6 +4,7 @@ import tempfile
 import pytest
 
 import SOPRANO.prepare_coordinates as prep_coords
+from SOPRANO.objects import AnalysisPaths, TranscriptPaths
 
 
 def tab_line(*args):
@@ -38,7 +39,7 @@ def test__filter_transcript_file():
         with open(trans_path, "w") as t:
             t.writelines(mock_transcript_content)
 
-        prep_coords._filter_transcript_file(bed_path, trans_path, tmp_dir)
+        prep_coords._filter_transcript_file(bed_path, trans_path, filt_path)
 
         assert filt_path.exists(), filt_path
 
@@ -66,6 +67,7 @@ def test_filter_transcript_files():
         tmpdir = pathlib.Path(_tmpdir)
 
         bed_path = tmpdir.joinpath("bed")
+
         trans_path = tmpdir.joinpath("trans.length")
         protein_path = tmpdir.joinpath("protein.length")
 
@@ -80,13 +82,13 @@ def test_filter_transcript_files():
             with open(path, "w") as f:
                 f.writelines(content)
 
-        prep_coords.filter_transcript_files(
-            bed_path, trans_path, protein_path, tmpdir
-        )
+        paths = AnalysisPaths("test", bed_path, tmpdir)
+        transcripts = TranscriptPaths(trans_path, protein_path)
 
-        filt_trans_path = tmpdir.joinpath("trans_filt.length")
-        filt_protein_path = tmpdir.joinpath("protein_filt.length")
+        prep_coords.filter_transcript_files(paths, transcripts)
 
+        filt_trans_path = paths.filtered_transcript
+        filt_protein_path = paths.filtered_protein_transcript
         assert filt_trans_path.exists()
         assert filt_protein_path.exists()
 
@@ -119,8 +121,10 @@ def test__define_excluded_regions_for_randomization():
 
         result_path = tmpdir.joinpath(f"{name}.exclusion.ori")
 
+        paths = AnalysisPaths(name, bed_path, tmpdir)
+
         prep_coords._define_excluded_regions_for_randomization(
-            name, bed_path, tmpdir
+            paths  # name, bed_path, tmpdir
         )
 
         assert result_path.exists()
