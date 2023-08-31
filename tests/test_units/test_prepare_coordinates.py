@@ -216,47 +216,20 @@ def test_filter_transcript_files(test_files):
     )
 
 
-def test__define_excluded_regions_for_randomization():
-    mock_bed_content = [
-        tab_line("chr1", 800, 1000, 24),
-        tab_line("chr1", 80, 180, 24),
-        tab_line("chr1", 1, 10, 24),
-        tab_line("chr1", 750, 10000, 24),
-    ]
-    expected_bed_content = [
-        tab_line("chr1", 800, 1000),
-        tab_line("chr1", 80, 180),
-        tab_line("chr1", 1, 10),
-        tab_line("chr1", 750, 10000),
-        tab_line("chr1", 0, 2),
-        tab_line("chr1", 0, 2),
-        tab_line("chr1", 0, 2),
-        tab_line("chr1", 0, 2),
+def test__define_excluded_regions_for_randomization(test_files):
+    paths, transcripts = test_files
+
+    expected_content = mock_bed_content + [
+        tab_line("ENST00000000233", 0, 2),
+        tab_line("ENST00000000233", 0, 2),
+        tab_line("ENST00000000412", 0, 2),
+        tab_line("ENST00000001008", 0, 2),
+        tab_line("ENST00000001008", 0, 2),
     ]
 
-    with tempfile.TemporaryDirectory() as _tmpdir:
-        tmpdir = pathlib.Path(_tmpdir)
-        name = "test"
-        bed_path = tmpdir.joinpath("bed.file")
+    prep_coords._define_excluded_regions_for_randomization(paths)
 
-        with open(bed_path, "w") as f:
-            f.writelines(mock_bed_content)
-
-        result_path = tmpdir.joinpath(f"{name}.exclusion.ori")
-
-        paths = AnalysisPaths(name, bed_path, tmpdir)
-
-        prep_coords._define_excluded_regions_for_randomization(paths)
-
-        assert result_path.exists()
-
-        with open(result_path, "r") as f:
-            written_content = f.readlines()
-
-        assert len(expected_bed_content) == len(written_content)
-
-        for e, w in zip(expected_bed_content, written_content):
-            assert e.strip() == w.strip()
+    check_expected_content(expected_content, paths.exclusions)
 
 
 def test__sort_excluded_regions_for_randomization():
