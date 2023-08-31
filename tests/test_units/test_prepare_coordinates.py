@@ -155,6 +155,9 @@ def test_files(tmp_path):
         "transcript_length_protein.length"
     )
 
+    paths = AnalysisPaths("test_data", bed_path, tmpdir)
+    transcripts = TranscriptPaths(trans_path, trans_prot_path)
+
     for _input_path, _input_content in zip(
         (anno_path, bed_path, trans_path, trans_prot_path),
         (
@@ -166,9 +169,6 @@ def test_files(tmp_path):
     ):
         with open(_input_path, "w") as f:
             f.writelines(_input_content)
-
-    paths = AnalysisPaths("test_data", bed_path, tmpdir)
-    transcripts = TranscriptPaths(trans_path, trans_prot_path)
 
     return paths, transcripts
 
@@ -192,7 +192,9 @@ def test__filter_transcript_file(test_files):
     check_expected_content(expected_content, paths.filtered_transcript)
 
 
-@pytest.mark.dependency(depends=["_filter_transcript_file"])
+@pytest.mark.dependency(
+    name="filter_trans_files", depends=["_filter_transcript_file"]
+)
 def test_filter_transcript_files(test_files):
     paths, transcripts = test_files
 
@@ -216,6 +218,7 @@ def test_filter_transcript_files(test_files):
     )
 
 
+@pytest.mark.dependency(name="_define_excl_regs")
 def test__define_excluded_regions_for_randomization(test_files):
     paths, transcripts = test_files
 
@@ -232,70 +235,49 @@ def test__define_excluded_regions_for_randomization(test_files):
     check_expected_content(expected_content, paths.exclusions)
 
 
-def test__sort_excluded_regions_for_randomization():
-    mock_bed_content = [
-        tab_line("chr1", 800, 1000, 24),
-        tab_line("chr1", 80, 180, 24),
-        tab_line("chr1", 1, 10, 24),
-        tab_line("chr1", 750, 10000, 24),
-    ]
+@pytest.mark.dependency(depends=["_define_excl_regs", "filter_trans_files"])
+def test__sort_excluded_regions_for_randomization(test_files):
+    paths, transcripts = test_files
 
-    mock_filtered_protein = [
-        tab_line("chr1", 10000),
-        tab_line("chr2", 8000),
-        tab_line("chr3", 5000),
-        tab_line("chr2", 2000),
-    ]
-
-    input_exclusions = [
-        tab_line("chr1", 300, 400),
-        tab_line("chr1", 200, 250),
-    ]
-
-    # Default bedsort is by chrom then start pos
+    # Every item has an "ENST<...>  0   2" pair
+    # So after sorting, we expect that
     expected_sorted_exclusions = [
-        tab_line("chr1", 200, 250),
-        tab_line("chr1", 300, 400),
+        tab_line("ENST00000000233", 0, 2),
+        tab_line("ENST00000000233", 0, 2),
+        tab_line("ENST00000000233", 115, 124),
+        tab_line("ENST00000000233", 164, 177),
+        tab_line("ENST00000000412", 0, 2),
+        tab_line("ENST00000000412", 113, 124),
+        tab_line("ENST00000001008", 0, 2),
+        tab_line("ENST00000001008", 0, 2),
+        tab_line("ENST00000001008", 27, 36),
+        tab_line("ENST00000001008", 189, 198),
     ]
-    chr1_exclusions = [[200, 250], [300, 400]]
 
-    with tempfile.TemporaryDirectory() as _tmpdir:
-        tmpdir = pathlib.Path(_tmpdir)
-        name = "test"
-        bed_path = tmpdir.joinpath("bed.file")
-        paths = AnalysisPaths(name, bed_path, tmpdir)
+    prep_coords.filter_transcript_files(paths, transcripts)
+    prep_coords._define_excluded_regions_for_randomization(paths)
+    prep_coords._sort_excluded_regions_for_randomization(paths, seed=1234)
 
-        with open(paths.bed_path, "w") as f_bed:
-            f_bed.writelines(mock_bed_content)
+    check_expected_content(expected_sorted_exclusions, paths.exclusions_sorted)
 
-        with open(paths.exclusions, "w") as f_excl:
-            f_excl.writelines(input_exclusions)
+    ENST00000000412_min_max_vals = [
+        [int(e.split("\t")[1]), int(e.split("\t")[2])]
+        for e in expected_sorted_exclusions
+        if e.startswith("ENST00000000412")
+    ]
 
-        with open(paths.filtered_protein_transcript, "w") as f_prot:
-            f_prot.writelines(mock_filtered_protein)
+    with open(paths.exclusions_shuffled, "r") as f:
+        shuffled_content = f.readlines()
 
-        prep_coords._sort_excluded_regions_for_randomization(paths, seed=1234)
-
-        assert paths.exclusions_sorted.exists()
-
-        with open(paths.exclusions_sorted, "r") as f_sort:
-            written_sorted_exclusions = f_sort.readlines()
-
-        for e, w in zip(expected_sorted_exclusions, written_sorted_exclusions):
-            assert e.strip() == w.strip()
-
-        with open(paths.exclusions_shuffled, "r") as f_shuf:
-            written_shuffled = f_shuf.readlines()
-
-        for line in written_shuffled:
-            line = line.strip()
-            chrom, start, stop, *other = line.split("\t")
-            if chrom == "chr1":
-                start = int(start)
-                stop = int(stop)
-                for input_start, input_stop in chr1_exclusions:
-                    overlap = (start <= input_stop) and (input_start <= stop)
-                    assert not overlap
+    for line in shuffled_content:
+        line = line.strip()
+        chrom, start, stop, *other = line.split("\t")
+        if chrom == "ENST00000000412":
+            start = int(start)
+            stop = int(stop)
+            for input_start, input_stop in ENST00000000412_min_max_vals:
+                overlap = (start <= input_stop) and (input_start <= stop)
+                assert not overlap
 
 
 def test__randomize_with_target_file():
