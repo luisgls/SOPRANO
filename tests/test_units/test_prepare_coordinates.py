@@ -11,86 +11,209 @@ def tab_line(*args):
     return "\t".join([str(arg) for arg in args]) + "\n"
 
 
+# Snippet from TCGA-05-4396-01A-21D-1855-08.annotated
+mock_input_content = [
+    tab_line(
+        "10_118957090_G/C",
+        "10:118957090",
+        "C",
+        "ENSG00000186795",
+        "ENST00000334549",
+        "Transcript",
+        "missense_variant",
+        "91",
+        "91",
+        "31",
+        "V/L",
+        "Gtg/Ctg",
+        "-",
+        "IMPACT=MODERATE;STRAND=1;SYMBOL=KCNK18;SYMBOL_SOURCE=HGNC;HGNC_ID=19439",
+    ),
+    tab_line(
+        "10_16528530_G/A",
+        "10:16528530",
+        "A",
+        "ENSG00000165983",
+        "ENST00000378000",
+        "Transcript",
+        "synonymous_variant",
+        "858",
+        "612",
+        "204",
+        "R",
+        "cgG/cgA",
+        "-",
+        "IMPACT=LOW;STRAND=1;SYMBOL=PTER;SYMBOL_SOURCE=HGNC;HGNC_ID=9590",
+    ),
+    tab_line(
+        "10_22021940_G/T",
+        "10:22021940",
+        "T",
+        "ENSG00000078403",
+        "ENST00000307729",
+        "Transcript",
+        "missense_variant",
+        "2509",
+        "2331",
+        "777",
+        "Q/H",
+        "caG/caT",
+        "-",
+        "IMPACT=MODERATE;STRAND=1;SYMBOL=MLLT10;SYMBOL_SOURCE=HGNC;HGNC_ID=16063",
+    ),
+    tab_line(
+        "10_43015604_C/A",
+        "10:43015604",
+        "A",
+        "ENSG00000234420",
+        "ENST00000452075",
+        "Transcript",
+        "non_coding_transcript_exon_variant",
+        "1991",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "IMPACT=MODIFIER;STRAND=-1;SYMBOL=ZNF37BP;SYMBOL_SOURCE=HGNC;HGNC_ID=13103",
+    ),
+    tab_line(
+        "10_51363129_C/A",
+        "10:51363129",
+        "A",
+        "ENSG00000225784",
+        "ENST00000404618",
+        "Transcript",
+        "non_coding_transcript_exon_variant",
+        "943",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "IMPACT=MODIFIER;STRAND=-1;SYMBOL=RP11-592B15.4;SYMBOL_SOURCE=Clone_based_vega_gene",
+    ),
+]
+
+# Snippet from TCGA-05-4396.Expressed.IEDBpeps.SB.epitope.bed
+mock_bed_content = [
+    tab_line("ENST00000000233", 115, 124),
+    tab_line("ENST00000000233", 164, 177),
+    tab_line("ENST00000000412", 113, 124),
+    tab_line("ENST00000001008", 27, 36),
+    tab_line("ENST00000001008", 189, 198),
+]
+
+# Snippet from ensemble_transcript.length
+mock_transcript_content = [
+    tab_line("ENST00000000233", 543),
+    tab_line("ENST00000000412", 834),
+    tab_line("ENST00000000442", 1272),
+    tab_line("ENST00000001008", 1380),
+    tab_line("ENST00000001146", 1539),
+]
+
+# ensemble_transcript_protein.length
+mock_protein_transcript_content = [
+    tab_line("ENST00000000233", 180),
+    tab_line("ENST00000000412", 277),
+    tab_line("ENST00000000442", 423),
+    tab_line("ENST00000001008", 459),
+    tab_line("ENST00000001146", 512),
+]
+
+
+def check_expected_content(
+    expected_content: list, written_content_path: pathlib.Path
+):
+    assert written_content_path.exists()
+
+    with open(written_content_path, "r") as f:
+        written_content = f.readlines()
+
+    assert len(expected_content) == len(written_content)
+
+    for e, w in zip(expected_content, written_content):
+        assert e.strip() == w.strip()
+
+
+@pytest.fixture
+def test_files(tmp_path):
+    inputs_dir: pathlib.Path = tmp_path.joinpath("inputs")
+    transcripts_dir: pathlib.Path = tmp_path.joinpath("transcripts")
+    tmpdir: pathlib.Path = tmp_path.joinpath("tmp")
+
+    inputs_dir.mkdir(parents=True)
+    transcripts_dir.mkdir(parents=True)
+    tmpdir.mkdir(parents=True)
+
+    anno_path = inputs_dir.joinpath("input.anno")
+    bed_path = inputs_dir.joinpath("input.bed")
+
+    trans_path = transcripts_dir.joinpath("transcript_length.txt")
+    trans_prot_path = transcripts_dir.joinpath(
+        "transcript_length_protein.length"
+    )
+
+    for _input_path, _input_content in zip(
+        (anno_path, bed_path, trans_path, trans_prot_path),
+        (
+            mock_input_content,
+            mock_bed_content,
+            mock_transcript_content,
+            mock_protein_transcript_content,
+        ),
+    ):
+        with open(_input_path, "w") as f:
+            f.writelines(_input_content)
+
+    paths = AnalysisPaths("test_data", bed_path, tmpdir)
+    transcripts = TranscriptPaths(trans_path, trans_prot_path)
+
+    return paths, transcripts
+
+
 @pytest.mark.dependency(name="_filter_transcript_file")
-def test__filter_transcript_file():
-    mock_bed_content = [
-        "ENST00000000003 9      180\n",
-        "ENST00000000001 9       11\n",
-        "ENST00000000002 99      18\n",
+def test__filter_transcript_file(test_files):
+    paths, transcripts = test_files
+
+    expected_content = [
+        tab_line("ENST00000000233", 543),
+        tab_line("ENST00000000412", 834),
+        tab_line("ENST00000001008", 1380),
     ]
 
-    mock_transcript_content = [
-        "ENST00000000001 2738\n",
-        "ENST00000000002 12\n",
-    ]
+    prep_coords._filter_transcript_file(
+        paths.bed_path,
+        transcripts.transcript_length,
+        paths.filtered_transcript,
+    )
 
-    expected_content = ["ENST00000000001", "ENST00000000002"]
-
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_dir = pathlib.Path(tmp_dir)
-
-        bed_path = tmp_dir.joinpath("file.bed")
-        trans_path = tmp_dir.joinpath("trans.length")
-        filt_path = tmp_dir.joinpath("trans_filt.length")
-
-        with open(bed_path, "w") as b:
-            b.writelines(mock_bed_content)
-
-        with open(trans_path, "w") as t:
-            t.writelines(mock_transcript_content)
-
-        prep_coords._filter_transcript_file(bed_path, trans_path, filt_path)
-
-        assert filt_path.exists(), filt_path
-
-        with open(filt_path, "r") as f:
-            written_content = f.readlines()
-
-        for e, w in zip(expected_content, written_content):
-            assert e == w.strip()
+    check_expected_content(expected_content, paths.filtered_transcript)
 
 
 @pytest.mark.dependency(depends=["_filter_transcript_file"])
-def test_filter_transcript_files():
-    mock_bed_content = [
-        "ENST00000000003 9      180\n",
-        "ENST00000000001 9       11\n",
-        "ENST00000000002 99      18\n",
+def test_filter_transcript_files(test_files):
+    paths, transcripts = test_files
+
+    expected_trans_content = [
+        tab_line("ENST00000000233", 543),
+        tab_line("ENST00000000412", 834),
+        tab_line("ENST00000001008", 1380),
     ]
 
-    mock_transcript_content = [
-        "ENST00000000001 2738\n",
-        "ENST00000000002 12\n",
+    expected_trans_protein_content = [
+        tab_line("ENST00000000233", 180),
+        tab_line("ENST00000000412", 277),
+        tab_line("ENST00000001008", 459),
     ]
 
-    with tempfile.TemporaryDirectory() as _tmpdir:
-        tmpdir = pathlib.Path(_tmpdir)
+    prep_coords.filter_transcript_files(paths, transcripts)
 
-        bed_path = tmpdir.joinpath("bed")
-
-        trans_path = tmpdir.joinpath("trans.length")
-        protein_path = tmpdir.joinpath("protein.length")
-
-        for path, content in zip(
-            (bed_path, trans_path, protein_path),
-            (
-                mock_bed_content,
-                mock_transcript_content,
-                mock_transcript_content,
-            ),
-        ):
-            with open(path, "w") as f:
-                f.writelines(content)
-
-        paths = AnalysisPaths("test", bed_path, tmpdir)
-        transcripts = TranscriptPaths(trans_path, protein_path)
-
-        prep_coords.filter_transcript_files(paths, transcripts)
-
-        filt_trans_path = paths.filtered_transcript
-        filt_protein_path = paths.filtered_protein_transcript
-        assert filt_trans_path.exists()
-        assert filt_protein_path.exists()
+    check_expected_content(expected_trans_content, paths.filtered_transcript)
+    check_expected_content(
+        expected_trans_protein_content, paths.filtered_protein_transcript
+    )
 
 
 def test__define_excluded_regions_for_randomization():
@@ -305,3 +428,11 @@ def test__non_randomized():
 
         for e, w in zip(expected_content, written):
             assert e.strip() == w.strip()
+
+
+def test__exclude_positively_selected_genes_disabled():
+    pass
+    # with tempfile.TemporaryDirectory() as _tmpdir:
+    #     tmpdir = pathlib.Path(_tmpdir)
+    #
+    #     paths = AnalysisPaths("test", tmpdir.joinpath("test.bed"), tmpdir)
