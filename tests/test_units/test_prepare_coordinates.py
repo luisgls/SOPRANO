@@ -122,6 +122,9 @@ mock_protein_transcript_content = [
     tab_line("ENST00000001146", 512),
 ]
 
+# Fictitious target regions for randomization
+mock_target_regions = [tab_line("ENST00000000233", 500, 1000)]
+
 
 def check_expected_content(
     expected_content: list, written_content_path: pathlib.Path
@@ -149,22 +152,26 @@ def test_files(tmp_path):
 
     anno_path = inputs_dir.joinpath("input.anno")
     bed_path = inputs_dir.joinpath("input.bed")
+    targets_path = inputs_dir.joinpath("targets.bed")
 
     trans_path = transcripts_dir.joinpath("transcript_length.txt")
     trans_prot_path = transcripts_dir.joinpath(
         "transcript_length_protein.length"
     )
 
-    paths = AnalysisPaths("test_data", bed_path, tmpdir)
+    paths = AnalysisPaths(
+        "test_data", bed_path, tmpdir, target_regions_path=targets_path
+    )
     transcripts = TranscriptPaths(trans_path, trans_prot_path)
 
     for _input_path, _input_content in zip(
-        (anno_path, bed_path, trans_path, trans_prot_path),
+        (anno_path, bed_path, trans_path, trans_prot_path, targets_path),
         (
             mock_input_content,
             mock_bed_content,
             mock_transcript_content,
             mock_protein_transcript_content,
+            mock_target_regions,
         ),
     ):
         with open(_input_path, "w") as f:
@@ -280,75 +287,28 @@ def test__sort_excluded_regions_for_randomization(test_files):
                 assert not overlap
 
 
-def test__randomize_with_target_file():
-    mock_bed_content = [
-        tab_line("chr1", 800, 1000, 24),
-        tab_line("chr1", 80, 180, 24),
-        tab_line("chr1", 1, 10, 24),
-        tab_line("chr1", 750, 10000, 24),
-    ]
+@pytest.mark.dependency(depends=["filter_trans_files"])
+def test__randomize_with_target_file(test_files):
+    paths, transcripts = test_files
 
-    mock_filtered_transcript = [
-        tab_line("chr1", 10000),
-        tab_line("chr2", 8000),
-        tab_line("chr3", 5000),
-        tab_line("chr2", 2000),
-    ]
+    prep_coords.filter_transcript_files(paths, transcripts)
 
-    mock_transcript_content = [
-        tab_line("chr1", 2738),
-        tab_line("chr2", 12),
-    ]
+    with open(paths.filtered_transcript, "r") as f:
+        expected_trans_content = f.readlines()
+        expected_trans_content.append(tab_line("ENST00000000233", 543))
 
-    targets = [tab_line("chr1", 500, 1000), tab_line("chr1", 2000, 2500)]
+    with open(paths.filtered_protein_transcript, "r") as f:
+        expected_trans_prot_content = f.readlines()
+        expected_trans_prot_content.append(tab_line("ENST00000000233", 180))
 
-    with tempfile.TemporaryDirectory() as _tmpdir:
-        tmpdir = pathlib.Path(_tmpdir)
+    prep_coords._randomize_with_target_file(paths, transcripts, seed=1234)
 
-        paths = AnalysisPaths(
-            "test",
-            tmpdir.joinpath("test.bed"),
-            tmpdir,
-            target_regions_path=tmpdir.joinpath("targets.bed"),
-        )
+    check_expected_content(expected_trans_content, paths.filtered_transcript)
+    check_expected_content(
+        expected_trans_prot_content, paths.filtered_protein_transcript
+    )
 
-        transcripts = TranscriptPaths(
-            tmpdir.joinpath("trans.length"),
-            tmpdir.joinpath("trans_prot.length"),
-        )
-
-        for path, lines in zip(
-            (
-                paths.bed_path,
-                paths.filtered_transcript,
-                paths.filtered_protein_transcript,
-                paths.target_regions_path,
-                transcripts.transcript_length,
-                transcripts.protein_transcript_length,
-            ),
-            (
-                mock_bed_content,
-                mock_filtered_transcript,
-                mock_filtered_transcript,
-                targets,
-                mock_transcript_content,
-                mock_transcript_content,
-            ),
-        ):
-            with open(path, "w") as f:
-                f.writelines(lines)
-
-        prep_coords._randomize_with_target_file(paths, transcripts, seed=1234)
-
-        with open(paths.filtered_protein_transcript, "r") as f:
-            written_filtered_lines = f.readlines()
-
-        expected_filtered_lines = mock_filtered_transcript + [
-            tab_line("chr1", 2738)
-        ]
-
-        for e, w in zip(expected_filtered_lines, written_filtered_lines):
-            assert e.strip() == w.strip()
+    # TODO: Complete
 
 
 def test__non_randomized():
