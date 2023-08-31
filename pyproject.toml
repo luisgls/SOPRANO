@@ -51,6 +51,9 @@ Homepage = "https://github.com/instituteofcancerresearch/SOPRANO"
 "Bug Tracker" = "https://github.com/instituteofcancerresearch/SOPRANO/issues"
 Discussions = "https://github.com/bkmarzouk/symflation/discussions"
 
+[project.scripts]
+SOPRANO = "SOPRANO.run_local_ssb_selection:main"
+
 [tool.hatch]
 version.source = "vcs"
 build.hooks.vcs.version-file = "src/SOPRANO/version.py"

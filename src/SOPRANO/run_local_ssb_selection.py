@@ -2,19 +2,7 @@ import argparse
 import pathlib
 
 
-def main(*args, **kwargs):
-    pass
-
-
-def _validate_input_path(cli_path: pathlib.PosixPath | None, optional=False):
-    if cli_path is None:
-        if not optional:
-            raise Exception("Input path is not optional and path is None!")
-    elif not cli_path.exists():
-        raise Exception(f"CLI input path does not exist: {cli_path}")
-
-
-if __name__ == "__main__":
+def parse_args():
     parser = argparse.ArgumentParser(description="SOPRANO input arguments")
 
     parser.add_argument(
@@ -58,7 +46,7 @@ if __name__ == "__main__":
 
     analysis_params_group.add_argument(
         "-t",
-        dest="target",
+        dest="bed_regions",
         type=pathlib.PosixPath,
         help="Provide a bed file with regions to randomize.",
     )
@@ -92,4 +80,43 @@ if __name__ == "__main__":
     _validate_input_path(args.output)
     _validate_input_path(args.bed_regions, optional=True)
 
-    main(**args.__dict__)
+    return args
+
+
+def _validate_input_path(cli_path: pathlib.PosixPath | None, optional=False):
+    if cli_path is None:
+        if not optional:
+            raise Exception("Input path is not optional and path is None!")
+    elif not cli_path.exists():
+        raise Exception(f"CLI input path does not exist: {cli_path}")
+
+
+_title = """
+███████  ██████  ██████  ██████   █████  ███    ██  ██████  
+██      ██    ██ ██   ██ ██   ██ ██   ██ ████   ██ ██    ██ 
+███████ ██    ██ ██████  ██████  ███████ ██ ██  ██ ██    ██ 
+     ██ ██    ██ ██      ██   ██ ██   ██ ██  ██ ██ ██    ██ 
+███████  ██████  ██      ██   ██ ██   ██ ██   ████  ██████  
+"""
+_borders = "-" * 60
+
+
+def _startup_message(**kwargs):
+    print(_title)
+    print(_borders)
+    print("Selection On PRotein ANnotated regiOns")
+    print(_borders)
+
+    for k, v in kwargs.items():
+        print("-> {0:.<30}".format(k) + f"{v}")
+
+    print(_borders)
+
+
+def main():
+    cli_args = parse_args()
+    _startup_message(**cli_args.__dict__)
+
+
+if __name__ == "__main__":
+    main()
