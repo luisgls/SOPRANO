@@ -1,7 +1,7 @@
 import pathlib
 import subprocess
 
-from SOPRANO.objects import AnalysisPaths, TranscriptPaths
+from SOPRANO.objects import AnalysisPaths, AuxiliaryPaths, TranscriptPaths
 from SOPRANO.sh_utils import subprocess_pipes
 
 
@@ -156,8 +156,8 @@ def _define_excluded_regions_for_randomization(
 
 
 def _sort_excluded_regions_for_randomization(
-    name: str, bed_path: pathlib.Path, tmpdir: pathlib.Path
-):
+    paths: AnalysisPaths, seed: int | None = None
+) -> None:
     """
     Implement
     sortBed -i $TMP/$NAME.exclusion.ori > $TMP/$NAME.exclusion.bed
@@ -165,16 +165,132 @@ def _sort_excluded_regions_for_randomization(
         -excl $TMP/$NAME.exclusion.bed -chrom > $TMP/$NAME.epitopes.ori2
 
 
-    :param name:
-    :param bed_path:
-    :param tmpdir:
+    :param paths: AnalaysisPaths instance
+    """
+
+    # Sort list of exclusions obtained from
+    # _define_excluded_regions_for_randomization
+    subprocess_pipes.pipe(
+        ["sortBed", "-i", paths.exclusions.as_posix()],
+        output_path=paths.exclusions_sorted,
+    )
+
+    # randomly permute the genomic locations of a feature file among a genome
+    # defined in a genome file. Here the feature is the input bed file,
+    # and the genome is that of the filtered protein file.
+    # The -excl flag indicates to bedtools that we want to exclude regions
+    # from the shuffling procedure.
+    # The -chrom flag tells bedtools to keep features in -i on the same
+    # chromosome. Solely permute their location on the chromosome.
+    pipe_args = [
+        "bedtools",
+        "shuffle",
+        "-i",
+        paths.bed_path.as_posix(),
+        "-g",
+        paths.filtered_protein_transcript,
+        "-excl",
+        paths.exclusions_sorted,
+        "-chrom",
+    ]
+
+    if seed is not None:
+        pipe_args += ["-seed", str(seed)]
+
+    subprocess_pipes.pipe(
+        pipe_args,
+        output_path=paths.exclusions_shuffled,
+    )
+
+
+def _randomize_with_target_file(
+    paths: AnalysisPaths, transcripts: TranscriptPaths, seed: int | None = None
+):
+    """
+    Implementation of
+    cut -f1 $TARGET | sort -u | fgrep -w -f -
+        $SUPA/ensemble_transcript_protein.length >>
+            $TMP/$NAME.protein_length_filt.txt
+
+    cut -f1 $TARGET | sort -u | fgrep -w -f -
+        $SUPA/ensemble_transcript.length >>
+            $TMP/$NAME.transcript_length_filt.txt
+
+    These two steps take the target region file, extract the unique chroms,
+    find those which exist in the transcript file(s), then append these data
+    to the end of the filtered transcript file(s)
+
+    bedtools shuffle -i $BED -g $TMP/$NAME.protein_length_filt.txt -incl
+        $TARGET -noOverlapping > $TMP/$NAME.epitopes.ori2
+
+    This ensures that that all shuffling takes place across the TARGET file,
+    and that no intervals occupy a single common base pair
+
+    :param paths:
+    :param seed: rng seed
     :return:
     """
 
-    pass
+    if paths.target_regions_path is None:
+        raise ValueError("Method only valid if target regions is not none!")
 
-    # ori_path = tmpdir.joinpath(f"{name}.exclusion.ori")
-    # sorted_path = tmpdir.joinpath(f"{name}.exclusion.bed")
+    subprocess_pipes.pipe(
+        ["cut", "-f1", paths.target_regions_path.as_posix()],
+        ["sort", "-u"],
+        [
+            "fgrep",
+            "-w",
+            "-f",
+            "-",
+            transcripts.protein_transcript_length.as_posix(),
+        ],
+        output_path=paths.filtered_protein_transcript,
+        mode="a",
+        overwrite=True,
+    )
+
+    subprocess_pipes.pipe(
+        ["cut", "-f1", paths.target_regions_path.as_posix()],
+        ["sort", "-u"],
+        ["fgrep", "-w", "-f", "-", transcripts.transcript_length.as_posix()],
+        output_path=paths.filtered_transcript,
+        mode="a",
+        overwrite=True,
+    )
+
+    pipe_args = [
+        "bedtools",
+        "shuffle",
+        "-i",
+        paths.bed_path.as_posix(),
+        "-g",
+        paths.filtered_protein_transcript.as_posix(),
+        "-incl",
+        paths.target_regions_path.as_posix(),
+        "-noOverlapping",
+    ]
+
+    if seed is not None:
+        pipe_args += ["-seed", str(seed)]
+
+    subprocess_pipes.pipe(
+        pipe_args,
+        output_path=paths.exclusions_shuffled,
+    )
+
+    # TODO: Finish unit testing... This is quite tricky
+
+
+def _non_randomized(paths: AnalysisPaths):
+    """
+    Implement
+    sort -u $BED > $TMP/$NAME.epitopes.ori2
+    :param paths:
+    :return:
+    """
+    subprocess_pipes.pipe(
+        ["sort", "-u", paths.bed_path], output_path=paths.exclusions_shuffled
+    )
 
 
 def randomize_protein_positions(*args, **kwargs):
@@ -188,42 +304,152 @@ def randomize_protein_positions(*args, **kwargs):
     pass
 
 
-def randomize_target_regions(*args, **kwargs):
+def _exclude_positively_selected_genes_disabled(paths: AnalysisPaths):
     """
-    Implementatino of line 111
-
-    :param args:
-    :param kwargs:
+    Implement
+    cp $TMP/$NAME.epitopes.ori2 $TMP/$NAME.epitopes.bed
+    :param paths:
     :return:
     """
-    pass
+    subprocess_pipes.pipe(["cp", paths.exclusions_shuffled, paths.epitopes])
 
 
-def exclude_positively_selected_genes(*args, **kwargs):
+def _exclude_positively_selected_genes(paths: AnalysisPaths):
     """
-    Implmentation of line 128
-    :param args:
-    :param kwargs:
+    Implement
+    fgrep -w -v -f $SUPA/genes2exclude.txt $TMP/$NAME.epitopes.ori2 >
+        $TMP/$NAME.epitopes.bed
+    :param paths:
     :return:
     """
-    pass
+
+    subprocess_pipes.pipe(
+        [
+            "fgrep",
+            "-w",
+            "-v",
+            "-f",
+            AuxiliaryPaths.genes_to_exclude.as_posix(),
+            paths.exclusions_shuffled.as_posix(),
+        ],
+        output_path=paths.epitopes,
+    )
+
+    # TODO: Unit test
 
 
-def get_protein_complement(*args, **kwargs):
+def get_protein_complement(paths: AnalysisPaths):
     """
-    Implmentatino of line 139
-    :param args:
-    :param kwargs:
+    Implement
+    sortBed -i $TMP/$NAME.epitopes.bed |
+        complementBed -i stdin -g $TMP/$NAME.protein_length_filt.txt >
+            $TMP/$NAME.intra_epitopes_prot.tmp
+
+    cut -f1 $TMP/$NAME.epitopes.bed |
+        sort -u |
+            fgrep -w -f - $TMP/$NAME.intra_epitopes_prot.tmp >
+                $TMP/$NAME.intra_epitopes_prot.bed
+
+    :param paths
     :return:
     """
-    pass
+
+    temporary_file = paths.intra_epitopes_prot.with_suffix(".tmp")
+
+    subprocess_pipes.pipe(
+        ["sortBed", "-i", paths.epitopes],
+        [
+            "complementBed",
+            "-i",
+            "stdin",
+            "-g",
+            paths.filtered_protein_transcript,
+        ],
+        output_path=temporary_file,
+    )
+
+    subprocess_pipes.pipe(
+        ["cut", "-f1", paths.epitopes],
+        ["sort", "-u"],
+        ["fgrep", "-w", "-f", "-", temporary_file],
+        output_path=paths.intra_epitopes_prot,
+    )
+
+    # TODO: unit test
 
 
-def transform_protein_coordinates(*args, **kwargs):
+def _prep_ssb192(paths: AnalysisPaths):
     """
-    Implementation of line 144
-    :param args:
-    :param kwargs:
+    Implement
+    awk '{OFS="\t"}{if( (($2*3)-6) >= 0 )
+        {print $1,($2*3)-6,$3*3+3,$0}
+            else{print $1,($2*3)-3,$3*3+3,$0}}' $TMP/$NAME.epitopes.bed >
+                $TMP/$NAME.epitopes_cds.bed
+    :param paths:
     :return:
     """
-    pass
+
+    subprocess_pipes.pipe(
+        [
+            "awk",
+            '{OFS="\t"}{if( (($2*3)-6) >= 0 ) '
+            "{print $1,($2*3)-6,$3*3+3,$0} "
+            "else{print $1,($2*3)-3,$3*3+3,$0}}",
+            paths.epitopes.as_posix(),
+        ],
+        output_path=paths.epitopes_cds,
+    )
+
+    # TODO: Unit test
+
+
+def _prep_not_ssb192(paths: AnalysisPaths):
+    """
+    Implement
+    awk '{OFS="\t"}{print $1,($2*3)-3,$3*3,$0}' $TMP/$NAME.epitopes.bed >
+        $TMP/$NAME.epitopes_cds.bed
+    :param paths:
+    :return:
+    """
+
+    subprocess_pipes.pipe(
+        ["awk", '{OFS="\t"}{print $1,($2*3)-3,$3*3,$0}', paths.epitopes],
+        output_path=paths.epitopes_cds,
+    )
+
+    # TODO: Unit test
+
+
+def transform_protein_coordinates(paths: AnalysisPaths):
+    """
+    Implement
+
+    sortBed -i $TMP/$NAME.epitopes_cds.bed |
+        complementBed -i stdin -g $TMP/$NAME.transcript_length_filt.txt >
+            $TMP/$NAME.intra_epitopes.tmp
+
+    cut -f1 $TMP/$NAME.epitopes.bed |
+        sort -u |
+            fgrep -w -f - $TMP/$NAME.intra_epitopes.tmp >
+                $TMP/$NAME.intra_epitopes_cds.bed
+
+    :param paths:
+    :return:
+    """
+
+    temporary_file = paths.intra_epitopes.with_suffix(".tmp")
+
+    subprocess_pipes.pipe(
+        ["sortBed", "-i", paths.epitopes_cds],
+        ["complementBed", "-i", "stdin", "-g", paths.filtered_transcript],
+        output_path=temporary_file,
+    )
+
+    subprocess_pipes.pipe(
+        ["cut", "-f1", paths.epitopes],
+        ["sort", "-u"],
+        ["fgrep", "-w", "-f", "-", temporary_file],
+        output_path=paths.intra_epitopes,
+    )
+
+    # TODO: Unit test

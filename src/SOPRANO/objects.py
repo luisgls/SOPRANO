@@ -36,6 +36,16 @@ GRCh38 = _GenomicPaths(
 )
 
 
+@dataclass(frozen=True)
+class _AuxiliaryPaths:
+    genes_to_exclude: pathlib.Path
+
+
+AuxiliaryPaths = _AuxiliaryPaths(
+    genes_to_exclude=_data_dir().joinpath("genes2exclude.txt")
+)
+
+
 def cache_path_builder(tmpdir: pathlib.Path, name: str, *extensions: str):
     file_name = f"{name}"
 
@@ -47,10 +57,15 @@ def cache_path_builder(tmpdir: pathlib.Path, name: str, *extensions: str):
 
 class AnalysisPaths:
     def __init__(
-        self, analysis_name: str, bed_path: pathlib.Path, tmpdir: pathlib.Path
+        self,
+        analysis_name: str,
+        bed_path: pathlib.Path,
+        tmpdir: pathlib.Path,
+        target_regions_path: pathlib.Path | None = None,
     ):
         self.name = analysis_name
         self.bed_path = bed_path
+        self.target_regions_path = target_regions_path
         self.tmpdir = tmpdir
 
         # Transcripts
@@ -65,6 +80,14 @@ class AnalysisPaths:
         self.exclusions = self._cached_path("exclusion", "ori")
         self.exclusions_sorted = self._cached_path("exclusion", "bed")
         self.exclusions_shuffled = self._cached_path("epitopes", "ori2")
+
+        # Epitope files
+        self.epitopes = self._cached_path("epitopes", "bed")
+        self.epitopes_cds = self._cached_path("epitopes_cds", "bed")
+        self.intra_epitopes = self._cached_path("intra_epitopes", "bed")
+        self.intra_epitopes_prot = self._cached_path(
+            "intra_epitopes_prot", "bed"
+        )
 
     def _cached_path(self, *extensions):
         return cache_path_builder(self.tmpdir, self.name, *extensions)
