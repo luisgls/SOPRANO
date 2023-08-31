@@ -43,7 +43,7 @@ def _filter_transcript_file(
 
     Hence, the operation strips the first column ENST<number>, looks for all
     the unique identifiers, then regex matches the identifiers against those
-    in the transcript files.
+    in the transcript files. (we are finding the matches IN the transcript)
 
     :param bed_file: Bed file representation of target protein regions
     :param transcript_file: Transcript file to filter
@@ -53,7 +53,7 @@ def _filter_transcript_file(
 
     # Perform filtering
     subprocess_pipes.pipe(
-        ["cut", "f1", bed_file.as_posix()],
+        ["cut", "-f1", bed_file.as_posix()],
         ["sort", "-u"],
         ["fgrep", "-w", "-f", "-", transcript_file.as_posix()],
         output_path=transcript_filt,
