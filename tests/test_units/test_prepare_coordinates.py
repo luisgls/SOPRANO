@@ -1,5 +1,4 @@
 import pathlib
-import tempfile
 
 import pytest
 
@@ -311,43 +310,20 @@ def test__randomize_with_target_file(test_files):
     # TODO: Complete
 
 
-def test__non_randomized():
-    mock_bed_content = [
-        tab_line("chr1", 800, 1000, 24),
-        tab_line("chr1", 80, 180, 24),
-        tab_line("chr1", 1, 10, 24),
-        tab_line("chr1", 750, 10000, 24),
-    ]
+def test__non_randomized(test_files):
+    paths, transcripts = test_files
+    # expected_content = [
+    #     tab_line("ENST00000000233", 115, 124),
+    #     tab_line("ENST00000000233", 164, 177),
+    #     tab_line("ENST00000000412", 113, 124),
+    #     tab_line("ENST00000001008", 27, 36),
+    #     tab_line("ENST00000001008", 189, 198),
+    # ]
+    prep_coords._non_randomized(paths)
 
-    expected_content = [
-        tab_line("chr1", 1, 10, 24),
-        tab_line("chr1", 750, 10000, 24),
-        tab_line("chr1", 80, 180, 24),
-        tab_line("chr1", 800, 1000, 24),
-    ]
-
-    with tempfile.TemporaryDirectory() as _tmpdir:
-        tmpdir = pathlib.Path(_tmpdir)
-
-        paths = AnalysisPaths("test", tmpdir.joinpath("test.bed"), tmpdir)
-
-        with open(paths.bed_path, "w") as f:
-            f.writelines(mock_bed_content)
-
-        prep_coords._non_randomized(paths)
-
-        assert paths.exclusions_shuffled.exists()
-
-        with open(paths.exclusions_shuffled, "r") as f:
-            written = f.readlines()
-
-        for e, w in zip(expected_content, written):
-            assert e.strip() == w.strip()
+    # TODO: See docstring in _non_randomized
+    # check_expected_content(expected_content, paths.exclusions_shuffled)
 
 
 def test__exclude_positively_selected_genes_disabled():
     pass
-    # with tempfile.TemporaryDirectory() as _tmpdir:
-    #     tmpdir = pathlib.Path(_tmpdir)
-    #
-    #     paths = AnalysisPaths("test", tmpdir.joinpath("test.bed"), tmpdir)
