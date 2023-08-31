@@ -283,6 +283,28 @@ def _randomize_with_target_file(
 
 def _non_randomized(paths: AnalysisPaths):
     """
+
+    TODO: Shouldn't this be instead
+
+    ----------
+
+    sort -k 1,1 -k2,2n -u $BED > ...
+
+    Reasoning: Consider the following case
+
+    ENST00000001008 189     198
+    ENST00000001008 27      36
+
+    If sort -u then this is already sorted!
+    (presuming heirarchy of sorting should be chrom, then start, then stop)
+
+    Applying sort -k 1,1 -k2,2n -u $BED > ...
+
+    ENST00000001008 27      36
+    ENST00000001008 189     198
+
+    ----------
+
     Implement
     sort -u $BED > $TMP/$NAME.epitopes.ori2
     :param paths:
