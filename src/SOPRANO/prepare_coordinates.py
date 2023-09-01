@@ -415,15 +415,17 @@ def _prep_ssb192(paths: AnalysisPaths):
     subprocess_pipes.pipe(
         [
             "awk",
-            '{OFS="\t"}{if( (($2*3)-6) >= 0 ) '
-            "{print $1,($2*3)-6,$3*3+3,$0} "
-            "else{print $1,($2*3)-3,$3*3+3,$0}}",
+            '{OFS="\t"}{'
+            "if( (($2*3)-6) >= 0 )"
+            "{print $1,($2*3)-6,$3*3+3,$0}"
+            "else{print $1,($2*3)-3,$3*3+3,$0}"
+            "}",
             paths.epitopes.as_posix(),
         ],
         output_path=paths.epitopes_cds,
     )
 
-    # TODO: Unit test
+    # TODO: Write wrapper for awk commands - hese are a bit of a pain
 
 
 def _prep_not_ssb192(paths: AnalysisPaths):
@@ -439,8 +441,6 @@ def _prep_not_ssb192(paths: AnalysisPaths):
         ["awk", '{OFS="\t"}{print $1,($2*3)-3,$3*3,$0}', paths.epitopes],
         output_path=paths.epitopes_cds,
     )
-
-    # TODO: Unit test
 
 
 def transform_protein_coordinates(paths: AnalysisPaths):

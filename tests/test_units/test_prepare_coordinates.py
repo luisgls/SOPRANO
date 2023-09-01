@@ -409,3 +409,69 @@ def test__build_protein_complement_tmp(test_files):
     # with the initial input. Therefore, in this case, the expected content are
     # the lines starting with ENST00000000233
     check_expected_content(expected_tmp_content[:2], paths.intra_epitopes_prot)
+
+
+def test__prep_ssb192(test_files):
+    paths, *others = test_files
+
+    start_stop_233 = ("ENST00000000233", 400, 500)
+    start_stop_234 = ("ENST00000000234", 100, 150)
+    start_stop_235 = ("ENST00000000235", 0, 10)
+
+    paths.epitopes.write_text(
+        tab_line(*start_stop_233)
+        + tab_line(*start_stop_234)
+        + tab_line(*start_stop_235)
+    )
+
+    def _map(start_stop: tuple):
+        chrom, start, stop = start_stop
+
+        c1 = start * 3 - 6
+        if c1 < 0:
+            c1 += 3
+        c2 = stop * 3 + 3
+
+        return chrom, c1, c2, *start_stop
+
+    expected_content = [
+        tab_line(*_map(start_stop_233)),
+        tab_line(*_map(start_stop_234)),
+        tab_line(*_map(start_stop_235)),
+    ]
+
+    prep_coords._prep_ssb192(paths)
+
+    check_expected_content(expected_content, paths.epitopes_cds)
+
+
+def test__prep_not_ssb192(test_files):
+    paths, *other = test_files
+
+    start_stop_233 = ("ENST00000000233", 400, 500)
+    start_stop_234 = ("ENST00000000234", 100, 150)
+    start_stop_235 = ("ENST00000000235", 0, 10)
+
+    paths.epitopes.write_text(
+        tab_line(*start_stop_233)
+        + tab_line(*start_stop_234)
+        + tab_line(*start_stop_235)
+    )
+
+    prep_coords._prep_not_ssb192(paths)
+
+    def _map(start_stop: tuple):
+        chrom, start, stop = start_stop
+
+        c1 = start * 3 - 3
+        c2 = stop * 3
+
+        return chrom, c1, c2, *start_stop
+
+    expected_content = [
+        tab_line(*_map(start_stop_233)),
+        tab_line(*_map(start_stop_234)),
+        tab_line(*_map(start_stop_235)),
+    ]
+
+    check_expected_content(expected_content, paths.epitopes_cds)
