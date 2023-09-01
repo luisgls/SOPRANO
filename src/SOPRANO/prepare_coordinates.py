@@ -381,8 +381,6 @@ def get_protein_complement(paths: AnalysisPaths):
     :return:
     """
 
-    temporary_file = paths.intra_epitopes_prot.with_suffix(".tmp")
-
     subprocess_pipes.pipe(
         ["sortBed", "-i", paths.epitopes],
         [
@@ -390,19 +388,17 @@ def get_protein_complement(paths: AnalysisPaths):
             "-i",
             "stdin",
             "-g",
-            paths.filtered_protein_transcript,
+            paths.filtered_protein_transcript.as_posix(),
         ],
-        output_path=temporary_file,
+        output_path=paths.intra_epitopes_prot_tmp,
     )
 
     subprocess_pipes.pipe(
         ["cut", "-f1", paths.epitopes],
         ["sort", "-u"],
-        ["fgrep", "-w", "-f", "-", temporary_file],
+        ["fgrep", "-w", "-f", "-", paths.intra_epitopes_prot_tmp.as_posix()],
         output_path=paths.intra_epitopes_prot,
     )
-
-    # TODO: unit test
 
 
 def _prep_ssb192(paths: AnalysisPaths):

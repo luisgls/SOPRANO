@@ -88,6 +88,9 @@ class AnalysisPaths:
         self.intra_epitopes_prot = self._cached_path(
             "intra_epitopes_prot", "bed"
         )
+        self.intra_epitopes_prot_tmp = self._cached_path(
+            "intra_epitopes_prot", "bed", "tmp"
+        )
 
     def _cached_path(self, *extensions):
         return cache_path_builder(self.tmpdir, self.name, *extensions)

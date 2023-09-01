@@ -367,3 +367,45 @@ def test__exclude_positively_selected_genes(test_files):
     prep_coords._exclude_positively_selected_genes(paths, auxiliaries)
 
     check_expected_content(expected_content, paths.epitopes)
+
+
+def test__build_protein_complement_tmp(test_files):
+    paths, transcripts, auxiliaries = test_files
+
+    # A minimal (unsorted) epitope file will look something like
+    paths.epitopes.write_text(
+        tab_line("ENST00000000233", 400, 500)
+        + tab_line("ENST00000000233", 100, 150)
+    )
+
+    # A minimal filtered protein transcript file will look something like
+    paths.filtered_protein_transcript.write_text(
+        tab_line("ENST00000000233", 500)
+        + tab_line("ENST00000000412", 277)
+        + tab_line("ENST00000001008", 459)
+    )
+
+    # The expected complement file will then be
+    expected_tmp_content = [
+        tab_line("ENST00000000233", 0, 100),
+        tab_line("ENST00000000233", 150, 400),
+        tab_line("ENST00000000412", 0, 277),
+        tab_line("ENST00000001008", 0, 459),
+    ]
+
+    # NOTE: the length in the filtered protein must be >= the upperbound of
+    # the largest stop position in the epitopes file
+    # (for the associated chroms), otherwise
+    # bedtools will raise a warning which is undetected via the subprocess
+
+    # NOTE: In the absence of start, stop in the epitopes file,
+    # chromosomes appearing in the filtered file will automatically be
+    # provided the complementary interval [0, length]
+
+    prep_coords.get_protein_complement(paths)
+    check_expected_content(expected_tmp_content, paths.intra_epitopes_prot_tmp)
+
+    # The final step of the calculation essentially finds word regex matches
+    # with the initial input. Therefore, in this case, the expected content are
+    # the lines starting with ENST00000000233
+    check_expected_content(expected_tmp_content[:2], paths.intra_epitopes_prot)

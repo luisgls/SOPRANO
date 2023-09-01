@@ -55,6 +55,11 @@ def pipe(
     # TODO: Should we be raising an error on non-zero exit status?
     ps = subprocess.run(args[0], input=_input, capture_output=True)
 
+    # TODO: Should we be catching warnings raised by bedtools?
+    #       e.g., these have the prefix ***** WARNING
+    #       and usually means something stupid has been done
+    #       could check stdout for this, and raise BedtoolsWarning?
+
     if len(args) > 1:
         return pipe(
             *args[1:],
