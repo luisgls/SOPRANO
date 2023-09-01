@@ -37,11 +37,11 @@ GRCh38 = _GenomicPaths(
 
 
 @dataclass(frozen=True)
-class _AuxiliaryPaths:
+class AuxiliaryPaths:
     genes_to_exclude: pathlib.Path
 
 
-AuxiliaryPaths = _AuxiliaryPaths(
+AuxiliaryFiles = AuxiliaryPaths(
     genes_to_exclude=_data_dir().joinpath("genes2exclude.txt")
 )
 

@@ -336,11 +336,18 @@ def _exclude_positively_selected_genes_disabled(paths: AnalysisPaths):
     subprocess_pipes.pipe(["cp", paths.exclusions_shuffled, paths.epitopes])
 
 
-def _exclude_positively_selected_genes(paths: AnalysisPaths):
+def _exclude_positively_selected_genes(
+    paths: AnalysisPaths, aux_paths: AuxiliaryPaths
+):
     """
     Implement
     fgrep -w -v -f $SUPA/genes2exclude.txt $TMP/$NAME.epitopes.ori2 >
         $TMP/$NAME.epitopes.bed
+
+    -w : match only whole words between files
+    -v : invert selection, i.e. select non-matching lines
+    -f : takes pattern from file
+
     :param paths:
     :return:
     """
@@ -351,13 +358,11 @@ def _exclude_positively_selected_genes(paths: AnalysisPaths):
             "-w",
             "-v",
             "-f",
-            AuxiliaryPaths.genes_to_exclude.as_posix(),
+            aux_paths.genes_to_exclude.as_posix(),
             paths.exclusions_shuffled.as_posix(),
         ],
         output_path=paths.epitopes,
     )
-
-    # TODO: Unit test
 
 
 def get_protein_complement(paths: AnalysisPaths):

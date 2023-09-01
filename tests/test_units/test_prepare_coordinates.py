@@ -3,7 +3,7 @@ import pathlib
 import pytest
 
 import SOPRANO.prepare_coordinates as prep_coords
-from SOPRANO.objects import AnalysisPaths, TranscriptPaths
+from SOPRANO.objects import AnalysisPaths, AuxiliaryPaths, TranscriptPaths
 
 
 def tab_line(*args):
@@ -124,6 +124,9 @@ mock_protein_transcript_content = [
 # Fictitious target regions for randomization
 mock_target_regions = [tab_line("ENST00000000233", 500, 1000)]
 
+# Used to build mock aux files
+mock_genes2exclude = [tab_line("ENST00000001008")]
+
 
 def check_expected_content(
     expected_content: list, written_content_path: pathlib.Path
@@ -152,6 +155,7 @@ def test_files(tmp_path):
     anno_path = inputs_dir.joinpath("input.anno")
     bed_path = inputs_dir.joinpath("input.bed")
     targets_path = inputs_dir.joinpath("targets.bed")
+    genes2exclude_path = inputs_dir.joinpath("genes2exclude.txt")
 
     trans_path = transcripts_dir.joinpath("transcript_length.txt")
     trans_prot_path = transcripts_dir.joinpath(
@@ -162,26 +166,35 @@ def test_files(tmp_path):
         "test_data", bed_path, tmpdir, target_regions_path=targets_path
     )
     transcripts = TranscriptPaths(trans_path, trans_prot_path)
+    auxiliaries = AuxiliaryPaths(genes2exclude_path)
 
     for _input_path, _input_content in zip(
-        (anno_path, bed_path, trans_path, trans_prot_path, targets_path),
+        (
+            anno_path,
+            bed_path,
+            trans_path,
+            trans_prot_path,
+            targets_path,
+            genes2exclude_path,
+        ),
         (
             mock_input_content,
             mock_bed_content,
             mock_transcript_content,
             mock_protein_transcript_content,
             mock_target_regions,
+            mock_genes2exclude,
         ),
     ):
         with open(_input_path, "w") as f:
             f.writelines(_input_content)
 
-    return paths, transcripts
+    return paths, transcripts, auxiliaries
 
 
 @pytest.mark.dependency(name="_filter_transcript_file")
 def test__filter_transcript_file(test_files):
-    paths, transcripts = test_files
+    paths, transcripts, auxiliaries = test_files
 
     expected_content = [
         tab_line("ENST00000000233", 543),
@@ -202,7 +215,7 @@ def test__filter_transcript_file(test_files):
     name="filter_trans_files", depends=["_filter_transcript_file"]
 )
 def test_filter_transcript_files(test_files):
-    paths, transcripts = test_files
+    paths, transcripts, auxiliaries = test_files
 
     expected_trans_content = [
         tab_line("ENST00000000233", 543),
@@ -226,7 +239,7 @@ def test_filter_transcript_files(test_files):
 
 @pytest.mark.dependency(name="_define_excl_regs")
 def test__define_excluded_regions_for_randomization(test_files):
-    paths, transcripts = test_files
+    paths, transcripts, auxiliaries = test_files
 
     expected_content = mock_bed_content + [
         tab_line("ENST00000000233", 0, 2),
@@ -243,7 +256,7 @@ def test__define_excluded_regions_for_randomization(test_files):
 
 @pytest.mark.dependency(depends=["_define_excl_regs", "filter_trans_files"])
 def test__sort_excluded_regions_for_randomization(test_files):
-    paths, transcripts = test_files
+    paths, transcripts, auxiliaries = test_files
 
     # Every item has an "ENST<...>  0   2" pair
     # So after sorting, we expect that
@@ -288,7 +301,7 @@ def test__sort_excluded_regions_for_randomization(test_files):
 
 @pytest.mark.dependency(depends=["filter_trans_files"])
 def test__randomize_with_target_file(test_files):
-    paths, transcripts = test_files
+    paths, transcripts, auxiliaries = test_files
 
     prep_coords.filter_transcript_files(paths, transcripts)
 
@@ -311,7 +324,7 @@ def test__randomize_with_target_file(test_files):
 
 
 def test__non_randomized(test_files):
-    paths, transcripts = test_files
+    paths, transcripts, auxiliaries = test_files
     # expected_content = [
     #     tab_line("ENST00000000233", 115, 124),
     #     tab_line("ENST00000000233", 164, 177),
@@ -325,5 +338,32 @@ def test__non_randomized(test_files):
     # check_expected_content(expected_content, paths.exclusions_shuffled)
 
 
-def test__exclude_positively_selected_genes_disabled():
-    pass
+def test__exclude_positively_selected_genes_disabled(test_files):
+    paths, transcripts, auxiliaries = test_files
+
+    # Dummy data written to shuffled exclusions file:
+    # When positively selected genes are disabled, should just copy this file
+    paths.exclusions_shuffled.write_text(tab_line("chr1", 123, 456))
+
+    prep_coords._exclude_positively_selected_genes_disabled(paths)
+
+    with open(paths.exclusions_shuffled, "r") as f:
+        expected_content = f.readlines()
+
+    check_expected_content(expected_content, paths.epitopes)
+
+
+def test__exclude_positively_selected_genes(test_files):
+    paths, transcripts, auxiliaries = test_files
+
+    # Write dummy data for "shuffle file"
+    paths.exclusions_shuffled.write_text(
+        tab_line("ENST00000000233", 164, 177)
+        + tab_line("ENST00000001008", 113, 124)
+    )
+
+    # In the exclusions aux file, we have ENST00000001008
+    expected_content = [tab_line("ENST00000000233", 164, 177)]
+    prep_coords._exclude_positively_selected_genes(paths, auxiliaries)
+
+    check_expected_content(expected_content, paths.epitopes)

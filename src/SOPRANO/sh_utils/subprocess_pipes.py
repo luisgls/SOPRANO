@@ -52,6 +52,7 @@ def pipe(
     :return: string representation of stdout from cumulative piped processes
     """
 
+    # TODO: Should we be raising an error on non-zero exit status?
     ps = subprocess.run(args[0], input=_input, capture_output=True)
 
     if len(args) > 1:
