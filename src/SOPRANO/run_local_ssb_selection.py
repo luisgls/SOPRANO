@@ -1,5 +1,17 @@
 import argparse
 import pathlib
+from datetime import datetime
+
+from SOPRANO import objects
+
+
+def _get_datetime_str():
+    now = datetime.now()
+    return now.strftime("%d/%m/%Y %H:%M:%S")
+
+
+def task_output(msg):
+    print(f"[{_get_datetime_str()}] {msg}")
 
 
 def parse_args():
@@ -9,7 +21,7 @@ def parse_args():
         "--input",
         "-i",
         dest="input",
-        type=pathlib.PosixPath,
+        type=pathlib.Path,
         help="Prove the path to the input VEP annotated file.",
         required=True,
     )
@@ -18,7 +30,7 @@ def parse_args():
         "--bed_file",
         "-b",
         dest="bed_file",
-        type=pathlib.PosixPath,
+        type=pathlib.Path,
         help="Provide the path to the bed file with protein coordinates named "
         "by Transcript (ENSTXXXXXX 123 135)",
         required=True,
@@ -28,7 +40,7 @@ def parse_args():
         "--output",
         "-o",
         dest="output",
-        type=pathlib.PosixPath,
+        type=pathlib.Path,
         help="Provide the path to the output directory in which dN/dS results "
         "will be cached.",
         required=True,
@@ -47,7 +59,7 @@ def parse_args():
     analysis_params_group.add_argument(
         "-t",
         dest="bed_regions",
-        type=pathlib.PosixPath,
+        type=pathlib.Path,
         help="Provide a bed file with regions to randomize.",
     )
 
@@ -73,17 +85,37 @@ def parse_args():
         "calculation.",
     )
 
+    transcript_args = parser.add_argument_group()
+
+    transcript_args.add_argument(
+        "--transcript",
+        dest="transcript",
+        help="Provide path to transcript file",
+        default=objects.EnsemblTranscripts.transcript_length,
+        type=pathlib.Path,
+    )
+
+    transcript_args.add_argument(
+        "--protein_transcript",
+        dest="protein_transcript",
+        help="Provide path to protein transcript file",
+        default=objects.EnsemblTranscripts.protein_transcript_length,
+        type=pathlib.Path,
+    )
+
     args = parser.parse_args()
 
     _validate_input_path(args.input)
     _validate_input_path(args.bed_file)
     _validate_input_path(args.output)
     _validate_input_path(args.bed_regions, optional=True)
+    _validate_input_path(args.transcript)
+    _validate_input_path(args.protein_transcript)
 
     return args
 
 
-def _validate_input_path(cli_path: pathlib.PosixPath | None, optional=False):
+def _validate_input_path(cli_path: pathlib.Path | None, optional=False):
     if cli_path is None:
         if not optional:
             raise Exception("Input path is not optional and path is None!")
@@ -113,9 +145,31 @@ def _startup_message(**kwargs):
     print(_borders)
 
 
-def main():
-    cli_args = parse_args()
+def main(_namespace=None):
+    cli_args = parse_args() if _namespace is None else _namespace
     _startup_message(**cli_args.__dict__)
+
+    task_output("Filtering transcripts")
+
+    if cli_args.bed_regions is None:
+        bed_regions = None
+    else:
+        bed_regions = pathlib.Path(cli_args.bed_regions)
+
+    paths = objects.AnalysisPaths(
+        analysis_name=cli_args.name,
+        bed_path=cli_args.bed_file,
+        tmpdir=pathlib.Path(cli_args.output).joinpath("tmp"),
+        target_regions_path=bed_regions,
+    )
+
+    transcripts = objects.TranscriptPaths(
+        pathlib.Path(cli_args.transcript),
+        pathlib.Path(cli_args.protein_transcript),
+    )
+
+    print(paths)
+    print(transcripts)
 
 
 if __name__ == "__main__":
