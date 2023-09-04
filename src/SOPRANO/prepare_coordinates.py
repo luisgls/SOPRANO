@@ -443,7 +443,7 @@ def _prep_not_ssb192(paths: AnalysisPaths):
     )
 
 
-def transform_protein_coordinates(paths: AnalysisPaths):
+def transform_coordinates(paths: AnalysisPaths):
     """
     Implement
 
@@ -460,19 +460,21 @@ def transform_protein_coordinates(paths: AnalysisPaths):
     :return:
     """
 
-    temporary_file = paths.intra_epitopes.with_suffix(".tmp")
-
     subprocess_pipes.pipe(
-        ["sortBed", "-i", paths.epitopes_cds],
-        ["complementBed", "-i", "stdin", "-g", paths.filtered_transcript],
-        output_path=temporary_file,
+        ["sortBed", "-i", paths.epitopes_cds.as_posix()],
+        [
+            "complementBed",
+            "-i",
+            "stdin",
+            "-g",
+            paths.filtered_transcript.as_posix(),
+        ],
+        output_path=paths.intra_epitopes_tmp,
     )
 
     subprocess_pipes.pipe(
-        ["cut", "-f1", paths.epitopes],
+        ["cut", "-f1", paths.epitopes.as_posix()],
         ["sort", "-u"],
-        ["fgrep", "-w", "-f", "-", temporary_file],
+        ["fgrep", "-w", "-f", "-", paths.intra_epitopes_tmp.as_posix()],
         output_path=paths.intra_epitopes,
     )
-
-    # TODO: Unit test

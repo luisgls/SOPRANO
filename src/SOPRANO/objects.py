@@ -85,6 +85,9 @@ class AnalysisPaths:
         self.epitopes = self._cached_path("epitopes", "bed")
         self.epitopes_cds = self._cached_path("epitopes_cds", "bed")
         self.intra_epitopes = self._cached_path("intra_epitopes", "bed")
+        self.intra_epitopes_tmp = self._cached_path(
+            "intra_epitopes", "bed", "tmp"
+        )
         self.intra_epitopes_prot = self._cached_path(
             "intra_epitopes_prot", "bed"
         )
