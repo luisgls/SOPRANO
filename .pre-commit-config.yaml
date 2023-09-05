@@ -14,6 +14,6 @@ repos:
     hooks:
     -   id: mypy
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.284
+    rev: v0.0.287
     hooks:
     -   id: ruff
