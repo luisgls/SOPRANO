@@ -18,43 +18,22 @@ class MissingDataError(Exception):
 def _filter_transcript_file(
     bed_file: pathlib.Path,
     transcript_file: pathlib.Path,
-    transcript_filt: pathlib.Path,
+    filtered_transcript_file: pathlib.Path,
 ) -> None:
     """
-
-    Implementation of methods in line 92-93
+    Implements:
 
     cut -f1 $BED | sort -u |
         fgrep -w -f - $SUPA/ensemble_transcript_protein.length >
             $TMP/$NAME.protein_length_filt.txt
 
-    Bedfile format looks like:
-    ENST00000000233 9       18
-    ENST00000000233 37      46
-    ENST00000000233 98      111
-    ENST00000000233 115     124
-    ENST00000000233 164     177
-    ...
-
-    cut -f1 $BED extracts first col, e.g.
-    ENST00000000233
-    ENST00000000233
-    ENST00000000233
-    ENST00000000233
-    ENST00000000233
-
-    sort -u extracts the unique lines
-
-    fgrep -w -f <file>, -w matches only whole words, -f take patterns from file
-
-    Hence, the operation strips the first column ENST<number>, looks for all
-    the unique identifiers, then regex matches the identifiers against those
-    in the transcript files. (we are finding the matches IN the transcript)
+    The operation strips the first column ENST<number>, looks for all
+    the unique identifiers, then matches the identifiers against those
+    in the transcript files.
 
     :param bed_file: Bed file representation of target protein regions
-    :param transcript_file: Transcript file to filter
-    :param cache_dir: cache directory
-    :return: PosixPath to filtered file
+    :param transcript_file: Path to input transcript file
+    :param filtered_transcript_file: Path to output filtered transcript
     """
 
     # Perform filtering
@@ -62,29 +41,26 @@ def _filter_transcript_file(
         ["cut", "-f1", bed_file.as_posix()],
         ["sort", "-u"],
         ["fgrep", "-w", "-f", "-", transcript_file.as_posix()],
-        output_path=transcript_filt,
+        output_path=filtered_transcript_file,
     )
 
 
 def filter_transcript_files(
-    path: AnalysisPaths, transcripts: TranscriptPaths
+    paths: AnalysisPaths, transcripts: TranscriptPaths
 ) -> None:
     """
-    Implementation of lines 92-93
-
     Get list of transcripts from annotated bed files, filtering out
     those transcripts not present in the database
 
-    :param path: AnalysisPaths instance (contains e.g. bedfile path)
+    :param paths: AnalysisPaths instance (contains e.g. bed_path attribute)
     :param transcripts: TranscriptsPath instance
-    :return:
     """
-    bed_file = path.bed_path
+    bed_file = paths.bed_path
     transcript_protein_path = transcripts.protein_transcript_length
     transcript_path = transcripts.transcript_length
 
-    transcript_protein_filt = path.filtered_protein_transcript
-    transcript_filt = path.filtered_transcript
+    transcript_protein_filt = paths.filtered_protein_transcript
+    transcript_filt = paths.filtered_transcript
 
     _filter_transcript_file(
         bed_file,
@@ -101,11 +77,14 @@ def filter_transcript_files(
 
 class _PipelineComponent:
     """
-    Components of the pipeline are designed to follow the pattern
-    Object.apply(params), where apply should include the call to check_read()
+    Components of the pipeline are designed to follow the pattern:
+
+    Component.apply(params)
+
+    where apply should include the call to check_read()
     to permit execution.
 
-    Pipeline components should override these methods
+    Pipeline components should override these methods.
     """
 
     @staticmethod
@@ -118,6 +97,10 @@ class _PipelineComponent:
 
 
 class FilterTranscripts(_PipelineComponent):
+    """
+    Filter transcript files with respect to input bed file
+    """
+
     @staticmethod
     def apply(params: Parameters):
         FilterTranscripts.check_ready(params)
@@ -134,48 +117,20 @@ class FilterTranscripts(_PipelineComponent):
                 raise MissingDataError(path)
 
 
-def _define_excluded_regions_for_randomization(
-    paths: AnalysisPaths,
-):
+def _define_excluded_regions_for_randomization(paths: AnalysisPaths):
     """
-    We want to execute the commands
+    Implements:
+
     cut -f1,2,3 $BED > $TMP/$NAME.exclusion.ori
     cut -f1 $BED |
         awk '{OFS="\t"}{print $1,0,2}' |
             sortBed -i stdin  >> $TMP/$NAME.exclusion.ori
 
-    the first command simply extracts the first 3 cols of the bed file
-    and stores them in a tmp file *.exclusion.ori
-
-    the second command pipes the following:
-    1 - cut -f1 $BED
-        extract the first col from bed file; then
-    2 - awk '{OFS="\t"}{print $1,0,2}'
-        uses awk to process the output from 1;
-        {OFS='\t'} tab delimits the output
-        {print $1,0,2} prints the first column ($1) then
-        delimits the numbers 0 and 2
-
-        Summary: this pipe tab delimits the first col, followed
-        by the numbers 0 and 2
-    3 - sortBed -i stdin
-        sortBed sorts input files by features (e.g. chrom size).
-        by passing -i stdin, this is telling bed to use the
-        standard input stream. Therefore, it can be used in pipes.
-
-        By default, sorts a BED file by chromosome and then by start position
-        in ascending order.
-
-    Net result of this function:
-
     Take a bed file and extract the first 3 cols.
     Append to the bottom of this file the sorted list of chromosomes,
     followed by the numbers 0 and 2.
 
-    :param name:
-    :param bed_path:
-    :param tmpdir:
-    :return:
+    :param paths: Analysis paths instance containing bed file definition
     """
 
     cut_bed_proc = subprocess.run(
@@ -200,29 +155,26 @@ def _sort_excluded_regions_for_randomization(
     paths: AnalysisPaths, seed: int | None = None
 ) -> None:
     """
-    Implement
+    Implements:
+
     sortBed -i $TMP/$NAME.exclusion.ori > $TMP/$NAME.exclusion.bed
     bedtools shuffle -i $BED -g $TMP/$NAME.protein_length_filt.txt
         -excl $TMP/$NAME.exclusion.bed -chrom > $TMP/$NAME.epitopes.ori2
 
+    Randomly permute the genomic locations within the input bed file among
+    the filtered protein length file. We apply pre-defined exclusions from
+    the end-points of shuffling. By invoking "-chrom", shuffled features
+    are restricted to a location on the same chromosome.
 
     :param paths: AnalaysisPaths instance
+    :param seed: Random number generator seed
     """
 
-    # Sort list of exclusions obtained from
-    # _define_excluded_regions_for_randomization
     subprocess_pipes.pipe(
         ["sortBed", "-i", paths.exclusions.as_posix()],
         output_path=paths.exclusions_sorted,
     )
 
-    # randomly permute the genomic locations of a feature file among a genome
-    # defined in a genome file. Here the feature is the input bed file,
-    # and the genome is that of the filtered protein file.
-    # The -excl flag indicates to bedtools that we want to exclude regions
-    # from the shuffling procedure.
-    # The -chrom flag tells bedtools to keep features in -i on the same
-    # chromosome. Solely permute their location on the chromosome.
     pipe_args = [
         "bedtools",
         "shuffle",
@@ -248,7 +200,8 @@ def _randomize_with_target_file(
     paths: AnalysisPaths, transcripts: TranscriptPaths, seed: int | None = None
 ):
     """
-    Implementation of
+    Implements:
+
     cut -f1 $TARGET | sort -u | fgrep -w -f -
         $SUPA/ensemble_transcript_protein.length >>
             $TMP/$NAME.protein_length_filt.txt
@@ -257,18 +210,15 @@ def _randomize_with_target_file(
         $SUPA/ensemble_transcript.length >>
             $TMP/$NAME.transcript_length_filt.txt
 
-    These two steps take the target region file, extract the unique chroms,
-    find those which exist in the transcript file(s), then append these data
-    to the end of the filtered transcript file(s)
+    Takes the target region file, extracts the unique chroms, finds those which
+    exist in the transcript file(s), then append these data to the end of the
+    filtered transcript file(s).
 
-    bedtools shuffle -i $BED -g $TMP/$NAME.protein_length_filt.txt -incl
-        $TARGET -noOverlapping > $TMP/$NAME.epitopes.ori2
+    All shuffling takes place across the TARGET file, such that no intervals
+    occupy a single common base pair
 
-    This ensures that that all shuffling takes place across the TARGET file,
-    and that no intervals occupy a single common base pair
-
-    :param paths:
-    :param seed: rng seed
+    :param paths: Analysis path instance
+    :param seed: Random number generator seed
     :return:
     """
 
@@ -319,44 +269,33 @@ def _randomize_with_target_file(
         output_path=paths.exclusions_shuffled,
     )
 
-    # TODO: Finish unit testing... This is quite tricky
+    # TODO: Finish unit testing
 
 
 def _non_randomized(paths: AnalysisPaths):
     """
+    Implements:
 
-    TODO: Shouldn't this be instead
-
-    ----------
-
-    sort -k 1,1 -k2,2n -u $BED > ...
-
-    Reasoning: Consider the following case
-
-    ENST00000001008 189     198
-    ENST00000001008 27      36
-
-    If sort -u then this is already sorted!
-    (presuming heirarchy of sorting should be chrom, then start, then stop)
-
-    Applying sort -k 1,1 -k2,2n -u $BED > ...
-
-    ENST00000001008 27      36
-    ENST00000001008 189     198
-
-    ----------
-
-    Implement
     sort -u $BED > $TMP/$NAME.epitopes.ori2
-    :param paths:
-    :return:
+
+    :param paths: AnalysisPaths instance
     """
     subprocess_pipes.pipe(
         ["sort", "-u", paths.bed_path], output_path=paths.exclusions_shuffled
     )
 
+    # TODO: Shouldn't this be instead "sort -k 1,1 -k2,2n -u $BED > ..."
+    #         sort -k 1,1 -k2,2n -u $BED > ...
+    #         Consider the following case:
+    #         ENST00000001008 189     198
+    #         ENST00000001008 27      36
+    #         If sort -u then this is already sorted!
+    #         (presuming hierarchy should be chrom, then start, then stop)
+
 
 class _Randomize(_PipelineComponent):
+    """Intermediate class for randomization procedures"""
+
     @staticmethod
     def check_ready(params: Parameters):
         for path in (
@@ -370,6 +309,8 @@ class _Randomize(_PipelineComponent):
 
 
 class NonRandom(_Randomize):
+    """No randomization implemented"""
+
     @staticmethod
     def apply(params: Parameters):
         _Randomize.check_ready(params)
@@ -377,6 +318,8 @@ class NonRandom(_Randomize):
 
 
 class RandomizeWithoutRegions(_Randomize):
+    """Randomizes without user input file"""
+
     @staticmethod
     def apply(params: Parameters):
         _Randomize.check_ready(params)
@@ -385,6 +328,8 @@ class RandomizeWithoutRegions(_Randomize):
 
 
 class RandomizeWithRegions(_Randomize):
+    """Randomizes with user input file"""
+
     @staticmethod
     def apply(params: Parameters):
         _Randomize.check_ready(params)
@@ -395,10 +340,13 @@ class RandomizeWithRegions(_Randomize):
 
 def _exclude_positively_selected_genes_disabled(paths: AnalysisPaths):
     """
-    Implement
+    Implements:
+
     cp $TMP/$NAME.epitopes.ori2 $TMP/$NAME.epitopes.bed
-    :param paths:
-    :return:
+
+    No driver genes excluded, so simply copies epitopes file.
+
+    :param paths: AnalysisPaths instance
     """
     subprocess_pipes.pipe(["cp", paths.exclusions_shuffled, paths.epitopes])
 
@@ -407,16 +355,17 @@ def _exclude_positively_selected_genes(
     paths: AnalysisPaths, aux_paths: AuxiliaryPaths
 ):
     """
-    Implement
+    Implements:
+
     fgrep -w -v -f $SUPA/genes2exclude.txt $TMP/$NAME.epitopes.ori2 >
         $TMP/$NAME.epitopes.bed
 
-    -w : match only whole words between files
-    -v : invert selection, i.e. select non-matching lines
-    -f : takes pattern from file
+    Matches transcript ids not found in genes2exclude.txt to create epitope
+    bed file
 
-    :param paths:
-    :return:
+    :param paths: AnalysisPaths instance
+    :param aux_paths: AuxiliaryPaths instance - contains definitions of
+            which genes to exclude.
     """
 
     subprocess_pipes.pipe(
@@ -433,6 +382,8 @@ def _exclude_positively_selected_genes(
 
 
 class _GeneExclusions(_PipelineComponent):
+    """Intermediate class for gene exclusions"""
+
     @staticmethod
     def check_ready(params: Parameters):
         if not params.exclusions_shuffled.exists():
@@ -440,6 +391,8 @@ class _GeneExclusions(_PipelineComponent):
 
 
 class GeneExclusions(_GeneExclusions):
+    """Applies gene exclusions"""
+
     @staticmethod
     def apply(params: Parameters):
         _GeneExclusions.check_ready(params)
@@ -447,6 +400,8 @@ class GeneExclusions(_GeneExclusions):
 
 
 class GeneExclusionsDisabled(_GeneExclusions):
+    """No gene exclusions"""
+
     @staticmethod
     def apply(params: Parameters):
         _GeneExclusions.check_ready(params)
@@ -455,7 +410,8 @@ class GeneExclusionsDisabled(_GeneExclusions):
 
 def _get_protein_complement(paths: AnalysisPaths):
     """
-    Implement
+    Implements:
+
     sortBed -i $TMP/$NAME.epitopes.bed |
         complementBed -i stdin -g $TMP/$NAME.protein_length_filt.txt >
             $TMP/$NAME.intra_epitopes_prot.tmp
@@ -465,8 +421,9 @@ def _get_protein_complement(paths: AnalysisPaths):
             fgrep -w -f - $TMP/$NAME.intra_epitopes_prot.tmp >
                 $TMP/$NAME.intra_epitopes_prot.bed
 
-    :param paths
-    :return:
+    Finds complement to epitope file, subject to filtered protein transcript
+
+    :param paths: AnalysisPaths instance
     """
 
     subprocess_pipes.pipe(
@@ -496,6 +453,8 @@ def _get_protein_complement(paths: AnalysisPaths):
 
 
 class BuildProteinComplement(_PipelineComponent):
+    """Build protein complement file"""
+
     @staticmethod
     def check_ready(params: Parameters):
         for path in (params.epitopes, params.filtered_protein_transcript):
@@ -510,13 +469,14 @@ class BuildProteinComplement(_PipelineComponent):
 
 def _prep_ssb192(paths: AnalysisPaths):
     """
-    Implement
+    Implements:
+
     awk '{OFS="\t"}{if( (($2*3)-6) >= 0 )
         {print $1,($2*3)-6,$3*3+3,$0}
             else{print $1,($2*3)-3,$3*3+3,$0}}' $TMP/$NAME.epitopes.bed >
                 $TMP/$NAME.epitopes_cds.bed
-    :param paths:
-    :return:
+
+    :param paths: AnalysisPaths instance
     """
 
     subprocess_pipes.pipe(
@@ -532,16 +492,15 @@ def _prep_ssb192(paths: AnalysisPaths):
         output_path=paths.epitopes_cds,
     )
 
-    # TODO: Write wrapper for awk commands - hese are a bit of a pain
-
 
 def _prep_not_ssb192(paths: AnalysisPaths):
     """
-    Implement
+    Implements:
+
     awk '{OFS="\t"}{print $1,($2*3)-3,$3*3,$0}' $TMP/$NAME.epitopes.bed >
         $TMP/$NAME.epitopes_cds.bed
-    :param paths:
-    :return:
+
+    :param paths: AnalysisPaths instance
     """
 
     subprocess_pipes.pipe(
@@ -551,6 +510,8 @@ def _prep_not_ssb192(paths: AnalysisPaths):
 
 
 class _SSB192Selection(_PipelineComponent):
+    """Intermediate class for ssb192 mutrate selection"""
+
     @staticmethod
     def check_ready(params: Parameters):
         if not params.epitopes.exists():
@@ -558,6 +519,8 @@ class _SSB192Selection(_PipelineComponent):
 
 
 class UseSSB192(_SSB192Selection):
+    """Applies ssb192 selection in CDS coordinate prep"""
+
     @staticmethod
     def apply(params: Parameters):
         _SSB192Selection.check_ready(params)
@@ -565,6 +528,8 @@ class UseSSB192(_SSB192Selection):
 
 
 class NotSSB192(_SSB192Selection):
+    """Does not apply ssb192 selection in CDS coordiante prep"""
+
     @staticmethod
     def apply(params: Parameters):
         _SSB192Selection.check_ready(params)
@@ -573,7 +538,7 @@ class NotSSB192(_SSB192Selection):
 
 def transform_coordinates(paths: AnalysisPaths):
     """
-    Implement
+    Implements:
 
     sortBed -i $TMP/$NAME.epitopes_cds.bed |
         complementBed -i stdin -g $TMP/$NAME.transcript_length_filt.txt >
@@ -584,8 +549,9 @@ def transform_coordinates(paths: AnalysisPaths):
             fgrep -w -f - $TMP/$NAME.intra_epitopes.tmp >
                 $TMP/$NAME.intra_epitopes_cds.bed
 
-    :param paths:
-    :return:
+    Computes the complement for the epitope file in CDS coords.
+
+    :param paths: AnalysisPaths instance
     """
 
     subprocess_pipes.pipe(
@@ -609,6 +575,8 @@ def transform_coordinates(paths: AnalysisPaths):
 
 
 class BuildIntraEpitopesCDS(_PipelineComponent):
+    """Builds the complement to the epitope in cds coords"""
+
     @staticmethod
     def check_ready(params: Parameters):
         for path in (
