@@ -171,7 +171,7 @@ def main(_namespace=None):
     params = objects.Parameters.from_namespace(cli_args)
 
     task_output("Filtering transcripts")
-    prepare_coordinates.filter_transcript_files(params, params.transcripts)
+    prepare_coordinates.FilterTranscripts.apply(params)
 
     if params.use_target_regions:
         task_output(

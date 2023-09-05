@@ -11,6 +11,10 @@ from SOPRANO.objects import (
 from SOPRANO.sh_utils import subprocess_pipes
 
 
+class MissingDataError(Exception):
+    pass
+
+
 def _filter_transcript_file(
     bed_file: pathlib.Path,
     transcript_file: pathlib.Path,
@@ -93,6 +97,41 @@ def filter_transcript_files(
         transcript_path,
         transcript_filt,
     )
+
+
+class _PipelineComponent:
+    """
+    Components of the pipeline are designed to follow the pattern
+    Object.apply(params), where apply should include the call to check_read()
+    to permit execution.
+
+    Pipeline components should override these methods
+    """
+
+    @staticmethod
+    def apply(params: Parameters):
+        pass
+
+    @staticmethod
+    def check_ready(params: Parameters):
+        pass
+
+
+class FilterTranscripts(_PipelineComponent):
+    @staticmethod
+    def apply(params: Parameters):
+        FilterTranscripts.check_ready(params)
+        filter_transcript_files(params, params.transcripts)
+
+    @staticmethod
+    def check_ready(params: Parameters):
+        for path in (
+            params.bed_path,
+            params.transcripts.transcript_length,
+            params.transcripts.protein_transcript_length,
+        ):
+            if not path.exists():
+                raise MissingDataError(path)
 
 
 def _define_excluded_regions_for_randomization(
@@ -315,10 +354,6 @@ def _non_randomized(paths: AnalysisPaths):
     subprocess_pipes.pipe(
         ["sort", "-u", paths.bed_path], output_path=paths.exclusions_shuffled
     )
-
-
-class MissingDataError(Exception):
-    pass
 
 
 class _Randomize:
