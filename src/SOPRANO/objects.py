@@ -116,6 +116,7 @@ _NAMESPACE_KEYS = (
     "use_ssb192",
     "use_random",
     "exclude_drivers",
+    "seed",
 )
 
 
@@ -130,6 +131,7 @@ class Parameters(AnalysisPaths):
         use_ssb192: bool,
         use_random: bool,
         exclude_drivers: bool,
+        seed: int,
         transcripts: TranscriptPaths,
     ):
         super().__init__(
@@ -138,8 +140,10 @@ class Parameters(AnalysisPaths):
 
         self.transcripts = transcripts
         self.use_ssb192 = use_ssb192
+        self.use_target_regions = target_regions is not None
         self.use_random = use_random
         self.exclude_drivers = exclude_drivers
+        self.seed = None if seed < 0 else seed
 
     @classmethod
     def from_namespace(cls, namespace: Namespace):
@@ -159,5 +163,6 @@ class Parameters(AnalysisPaths):
             namespace.use_ssb192,
             namespace.use_random,
             namespace.exclude_drivers,
+            namespace.seed,
             transcripts,
         )

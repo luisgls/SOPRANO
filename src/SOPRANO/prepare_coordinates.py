@@ -361,14 +361,16 @@ class RandomizeWithoutRegions(_Randomize):
     def prep_epitopes_ori2(params: Parameters):
         _Randomize.check_ready(params)
         _define_excluded_regions_for_randomization(params)
-        _sort_excluded_regions_for_randomization(params)  # TODO: seed
+        _sort_excluded_regions_for_randomization(params, seed=params.seed)
 
 
 class RandomizeWithRegions(_Randomize):
     @staticmethod
     def prep_epitopes_ori2(params: Parameters):
         _Randomize.check_ready(params)
-        _randomize_with_target_file(params, params.transcripts)  # TODO: seed
+        _randomize_with_target_file(
+            params, params.transcripts, seed=params.seed
+        )
 
 
 def _exclude_positively_selected_genes_disabled(paths: AnalysisPaths):

@@ -56,6 +56,7 @@ def parse_args():
     analysis_params_group = parser.add_argument_group()
 
     analysis_params_group.add_argument(
+        "--target_regions",
         "-t",
         dest="target_regions",
         type=pathlib.Path,
@@ -83,6 +84,16 @@ def parse_args():
         action="store_true",
         help="If flag is used, driver geners will be excluded from the "
         "calculation.",
+    )
+
+    analysis_params_group.add_argument(
+        "--seed",
+        dest="seed",
+        default=-1,
+        type=int,
+        help="Provide seed value for shuffle process in randomization. By "
+        "default, seed value is < 0, for which, no seed value will be "
+        "applied.",
     )
 
     transcript_args = parser.add_argument_group()
@@ -161,6 +172,22 @@ def main(_namespace=None):
 
     task_output("Filtering transcripts")
     prepare_coordinates.filter_transcript_files(params, params.transcripts)
+
+    if params.use_target_regions:
+        task_output(
+            f"Randomizing transcripts subject to bed file: "
+            f"{params.target_regions_path.as_posix()}"
+        )
+        prepare_coordinates.RandomizeWithRegions.prep_epitopes_ori2(params)
+    elif params.use_random:
+        task_output("Randomizing transcripts")
+        prepare_coordinates.RandomizeWithoutRegions.prep_epitopes_ori2(params)
+    else:
+        task_output(
+            f"No randomization selected: sorting input bed file: "
+            f"{params.bed_path.as_posix()}"
+        )
+        prepare_coordinates.NonRandom.prep_epitopes_ori2(params)
 
 
 if __name__ == "__main__":
