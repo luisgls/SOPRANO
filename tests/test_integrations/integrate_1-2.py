@@ -17,13 +17,15 @@ name = "TCGA-05-4396"
 
 def test_initial_parse(tmp_path):
     namespace = Namespace(
-        name=name,
-        input=input_file,
-        bed_file=bed_file,
-        output=tmp_path,
-        bed_regions=None,
+        analysis_name=name,
+        input_path=input_file,
+        bed_path=bed_file,
+        cache_dir=tmp_path,
+        target_regions=None,
         use_ssb192=True,
+        use_random=False,
         exclude_drivers=False,
+        seed=-1,
         transcript=objects.EnsemblTranscripts.transcript_length,
         protein_transcript=objects.EnsemblTranscripts.protein_transcript_length,
     )
