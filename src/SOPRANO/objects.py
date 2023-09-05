@@ -97,3 +97,27 @@ class AnalysisPaths:
 
     def _cached_path(self, *extensions):
         return cache_path_builder(self.tmpdir, self.name, *extensions)
+
+
+class Parameters(AnalysisPaths):
+    def __init__(
+        self,
+        analysis_name: str,
+        bed_path: pathlib.Path,
+        tmpdir: pathlib.Path,
+        target_regions_path: pathlib.Path | None = None,
+        transcript_path: pathlib.Path | None = None,
+        protein_transcript_path: pathlib.Path | None = None,
+    ):
+        super().__init__(analysis_name, bed_path, tmpdir, target_regions_path)
+
+        if transcript_path is None:
+            transcript_path = EnsemblTranscripts.transcript_length
+        if protein_transcript_path is None:
+            protein_transcript_path = (
+                EnsemblTranscripts.protein_transcript_length
+            )
+
+        self.transcripts = TranscriptPaths(
+            transcript_path, protein_transcript_path
+        )
