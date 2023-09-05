@@ -106,18 +106,8 @@ class Parameters(AnalysisPaths):
         bed_path: pathlib.Path,
         tmpdir: pathlib.Path,
         target_regions_path: pathlib.Path | None = None,
-        transcript_path: pathlib.Path | None = None,
-        protein_transcript_path: pathlib.Path | None = None,
+        transcripts: TranscriptPaths = EnsemblTranscripts,
     ):
         super().__init__(analysis_name, bed_path, tmpdir, target_regions_path)
 
-        if transcript_path is None:
-            transcript_path = EnsemblTranscripts.transcript_length
-        if protein_transcript_path is None:
-            protein_transcript_path = (
-                EnsemblTranscripts.protein_transcript_length
-            )
-
-        self.transcripts = TranscriptPaths(
-            transcript_path, protein_transcript_path
-        )
+        self.transcripts = transcripts
