@@ -115,40 +115,47 @@ def parse_args():
     return args
 
 
-def _get_datetime_str():
-    now = datetime.now()
-    return now.strftime("%d/%m/%Y %H:%M:%S")
-
-
-def task_output(msg):
-    print(f"[{_get_datetime_str()}] {msg}")
-
-
-_title = """
+def title_output():
+    print(
+        """
 ███████  ██████  ██████  ██████   █████  ███    ██  ██████  
 ██      ██    ██ ██   ██ ██   ██ ██   ██ ████   ██ ██    ██ 
 ███████ ██    ██ ██████  ██████  ███████ ██ ██  ██ ██    ██ 
      ██ ██    ██ ██      ██   ██ ██   ██ ██  ██ ██ ██    ██ 
 ███████  ██████  ██      ██   ██ ██   ██ ██   ████  ██████  
 """
-_borders = "-" * 60
+    )
 
 
-def _startup_message(**kwargs):
-    print(_title)
-    print(_borders)
+def time_output():
+    now = datetime.now()
+    return now.strftime("%d/%m/%Y %H:%M:%S")
+
+
+def task_output(msg):
+    print(f"[{time_output()}] {msg}")
+
+
+def line_output(n=60):
+    print("-" * n)
+
+
+def startup_output(**kwargs):
+    title_output()
+    line_output()
     print("Selection On PRotein ANnotated regiOns")
-    print(_borders)
+    line_output()
 
+    # Parameters used in pipeline
     for k, v in kwargs.items():
         print("-> {0:.<30}".format(k) + f"{v}")
 
-    print(_borders)
+    line_output()
 
 
 def main(_namespace=None):
     cli_args = parse_args() if _namespace is None else _namespace
-    _startup_message(**cli_args.__dict__)
+    startup_output(**cli_args.__dict__)
 
     params = objects.Parameters.from_namespace(cli_args)
 
