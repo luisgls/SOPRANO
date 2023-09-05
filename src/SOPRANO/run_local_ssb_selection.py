@@ -114,6 +114,14 @@ def parse_args():
         type=pathlib.Path,
     )
 
+    transcript_args.add_argument(
+        "--fasta",
+        dest="transcript_ids",
+        help="Provide path to the ensembl transcript IDs fasta file",
+        default=objects.EnsemblTranscripts.transcript_fasta,
+        type=pathlib.Path,
+    )
+
     args = parser.parse_args()
 
     check_path(args.input_path)
@@ -122,6 +130,7 @@ def parse_args():
     check_path(args.target_regions, optional=True)
     check_path(args.transcript)
     check_path(args.protein_transcript)
+    check_path(args.transcript_ids)
 
     return args
 

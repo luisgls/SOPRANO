@@ -28,6 +28,7 @@ def test_initial_parse(tmp_path):
         seed=-1,
         transcript=objects.EnsemblTranscripts.transcript_length,
         protein_transcript=objects.EnsemblTranscripts.protein_transcript_length,
+        transcript_ids=objects.EnsemblTranscripts.transcript_fasta,
     )
 
     params = objects.Parameters.from_namespace(namespace)

@@ -11,6 +11,7 @@ def _data_dir():
 class TranscriptPaths:
     transcript_length: pathlib.Path
     protein_transcript_length: pathlib.Path
+    transcript_fasta: pathlib.Path
 
 
 EnsemblTranscripts = TranscriptPaths(
@@ -18,6 +19,7 @@ EnsemblTranscripts = TranscriptPaths(
     protein_transcript_length=_data_dir().joinpath(
         "ensemble_transcript_protein.length"
     ),
+    transcript_fasta=_data_dir().joinpath("ensemble_transcriptID.fasta"),
 )
 
 
@@ -113,6 +115,7 @@ _NAMESPACE_KEYS = (
     "target_regions",
     "transcript",
     "protein_transcript",
+    "transcript_ids",
     "use_ssb192",
     "use_random",
     "exclude_drivers",
@@ -147,11 +150,14 @@ class Parameters(AnalysisPaths):
 
     @classmethod
     def from_namespace(cls, namespace: Namespace):
-        for k in namespace.__dict__.keys():
-            assert k in _NAMESPACE_KEYS, k
+        assert set(namespace.__dict__.keys()) == set(
+            _NAMESPACE_KEYS
+        ), namespace.__dict__.keys()
 
         transcripts = TranscriptPaths(
-            namespace.transcript, namespace.protein_transcript
+            namespace.transcript,
+            namespace.protein_transcript,
+            namespace.transcript_ids,
         )
 
         return cls(

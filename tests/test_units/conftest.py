@@ -120,6 +120,20 @@ mock_protein_transcript_content = [
     tab_line("ENST00000001146", 512),
 ]
 
+# Snippet from ensemble_transcripID.fasta
+mock_transcript_id_content = [
+    tab_line(">ENST00000415118"),
+    tab_line("GAAATAGT"),
+    tab_line(">ENST00000434970"),
+    tab_line("CCTTCCTAC"),
+    tab_line(">ENST00000448914"),
+    tab_line("ACTGGGGGATACG"),
+    tab_line(">ENST00000604642"),
+    tab_line("GTGGATATAGTGTCTACGATTAC"),
+    tab_line(">ENST00000603326"),
+    tab_line("NNTGACTATGGTGCTAACTAC"),
+]
+
 # Fictitious target regions for randomization
 mock_target_regions = [tab_line("ENST00000000233", 500, 1000)]
 
@@ -160,11 +174,12 @@ def test_files(tmp_path):
     trans_prot_path = transcripts_dir.joinpath(
         "transcript_length_protein.length"
     )
+    trans_ids_path = transcripts_dir.joinpath("ensemble_transcriptID.fasta")
 
     paths = AnalysisPaths(
         "test_data", anno_path, bed_path, tmpdir, target_regions=targets_path
     )
-    transcripts = TranscriptPaths(trans_path, trans_prot_path)
+    transcripts = TranscriptPaths(trans_path, trans_prot_path, trans_ids_path)
     auxiliaries = AuxiliaryPaths(genes2exclude_path)
 
     for _input_path, _input_content in zip(
@@ -173,6 +188,7 @@ def test_files(tmp_path):
             bed_path,
             trans_path,
             trans_prot_path,
+            trans_ids_path,
             targets_path,
             genes2exclude_path,
         ),
@@ -181,6 +197,7 @@ def test_files(tmp_path):
             mock_bed_content,
             mock_transcript_content,
             mock_protein_transcript_content,
+            mock_transcript_id_content,
             mock_target_regions,
             mock_genes2exclude,
         ),
