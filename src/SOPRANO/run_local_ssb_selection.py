@@ -167,7 +167,6 @@ def startup_output(**kwargs):
 def main(_namespace=None):
     cli_args = parse_args() if _namespace is None else _namespace
     startup_output(**cli_args.__dict__)
-
     params = objects.Parameters.from_namespace(cli_args)
 
     task_output("Filtering transcripts")
@@ -188,8 +187,7 @@ def main(_namespace=None):
             f"{params.bed_path.as_posix()}"
         )
         randomization_method = prepare_coordinates.NonRandom
-
-    randomization_method.prep_epitopes_ori2(params)
+    randomization_method.apply(params)
 
     if params.exclude_drivers:
         task_output("Excluding positively selected genes")
@@ -197,8 +195,21 @@ def main(_namespace=None):
     else:
         task_output("Retaining positively selected genes")
         drivers_method = prepare_coordinates.GeneExclusionsDisabled
-
     drivers_method.apply(params)
+
+    task_output("Building protein complement")
+    prepare_coordinates.BuildProteinComplement.apply(params)
+
+    if params.use_ssb192:
+        task_output("Preparing CDS coords with SSB192 mutrate")
+        ssb192_method = prepare_coordinates.UseSSB192
+    else:
+        task_output("Preparing CDS coords without SSB192 mutrate")
+        ssb192_method = prepare_coordinates.NotSSB192
+    ssb192_method.apply(params)
+
+    task_output("Building intra epitope CDS file")
+    prepare_coordinates.BuildIntraEpitopesCDS.apply(params)
 
 
 if __name__ == "__main__":

@@ -550,6 +550,27 @@ def _prep_not_ssb192(paths: AnalysisPaths):
     )
 
 
+class _SSB192Selection(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        if not params.epitopes.exists():
+            raise MissingDataError(params.epitopes.as_posix())
+
+
+class UseSSB192(_SSB192Selection):
+    @staticmethod
+    def apply(params: Parameters):
+        _SSB192Selection.check_ready(params)
+        _prep_ssb192(params)
+
+
+class NotSSB192(_SSB192Selection):
+    @staticmethod
+    def apply(params: Parameters):
+        _SSB192Selection.check_ready(params)
+        _prep_not_ssb192(params)
+
+
 def transform_coordinates(paths: AnalysisPaths):
     """
     Implement
@@ -585,3 +606,20 @@ def transform_coordinates(paths: AnalysisPaths):
         ["fgrep", "-w", "-f", "-", paths.intra_epitopes_tmp.as_posix()],
         output_path=paths.intra_epitopes,
     )
+
+
+class BuildIntraEpitopesCDS(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        for path in (
+            params.epitopes,
+            params.epitopes_cds,
+            params.filtered_transcript,
+        ):
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        BuildIntraEpitopesCDS.check_ready(params)
+        transform_coordinates(params)
