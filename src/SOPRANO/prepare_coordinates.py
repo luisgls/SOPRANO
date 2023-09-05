@@ -1,12 +1,13 @@
 import pathlib
 import subprocess
 
-from SOPRANO.objects import AnalysisPaths, AuxiliaryPaths, TranscriptPaths
+from SOPRANO.objects import (
+    AnalysisPaths,
+    AuxiliaryPaths,
+    Parameters,
+    TranscriptPaths,
+)
 from SOPRANO.sh_utils import subprocess_pipes
-
-
-class DependentDataError(Exception):
-    pass
 
 
 def _filter_transcript_file(
@@ -324,6 +325,50 @@ def randomize_protein_positions(*args, **kwargs):
     :return:
     """
     pass
+
+
+class MissingDataError(Exception):
+    pass
+
+
+class _Randomize:
+    @staticmethod
+    def prep_epitopes_ori2(params: Parameters):
+        # TODO: Improve name...
+        pass
+
+    @staticmethod
+    def check_ready(params: Parameters):
+        for path in (
+            params.filtered_transcript,
+            params.filtered_protein_transcript,
+        ):
+            if not path.exists():
+                raise MissingDataError(
+                    f"Filtered transcript not found: {path}"
+                )
+
+
+class NonRandom(_Randomize):
+    @staticmethod
+    def prep_epitopes_ori2(params: Parameters):
+        _Randomize.check_ready(params)
+        _non_randomized(params)
+
+
+class RandomizeWithoutRegions(_Randomize):
+    @staticmethod
+    def prep_epitopes_ori2(params: Parameters):
+        _Randomize.check_ready(params)
+        _define_excluded_regions_for_randomization(params)
+        _sort_excluded_regions_for_randomization(params)  # TODO: seed
+
+
+class RandomizeWithRegions(_Randomize):
+    @staticmethod
+    def prep_epitopes_ori2(params: Parameters):
+        _Randomize.check_ready(params)
+        _randomize_with_target_file(params, params.transcripts)  # TODO: seed
 
 
 def _exclude_positively_selected_genes_disabled(paths: AnalysisPaths):
