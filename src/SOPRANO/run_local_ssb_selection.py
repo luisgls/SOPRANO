@@ -178,16 +178,27 @@ def main(_namespace=None):
             f"Randomizing transcripts subject to bed file: "
             f"{params.target_regions_path.as_posix()}"
         )
-        prepare_coordinates.RandomizeWithRegions.prep_epitopes_ori2(params)
+        randomization_method = prepare_coordinates.RandomizeWithRegions
     elif params.use_random:
         task_output("Randomizing transcripts")
-        prepare_coordinates.RandomizeWithoutRegions.prep_epitopes_ori2(params)
+        randomization_method = prepare_coordinates.RandomizeWithoutRegions
     else:
         task_output(
             f"No randomization selected: sorting input bed file: "
             f"{params.bed_path.as_posix()}"
         )
-        prepare_coordinates.NonRandom.prep_epitopes_ori2(params)
+        randomization_method = prepare_coordinates.NonRandom
+
+    randomization_method.prep_epitopes_ori2(params)
+
+    if params.exclude_drivers:
+        task_output("Excluding positively selected genes")
+        drivers_method = prepare_coordinates.GeneExclusions
+    else:
+        task_output("Retaining positively selected genes")
+        drivers_method = prepare_coordinates.GeneExclusionsDisabled
+
+    drivers_method.apply(params)
 
 
 if __name__ == "__main__":

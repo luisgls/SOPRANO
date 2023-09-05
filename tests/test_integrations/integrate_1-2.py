@@ -34,5 +34,9 @@ def test_initial_parse(tmp_path):
 
     main(namespace)
 
+    # Check filtered transcripts have been built
     assert params.filtered_transcript.exists()
     assert params.filtered_protein_transcript.exists()
+
+    # Check drivers have (not) been excluded
+    assert params.epitopes.exists()
