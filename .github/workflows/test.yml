@@ -60,3 +60,8 @@ jobs:
         run: |
           micromamba activate soprano-dev
           pytest tests/test_units
+      - name: Test integration
+        shell: bash -l {0}
+        run: |
+          micromamba activate soprano-dev
+          pytest tests/test_integrations
