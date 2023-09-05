@@ -156,20 +156,18 @@ def main(_namespace=None):
     else:
         bed_regions = pathlib.Path(cli_args.bed_regions)
 
-    paths = objects.AnalysisPaths(
-        analysis_name=cli_args.name,
-        bed_path=cli_args.bed_file,
-        tmpdir=pathlib.Path(cli_args.output).joinpath("tmp"),
-        target_regions_path=bed_regions,
-    )
-
     transcripts = objects.TranscriptPaths(
         pathlib.Path(cli_args.transcript),
         pathlib.Path(cli_args.protein_transcript),
     )
 
-    print(paths)
-    print(transcripts)
+    params = objects.Parameters(
+        analysis_name=cli_args.name,
+        bed_path=cli_args.bed_file,
+        tmpdir=pathlib.Path(cli_args.output).joinpath("tmp"),
+        target_regions_path=bed_regions,
+        transcripts=transcripts,
+    )
 
 
 if __name__ == "__main__":
