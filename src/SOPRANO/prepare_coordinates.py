@@ -3,6 +3,7 @@ import subprocess
 
 from SOPRANO.objects import (
     AnalysisPaths,
+    AuxiliaryFiles,
     AuxiliaryPaths,
     Parameters,
     TranscriptPaths,
@@ -316,17 +317,6 @@ def _non_randomized(paths: AnalysisPaths):
     )
 
 
-def randomize_protein_positions(*args, **kwargs):
-    """
-    Implementation of line 96
-
-    :param args:
-    :param kwargs:
-    :return:
-    """
-    pass
-
-
 class MissingDataError(Exception):
     pass
 
@@ -410,6 +400,31 @@ def _exclude_positively_selected_genes(
         ],
         output_path=paths.epitopes,
     )
+
+
+class _GeneExclusions:
+    @staticmethod
+    def apply(params: Parameters):
+        pass
+
+    @staticmethod
+    def check_ready(params: Parameters):
+        if not params.exclusions_shuffled.exists():
+            raise MissingDataError(f"{params.exclusions_shuffled}")
+
+
+class GeneExclusions(_GeneExclusions):
+    @staticmethod
+    def apply(params: Parameters):
+        _GeneExclusions.check_ready(params)
+        _exclude_positively_selected_genes(params, AuxiliaryFiles)
+
+
+class GeneExclusionsDisabled(_GeneExclusions):
+    @staticmethod
+    def apply(params: Parameters):
+        _GeneExclusions.check_ready(params)
+        _exclude_positively_selected_genes_disabled(params)
 
 
 def get_protein_complement(paths: AnalysisPaths):
