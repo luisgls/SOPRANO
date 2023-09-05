@@ -181,7 +181,7 @@ def test__exclude_positively_selected_genes(test_files):
     check_expected_content(expected_content, paths.epitopes)
 
 
-def test_get_protein_complement(minimal_epitopes):
+def test__get_protein_complement(minimal_epitopes):
     # TODO: undo this fixture implementation... more explicit using
     #       standard test_files
 
@@ -204,7 +204,7 @@ def test_get_protein_complement(minimal_epitopes):
     # chromosomes appearing in the filtered file will automatically be
     # provided the complementary interval [0, length]
 
-    prep_coords.get_protein_complement(paths)
+    prep_coords._get_protein_complement(paths)
     check_expected_content(expected_tmp_content, paths.intra_epitopes_prot_tmp)
 
     # The final step of the calculation essentially finds word regex matches
