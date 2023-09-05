@@ -162,7 +162,7 @@ def test_files(tmp_path):
     )
 
     paths = AnalysisPaths(
-        "test_data", bed_path, tmpdir, target_regions=targets_path
+        "test_data", anno_path, bed_path, tmpdir, target_regions=targets_path
     )
     transcripts = TranscriptPaths(trans_path, trans_prot_path)
     auxiliaries = AuxiliaryPaths(genes2exclude_path)
@@ -197,7 +197,10 @@ def minimal_epitopes(tmp_path):
     epi_dir.mkdir(parents=True)
 
     paths = AnalysisPaths(
-        "test_epitopes", tmp_path.joinpath("mock.bed"), epi_dir
+        "test_epitopes",
+        tmp_path.joinpath("mock.input"),
+        tmp_path.joinpath("mock.bed"),
+        epi_dir,
     )
 
     # A minimal (unsorted) epitope file will look something like

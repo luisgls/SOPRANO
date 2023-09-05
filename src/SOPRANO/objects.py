@@ -61,11 +61,13 @@ class AnalysisPaths:
     def __init__(
         self,
         analysis_name: str,
+        input_path: pathlib.Path,
         bed_path: pathlib.Path,
         cache_dir: pathlib.Path,
         target_regions: pathlib.Path | None = None,
     ):
         self.analysis_name = analysis_name
+        self.input_path = input_path
         self.bed_path = bed_path
         self.target_regions_path = target_regions
         self.cache_dir = cache_dir
@@ -130,7 +132,9 @@ class Parameters(AnalysisPaths):
         exclude_drivers: bool,
         transcripts: TranscriptPaths,
     ):
-        super().__init__(analysis_name, bed_path, cache_dir, target_regions)
+        super().__init__(
+            analysis_name, input_path, bed_path, cache_dir, target_regions
+        )
 
         self.transcripts = transcripts
         self.use_ssb192 = use_ssb192
