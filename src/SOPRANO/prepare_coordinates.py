@@ -356,12 +356,7 @@ def _non_randomized(paths: AnalysisPaths):
     )
 
 
-class _Randomize:
-    @staticmethod
-    def prep_epitopes_ori2(params: Parameters):
-        # TODO: Improve name...
-        pass
-
+class _Randomize(_PipelineComponent):
     @staticmethod
     def check_ready(params: Parameters):
         for path in (
@@ -376,14 +371,14 @@ class _Randomize:
 
 class NonRandom(_Randomize):
     @staticmethod
-    def prep_epitopes_ori2(params: Parameters):
+    def apply(params: Parameters):
         _Randomize.check_ready(params)
         _non_randomized(params)
 
 
 class RandomizeWithoutRegions(_Randomize):
     @staticmethod
-    def prep_epitopes_ori2(params: Parameters):
+    def apply(params: Parameters):
         _Randomize.check_ready(params)
         _define_excluded_regions_for_randomization(params)
         _sort_excluded_regions_for_randomization(params, seed=params.seed)
@@ -391,7 +386,7 @@ class RandomizeWithoutRegions(_Randomize):
 
 class RandomizeWithRegions(_Randomize):
     @staticmethod
-    def prep_epitopes_ori2(params: Parameters):
+    def apply(params: Parameters):
         _Randomize.check_ready(params)
         _randomize_with_target_file(
             params, params.transcripts, seed=params.seed
@@ -437,11 +432,7 @@ def _exclude_positively_selected_genes(
     )
 
 
-class _GeneExclusions:
-    @staticmethod
-    def apply(params: Parameters):
-        pass
-
+class _GeneExclusions(_PipelineComponent):
     @staticmethod
     def check_ready(params: Parameters):
         if not params.exclusions_shuffled.exists():
@@ -462,7 +453,7 @@ class GeneExclusionsDisabled(_GeneExclusions):
         _exclude_positively_selected_genes_disabled(params)
 
 
-def get_protein_complement(paths: AnalysisPaths):
+def _get_protein_complement(paths: AnalysisPaths):
     """
     Implement
     sortBed -i $TMP/$NAME.epitopes.bed |
@@ -493,9 +484,28 @@ def get_protein_complement(paths: AnalysisPaths):
     subprocess_pipes.pipe(
         ["cut", "-f1", paths.epitopes],
         ["sort", "-u"],
-        ["fgrep", "-w", "-f", "-", paths.intra_epitopes_prot_tmp.as_posix()],
+        [
+            "fgrep",
+            "-w",
+            "-f",
+            "-",
+            paths.intra_epitopes_prot_tmp.as_posix(),
+        ],
         output_path=paths.intra_epitopes_prot,
     )
+
+
+class BuildProteinComplement(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        for path in (params.epitopes, params.filtered_protein_transcript):
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        BuildProteinComplement.check_ready(params)
+        _get_protein_complement(params)
 
 
 def _prep_ssb192(paths: AnalysisPaths):
