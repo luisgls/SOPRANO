@@ -28,4 +28,9 @@ def test_initial_parse(tmp_path):
         protein_transcript=objects.EnsemblTranscripts.protein_transcript_length,
     )
 
+    params = objects.Parameters.from_namespace(namespace)
+
     main(namespace)
+
+    assert params.filtered_transcript.exists()
+    assert params.filtered_protein_transcript.exists()
