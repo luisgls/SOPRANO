@@ -94,20 +94,20 @@ cut -f1 $BED | sort -u | fgrep -w -f - $SUPA/ensemble_transcript.length > $TMP/$
 
 ###Randomize protein positions of target region
 if [[ $MODEL = "random" ]];
-    then
-        echo "#Option random enabled, running dN/dS for matching target region length"
-        ## Define excluded regions for the randomization
-        ## Excluding region to be tested
-        rm $TMP/$NAME.exclusion.ori
-        cut -f1,2,3 $BED > $TMP/$NAME.exclusion.ori
-        ## Excluding the first two aminoacids of the transcript to be tested
-        cut -f1 $BED | awk '{OFS="\t"}{print $1,0,2}' | sortBed -i stdin  >> $TMP/$NAME.exclusion.ori
-        
-        ##Sort excluded regions file
-        sortBed -i $TMP/$NAME.exclusion.ori > $TMP/$NAME.exclusion.bed
-        bedtools shuffle -i $BED -g $TMP/$NAME.protein_length_filt.txt -excl $TMP/$NAME.exclusion.bed -chrom > $TMP/$NAME.epitopes.ori2
-        
-        ###Option to randomize only on a set of target protein regions
+then
+    echo "#Option random enabled, running dN/dS for matching target region length"
+    ## Define excluded regions for the randomization
+    ## Excluding region to be tested
+    rm $TMP/$NAME.exclusion.ori
+    cut -f1,2,3 $BED > $TMP/$NAME.exclusion.ori
+    ## Excluding the first two aminoacids of the transcript to be tested
+    cut -f1 $BED | awk '{OFS="\t"}{print $1,0,2}' | sortBed -i stdin  >> $TMP/$NAME.exclusion.ori
+
+    ##Sort excluded regions file
+    sortBed -i $TMP/$NAME.exclusion.ori > $TMP/$NAME.exclusion.bed
+    bedtools shuffle -i $BED -g $TMP/$NAME.protein_length_filt.txt -excl $TMP/$NAME.exclusion.bed -chrom > $TMP/$NAME.epitopes.ori2
+
+    ###Option to randomize only on a set of target protein regions
     if [ -s "$TARGET" ]
     then
         echo "Target file to randomize regions provided"
@@ -119,9 +119,9 @@ if [[ $MODEL = "random" ]];
         echo "Target file to randomize regions not provided, using default (all)"
     fi
 else
-	##If non randomized
-        sort -u $BED > $TMP/$NAME.epitopes.ori2    
-        echo "#Calculating dN/dS for target region"
+    ## If non randomized
+    sort -u $BED > $TMP/$NAME.epitopes.ori2
+    echo "#Calculating dN/dS for target region"
 fi
 
 ##Exclude positively selected genes
