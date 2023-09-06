@@ -2,7 +2,7 @@ import argparse
 import pathlib
 from datetime import datetime
 
-from SOPRANO import objects, prepare_coordinates
+from SOPRANO import objects, obtain_fasta_regions, prepare_coordinates
 
 
 def check_path(cli_path: pathlib.Path | None, optional=False):
@@ -220,7 +220,13 @@ def main(_namespace=None):
     task_output("Building intra epitope CDS file")
     prepare_coordinates.BuildIntraEpitopesCDS.apply(params)
 
-    task_output("")
+    task_output("Obtaining fasta regions")
+    obtain_fasta_regions.ObtainFastaRegions.apply(params)
+
+    task_output(
+        "Compiling list of transcript:regions to estimate number of sites"
+    )
+    obtain_fasta_regions.GetTranscriptRegionsForSites.apply(params)
 
 
 if __name__ == "__main__":

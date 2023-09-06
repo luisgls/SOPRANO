@@ -1,10 +1,12 @@
-from SOPRANO import objects
+import pathlib
+
+from SOPRANO.objects import AnalysisPaths, Parameters, TranscriptPaths
 from SOPRANO.pipeline_utils import MissingDataError, _PipelineComponent
 from SOPRANO.sh_utils import subprocess_pipes
 
 
 def _get_target_fasta_regions(
-    paths: objects.AnalysisPaths, transcripts: objects.TranscriptPaths
+    paths: AnalysisPaths, transcripts: TranscriptPaths
 ):
     """
     Implements:
@@ -36,7 +38,7 @@ def _get_target_fasta_regions(
 
 
 def _get_non_target_regions(
-    paths: objects.AnalysisPaths, transcripts: objects.TranscriptPaths
+    paths: AnalysisPaths, transcripts: TranscriptPaths
 ):
     """
     Implements:
@@ -69,7 +71,7 @@ def _get_non_target_regions(
 
 class ObtainFastaRegions(_PipelineComponent):
     @staticmethod
-    def check_ready(params: objects.Parameters):
+    def check_ready(params: Parameters):
         paths = (
             params.transcripts.transcript_fasta,
             params.epitopes_cds,
@@ -81,16 +83,41 @@ class ObtainFastaRegions(_PipelineComponent):
                 raise MissingDataError(path)
 
     @staticmethod
-    def apply(params: objects.Parameters):
+    def apply(params: Parameters):
         _get_target_fasta_regions(params, params.transcripts)
         _get_non_target_regions(params, params.transcripts)
 
 
-def get_transcript_regions_for_site_numbers(*args, **kwargs):
+def _get_trans_regs(cds_fasta: pathlib.Path, output: pathlib.Path):
     """
-    Implment lines 163-164
-    :param args:
-    :param kwargs:
-    :return:
+    Implements:
+
+    grep ">" $TMP/$NAME.epitopes_cds.fasta | sed 's/>//g' > $TMP/$NAME.listA
+
+    List of transcript:trgions to estimate number of sites in epitopes
+
+    :param cds_fasta: path to CDS coords fasta file
+    :param output: path to output file
     """
-    pass
+
+    subprocess_pipes.pipe(
+        ["grep", '">"', cds_fasta.as_posix()],
+        ["sed", "'s/>//g'"],
+        output_path=output,
+    )
+
+
+class GetTranscriptRegionsForSites(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (params.epitopes_cds_fasta, params.intra_epitopes_cds)
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        _get_trans_regs(params.epitopes_cds_fasta, params.epitopes_trans_regs)
+        _get_trans_regs(
+            params.intra_epitopes_cds_fasta, params.intra_epitopes_trans_regs
+        )
