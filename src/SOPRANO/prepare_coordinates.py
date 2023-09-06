@@ -570,7 +570,7 @@ def transform_coordinates(paths: AnalysisPaths):
         ["cut", "-f1", paths.epitopes.as_posix()],
         ["sort", "-u"],
         ["fgrep", "-w", "-f", "-", paths.intra_epitopes_tmp.as_posix()],
-        output_path=paths.intra_epitopes,
+        output_path=paths.intra_epitopes_cds,
     )
 
 
