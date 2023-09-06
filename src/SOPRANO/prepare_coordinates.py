@@ -8,11 +8,8 @@ from SOPRANO.objects import (
     Parameters,
     TranscriptPaths,
 )
+from SOPRANO.pipeline_utils import MissingDataError, _PipelineComponent
 from SOPRANO.sh_utils import subprocess_pipes
-
-
-class MissingDataError(Exception):
-    pass
 
 
 def _filter_transcript_file(
@@ -73,27 +70,6 @@ def filter_transcript_files(
         transcript_path,
         transcript_filt,
     )
-
-
-class _PipelineComponent:
-    """
-    Components of the pipeline are designed to follow the pattern:
-
-    Component.apply(params)
-
-    where apply should include the call to check_read()
-    to permit execution.
-
-    Pipeline components should override these methods.
-    """
-
-    @staticmethod
-    def apply(params: Parameters):
-        pass
-
-    @staticmethod
-    def check_ready(params: Parameters):
-        pass
 
 
 class FilterTranscripts(_PipelineComponent):
