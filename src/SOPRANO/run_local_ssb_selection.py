@@ -220,6 +220,8 @@ def main(_namespace=None):
     task_output("Building intra epitope CDS file")
     prepare_coordinates.BuildIntraEpitopesCDS.apply(params)
 
+    task_output("")
+
 
 if __name__ == "__main__":
     main()
