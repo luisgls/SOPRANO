@@ -42,9 +42,11 @@ def test_initial_parse(tmp_path):
     # Check drivers have (not) been excluded
     assert params.epitopes.exists()
 
-    # Check CDS coordinates
+    # Check epitope files been produced
+    assert params.epitopes.exists()
     assert params.epitopes_cds.exists()
 
-    # Check CDS complement files
+    # Check complement files been produced
     assert params.intra_epitopes_prot.exists()
-    assert params.intra_epitopes.exists()
+    assert params.intra_epitopes_cds.exists()
+    assert params.intra_epitopes_prot.exists()
