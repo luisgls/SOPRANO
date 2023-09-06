@@ -15,7 +15,7 @@ bed_file = BIO_DIR.joinpath("TCGA-05-4396.Expressed.IEDBpeps.SB.epitope.bed")
 name = "TCGA-05-4396"
 
 
-def test_initial_parse(tmp_path):
+def test_pipeline(tmp_path):
     namespace = Namespace(
         analysis_name=name,
         input_path=input_file,
