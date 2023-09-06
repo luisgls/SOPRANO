@@ -1,12 +1,13 @@
 import pytest
-from conftest import check_expected_content, mock_bed_content, tab_line
+from _step2_fixtures import mock_bed_content, tab_line
+from _test_utils import check_expected_content
 
 import SOPRANO.prepare_coordinates as prep_coords
 
 
 @pytest.mark.dependency(name="_filter_transcript_file")
-def test__filter_transcript_file(test_files):
-    paths, transcripts, auxiliaries = test_files
+def test__filter_transcript_file(step_2_defs):
+    paths, transcripts, auxiliaries = step_2_defs
 
     expected_content = [
         tab_line("ENST00000000233", 543),
@@ -26,8 +27,8 @@ def test__filter_transcript_file(test_files):
 @pytest.mark.dependency(
     name="filter_trans_files", depends=["_filter_transcript_file"]
 )
-def test_filter_transcript_files(test_files):
-    paths, transcripts, auxiliaries = test_files
+def test_filter_transcript_files(step_2_defs):
+    paths, transcripts, auxiliaries = step_2_defs
 
     expected_trans_content = [
         tab_line("ENST00000000233", 543),
@@ -50,8 +51,8 @@ def test_filter_transcript_files(test_files):
 
 
 @pytest.mark.dependency(name="_define_excl_regs")
-def test__define_excluded_regions_for_randomization(test_files):
-    paths, transcripts, auxiliaries = test_files
+def test__define_excluded_regions_for_randomization(step_2_defs):
+    paths, transcripts, auxiliaries = step_2_defs
 
     expected_content = mock_bed_content + [
         tab_line("ENST00000000233", 0, 2),
@@ -67,8 +68,8 @@ def test__define_excluded_regions_for_randomization(test_files):
 
 
 @pytest.mark.dependency(depends=["_define_excl_regs", "filter_trans_files"])
-def test__sort_excluded_regions_for_randomization(test_files):
-    paths, transcripts, auxiliaries = test_files
+def test__sort_excluded_regions_for_randomization(step_2_defs):
+    paths, transcripts, auxiliaries = step_2_defs
 
     # Every item has an "ENST<...>  0   2" pair
     # So after sorting, we expect that
@@ -112,8 +113,8 @@ def test__sort_excluded_regions_for_randomization(test_files):
 
 
 @pytest.mark.dependency(depends=["filter_trans_files"])
-def test__randomize_with_target_file(test_files):
-    paths, transcripts, auxiliaries = test_files
+def test__randomize_with_target_file(step_2_defs):
+    paths, transcripts, auxiliaries = step_2_defs
 
     prep_coords.filter_transcript_files(paths, transcripts)
 
@@ -135,8 +136,8 @@ def test__randomize_with_target_file(test_files):
     # TODO: Complete
 
 
-def test__non_randomized(test_files):
-    paths, transcripts, auxiliaries = test_files
+def test__non_randomized(step_2_defs):
+    paths, transcripts, auxiliaries = step_2_defs
     # expected_content = [
     #     tab_line("ENST00000000233", 115, 124),
     #     tab_line("ENST00000000233", 164, 177),
@@ -150,8 +151,8 @@ def test__non_randomized(test_files):
     # check_expected_content(expected_content, paths.exclusions_shuffled)
 
 
-def test__exclude_positively_selected_genes_disabled(test_files):
-    paths, transcripts, auxiliaries = test_files
+def test__exclude_positively_selected_genes_disabled(step_2_defs):
+    paths, transcripts, auxiliaries = step_2_defs
 
     # Dummy data written to shuffled exclusions file:
     # When positively selected genes are disabled, should just copy this file
@@ -165,8 +166,8 @@ def test__exclude_positively_selected_genes_disabled(test_files):
     check_expected_content(expected_content, paths.epitopes)
 
 
-def test__exclude_positively_selected_genes(test_files):
-    paths, transcripts, auxiliaries = test_files
+def test__exclude_positively_selected_genes(step_2_defs):
+    paths, transcripts, auxiliaries = step_2_defs
 
     # Write dummy data for "shuffle file"
     paths.exclusions_shuffled.write_text(
@@ -181,12 +182,20 @@ def test__exclude_positively_selected_genes(test_files):
     check_expected_content(expected_content, paths.epitopes)
 
 
-def test__get_protein_complement(minimal_epitopes):
-    # TODO: undo this fixture implementation... more explicit using
-    #       standard test_files
+def test__get_protein_complement(step_2_defs):
+    paths, transcripts, aux_files = step_2_defs
+    # A minimal (unsorted) epitope file will look something like
+    paths.epitopes.write_text(
+        tab_line("ENST00000000233", 400, 500)
+        + tab_line("ENST00000000233", 100, 150)
+    )
 
-    paths = minimal_epitopes
-
+    # A minimal filtered protein transcript file will look something like
+    paths.filtered_protein_transcript.write_text(
+        tab_line("ENST00000000233", 500)
+        + tab_line("ENST00000000412", 277)
+        + tab_line("ENST00000001008", 459)
+    )
     # The expected complement file
     expected_tmp_content = [
         tab_line("ENST00000000233", 0, 100),
@@ -213,8 +222,8 @@ def test__get_protein_complement(minimal_epitopes):
     check_expected_content(expected_tmp_content[:2], paths.intra_epitopes_prot)
 
 
-def test__prep_ssb192(test_files):
-    paths, *others = test_files
+def test__prep_ssb192(step_2_defs):
+    paths, *others = step_2_defs
 
     start_stop_233 = ("ENST00000000233", 400, 500)
     start_stop_234 = ("ENST00000000233", 100, 150)
@@ -247,8 +256,8 @@ def test__prep_ssb192(test_files):
     check_expected_content(expected_content, paths.epitopes_cds)
 
 
-def test__prep_not_ssb192(test_files):
-    paths, *other = test_files
+def test__prep_not_ssb192(step_2_defs):
+    paths, *other = step_2_defs
 
     start_stop_233 = ("ENST00000000233", 400, 500)
     start_stop_234 = ("ENST00000000234", 100, 150)
@@ -279,8 +288,8 @@ def test__prep_not_ssb192(test_files):
     check_expected_content(expected_content, paths.epitopes_cds)
 
 
-def test_transform_coordinates(test_files):
-    paths, *others = test_files
+def test_transform_coordinates(step_2_defs):
+    paths, *others = step_2_defs
 
     start_stop_233 = ("ENST00000000233", 400, 500)
     start_stop_234 = ("ENST00000000234", 100, 150)
@@ -328,5 +337,4 @@ def test_transform_coordinates(test_files):
     ]
     prep_coords.transform_coordinates(paths)
     check_expected_content(expected_content_tmp, paths.intra_epitopes_tmp)
-
-    check_expected_content(expected_content_tmp, paths.intra_epitopes)
+    check_expected_content(expected_content_tmp, paths.intra_epitopes_cds)
