@@ -100,6 +100,18 @@ class AnalysisPaths:
         self.intra_epitopes_prot_tmp = self._cached_path(
             "intra_epitopes_prot", "bed", "tmp"
         )
+        self.epitopes_cds_fasta = self._cached_path("epitopes_cds", "fasta")
+        self.intra_epitopes_cds_fasta = self._cached_path(
+            "intra_epitopes_cds", "fasta"
+        )
+
+        # Transcript regions to estimate number of sites
+        self.epitopes_trans_regs = self._cached_path(
+            "epitopes_cds", "transcript_regions"
+        )
+        self.intra_epitopes_trans_regs = self._cached_path(
+            "intra_epitopes_cds", "transcript_regions"
+        )
 
     def _cached_path(self, *extensions):
         return cache_path_builder(
