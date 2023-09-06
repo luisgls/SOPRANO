@@ -90,6 +90,12 @@ class AnalysisPaths:
         # Epitope files
         self.epitopes = self._cached_path("epitopes", "bed")
         self.epitopes_cds = self._cached_path("epitopes_cds", "bed")
+        self.epitopes_cds_fasta = self._cached_path("epitopes_cds", "fasta")
+        self.epitopes_trans_regs = self._cached_path(
+            "epitopes_cds", "transcript_regions"
+        )
+
+        # Complement (intra) epitope files
         self.intra_epitopes = self._cached_path("intra_epitopes", "bed")
         self.intra_epitopes_tmp = self._cached_path(
             "intra_epitopes", "bed", "tmp"
@@ -100,14 +106,9 @@ class AnalysisPaths:
         self.intra_epitopes_prot_tmp = self._cached_path(
             "intra_epitopes_prot", "bed", "tmp"
         )
-        self.epitopes_cds_fasta = self._cached_path("epitopes_cds", "fasta")
+        self.intra_epitopes_cds = self._cached_path("intra_epitopes_cds")
         self.intra_epitopes_cds_fasta = self._cached_path(
             "intra_epitopes_cds", "fasta"
-        )
-
-        # Transcript regions to estimate number of sites
-        self.epitopes_trans_regs = self._cached_path(
-            "epitopes_cds", "transcript_regions"
         )
         self.intra_epitopes_trans_regs = self._cached_path(
             "intra_epitopes_cds", "transcript_regions"
