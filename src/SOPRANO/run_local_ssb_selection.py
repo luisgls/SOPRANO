@@ -282,6 +282,9 @@ def main(_namespace=None):
         analysis.FixSimulated.apply(params)
         task_output("Applying column corrections for alternative format")
         analysis.ColumnCorrect.apply(params)
+
+        task_output("Performing context corrections")
+        analysis.ContextCorrection.apply(params)
     else:
         # TODO: See line 243 - 306
         raise ValueError("Implement SSB7")
