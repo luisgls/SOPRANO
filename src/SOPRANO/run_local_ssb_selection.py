@@ -2,7 +2,12 @@ import argparse
 import pathlib
 from datetime import datetime
 
-from SOPRANO import objects, obtain_fasta_regions, prepare_coordinates
+from SOPRANO import (
+    analysis,
+    objects,
+    obtain_fasta_regions,
+    prepare_coordinates,
+)
 
 
 def check_path(cli_path: pathlib.Path | None, optional=False):
@@ -227,6 +232,12 @@ def main(_namespace=None):
         "Compiling list of transcript:regions to estimate number of sites"
     )
     obtain_fasta_regions.GetTranscriptRegionsForSites.apply(params)
+
+    task_output(
+        "Estimating all theoretically possible 192 substitutions for target"
+        " and non-target regions"
+    )
+    analysis.ComputeSSB192TheoreticalSubs.apply(params)
 
 
 if __name__ == "__main__":

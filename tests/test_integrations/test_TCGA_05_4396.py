@@ -57,3 +57,7 @@ def test_pipeline(tmp_path):
 
     assert params.epitopes_trans_regs.exists()
     assert params.intra_epitopes_trans_regs.exists()
+
+    # Check theoretical site estimates computed
+    assert params.epitopes_trans_regs.exists()
+    assert params.intra_epitopes_trans_regs.exists()
