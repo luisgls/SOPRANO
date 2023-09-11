@@ -241,6 +241,13 @@ def main(_namespace=None):
     )
     analysis.SumPossibleAcrossRegions.apply(params)
 
+    task_output(
+        "Processing VEP annotated file to estimated 192 rate parameters"
+    )
+    analysis.FixSimulated.apply(params)
+    task_output("Applying column corrections for alternative format")
+    analysis.ColumnCorrect.apply(params)
+
 
 if __name__ == "__main__":
     main()

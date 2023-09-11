@@ -99,3 +99,65 @@ class SumPossibleAcrossRegions(_PipelineComponent):
             params.intra_epitopes_trans_regs,
             params.intra_epitopes_trans_regs_sum,
         )
+
+
+def _fix_simulated(params: Parameters):
+    """
+    Implements:
+
+    perl $BASEDIR/scripts/fixsimulated.pl $FILE > $NAME
+
+    :param params:
+    """
+
+    perl_script = SCRIPTS_DIR.joinpath("fixsimulated.pl")
+
+    subprocess_pipes.pipe(
+        ["perl", perl_script, params.input_path], output_path=params.sim_fixed
+    )
+
+
+class FixSimulated(_PipelineComponent):
+    @staticmethod
+    def apply(params: Parameters):
+        FixSimulated.check_ready(params)
+        _fix_simulated(params)
+
+
+def _col_correct(params: Parameters):
+    """
+    Implements:
+
+    cut -f1,5,7,11,12 $NAME | grep -v "#" | sed 's/_/\t/1' | sed 's/_/\t/1' |
+        awk -F"\t"
+            '{OFS="\t"}{if($6!="-"&&length($3)==3){print $1,$2-1,$2,$0}}' >
+                $NAME.tmp
+
+    :param params:
+    """
+
+    # NOTE: Removed -F"\t" component - seems unneeded, and breaks the
+    # subprocess pipe
+    subprocess_pipes.pipe(
+        ["cut", "-f1,5,7,11,12", params.sim_fixed.as_posix()],
+        ["grep", "-v", "#"],
+        ["sed", "s/_/\t/1"],
+        ["sed", "s/_/\t/1"],
+        [
+            "awk",
+            '{OFS="\t"}{if($6!="-" && length($3)==3){print $1,$2-1,$2,$0}}',
+        ],
+        output_path=params.col_corrected,
+    )
+
+
+class ColumnCorrect(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        if not params.sim_fixed.exists():
+            raise MissingDataError(params.sim_fixed)
+
+    @staticmethod
+    def apply(params: Parameters):
+        ColumnCorrect.check_ready(params)
+        _col_correct(params)

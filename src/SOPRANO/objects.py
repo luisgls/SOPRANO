@@ -120,6 +120,10 @@ class AnalysisPaths:
             "intra_epitopes_cds", "transcript_regions", "sum"
         )
 
+        # Analysis files
+        self.sim_fixed = self._cached_path("sim_fixed")
+        self.col_corrected = self._cached_path("col_corrected")
+
     def _cached_path(self, *extensions):
         return cache_path_builder(
             self.cache_dir, self.analysis_name, *extensions

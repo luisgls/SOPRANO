@@ -65,3 +65,7 @@ def test_pipeline(tmp_path):
     # Check that site summations have been performed
     assert params.epitopes_trans_regs_sum.exists()
     assert params.intra_epitopes_trans_regs_sum.exists()
+
+    # Check col corrections have been applied to annotated input file
+    assert params.sim_fixed.exists()
+    assert params.col_corrected.exists()
