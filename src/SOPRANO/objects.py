@@ -124,6 +124,7 @@ class AnalysisPaths:
         self.sim_fixed = self._cached_path("sim_fixed")
         self.col_corrected = self._cached_path("col_corrected")
         self.contextualised = self._cached_path("contextualised")
+        self.flagged = self._cached_path("flagged")
 
     def _cached_path(self, *extensions):
         return cache_path_builder(

@@ -285,6 +285,9 @@ def main(_namespace=None):
 
         task_output("Performing context corrections")
         analysis.ContextCorrection.apply(params)
+
+        task_output("Flagging calculations")
+        analysis.FlagComputations.apply(params)
     else:
         # TODO: See line 243 - 306
         raise ValueError("Implement SSB7")

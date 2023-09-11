@@ -71,3 +71,9 @@ def test_pipeline(tmp_path):
     # Check col corrections have been applied to annotated input file
     assert params.sim_fixed.exists()
     assert params.col_corrected.exists()
+
+    # Check contextualised calculation
+    assert params.contextualised.exists()
+
+    # Check flagged calculation
+    assert params.flagged.exists()

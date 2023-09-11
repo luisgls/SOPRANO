@@ -217,3 +217,53 @@ class ContextCorrection(_PipelineComponent):
     def apply(params: Parameters):
         ContextCorrection.check_ready(params)
         _context_correction(params, params.genomes)
+
+
+def _build_flag_file(paths: AnalysisPaths):
+    """
+    Implements:
+
+    paste $NAME.tmp $NAME.tmp.bed |
+        cut -f6,14 - |  awk -F "/" '{FS="/"}{OFS="\t"}{print $1,$2}' |
+            awk -F "" '{FS=""}{OFS="\t"}{if( ($1==$6) && ($3!="-") )
+                {print "GOOD"}else{print "FAIL"}}' > $NAME.flag
+
+    :param paths:
+    """
+
+    subprocess_pipes.pipe(
+        [
+            "paste",
+            paths.col_corrected.as_posix(),
+            paths.contextualised.as_posix(),
+        ],
+        ["cut", "-f6,14"],  # Gets e.g. C/T  TCC
+        [
+            "awk",
+            "-F",
+            "/",
+            '{FS="/"}{OFS="\t"}{print $1,$2}',
+        ],  # Splits e.g. C  T   TCC
+        [
+            "awk",
+            "-F",
+            '""',
+            '{FS=""}{OFS="\t"}'
+            '{if( ($1==$6) && ($3!="-") ){print "GOOD"}else{print "FAIL"}}',
+        ],  # Binary calc: GOOD or BAD for each row TODO: Just leave as bool?
+        output_path=paths.flagged,
+    )
+
+
+class FlagComputations(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (params.col_corrected, params.contextualised)
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        FlagComputations.check_ready(params)
+        _build_flag_file(params)
