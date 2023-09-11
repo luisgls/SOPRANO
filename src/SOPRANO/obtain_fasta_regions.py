@@ -101,9 +101,17 @@ def _get_trans_regs(cds_fasta: pathlib.Path, output: pathlib.Path):
     :param output: path to output file
     """
 
+    # subprocess_pipes.pipe(
+    #     ["grep", '">"', cds_fasta.as_posix()],
+    #     ["sed", '"s/>//g"'],
+    #     output_path=output,
+    # )
+
+    # NOTE: We have passed the grep into the second stage of the pipe
+    # since this caused issues in the subprocess (for some reason...)
     subprocess_pipes.pipe(
-        ["grep", '">"', cds_fasta.as_posix()],
-        ["sed", "'s/>//g'"],
+        ["sed", "s/>//g", cds_fasta.as_posix()],
+        ["grep", ":"],
         output_path=output,
     )
 
