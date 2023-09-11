@@ -77,3 +77,6 @@ def test_pipeline(tmp_path):
 
     # Check flagged calculation
     assert params.flagged.exists()
+
+    # Check triplet founts
+    assert params.triplet_counts.exists()

@@ -267,3 +267,48 @@ class FlagComputations(_PipelineComponent):
     def apply(params: Parameters):
         FlagComputations.check_ready(params)
         _build_flag_file(params)
+
+
+def _initial_triplet_counts(paths: AnalysisPaths):
+    """
+    Implements:
+    paste $NAME.tmp $NAME.tmp.bed $NAME.flag |
+        awk '{if($15=="GOOD"){print $0}}' - | cut -f6,14 - |
+            sort -k2,2 |uniq -c | sed 's/^ \+//g' | sort -k1,1 -n |
+                sed 's/ /\t/g' | awk '{OFS="\t"}{print $3,$2,$1}' |
+                    sed -e 's/\t[A-Z]\//_/g' > $NAME.finalVEP.triplets.counts
+    :param paths:
+    """
+
+    subprocess_pipes.pipe(
+        [
+            "paste",
+            paths.col_corrected.as_posix(),
+            paths.contextualised.as_posix(),
+            paths.flagged.as_posix(),
+        ],
+        ["awk", '{if($15=="GOOD"){print $0}}', "-"],
+        ["cut", "-f6,14"],
+        ["sort", "-k2,2"],
+        ["uniq", "-c"],
+        ["sed", "s/^ \+//g"],
+        ["sort", "-k1,1", "-n"],
+        ["sed", "s/ /\t/g"],
+        ["awk", '{OFS="\t"}{print $3,$2,$1}'],
+        ["sed", "-e", "s/\t[A-Z]\//_/g"],
+        output_path=paths.triplet_counts,
+    )
+
+
+class TripletCounts(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (params.col_corrected, params.contextualised, params.flagged)
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        TripletCounts.check_ready(params)
+        _initial_triplet_counts(params)

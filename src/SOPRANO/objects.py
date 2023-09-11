@@ -125,6 +125,7 @@ class AnalysisPaths:
         self.col_corrected = self._cached_path("col_corrected")
         self.contextualised = self._cached_path("contextualised")
         self.flagged = self._cached_path("flagged")
+        self.triplet_counts = self._cached_path("triplets", "counts")
 
     def _cached_path(self, *extensions):
         return cache_path_builder(

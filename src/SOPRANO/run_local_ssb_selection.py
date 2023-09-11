@@ -288,6 +288,9 @@ def main(_namespace=None):
 
         task_output("Flagging calculations")
         analysis.FlagComputations.apply(params)
+
+        task_output("Computing triplet counts")
+        analysis.TripletCounts.apply(params)
     else:
         # TODO: See line 243 - 306
         raise ValueError("Implement SSB7")
