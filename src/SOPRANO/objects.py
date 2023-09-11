@@ -94,6 +94,9 @@ class AnalysisPaths:
         self.epitopes_trans_regs = self._cached_path(
             "epitopes_cds", "transcript_regions"
         )
+        self.epitopes_trans_regs_sum = self._cached_path(
+            "epitopes_cds", "transcript_regions", "sum"
+        )
 
         # Complement (intra) epitope files
         self.intra_epitopes = self._cached_path("intra_epitopes", "bed")
@@ -112,6 +115,9 @@ class AnalysisPaths:
         )
         self.intra_epitopes_trans_regs = self._cached_path(
             "intra_epitopes_cds", "transcript_regions"
+        )
+        self.intra_epitopes_trans_regs_sum = self._cached_path(
+            "intra_epitopes_cds", "transcript_regions", "sum"
         )
 
     def _cached_path(self, *extensions):

@@ -57,3 +57,45 @@ class ComputeSSB192TheoreticalSubs(_PipelineComponent):
         _compute_theoretical_subs(
             params.intra_epitopes_cds_fasta, params.intra_epitopes_trans_regs
         )
+
+
+def _sum_possible_across_region(
+    trans_regs: pathlib.Path, sum_trans_regs: pathlib.Path
+):
+    """
+    Implements:
+    awk '{print "test_"$2"_"$3"\t0\t1\t"$0}' $TMP/$NAME.listA.sites |
+        sortBed -i stdin | mergeBed -i stdin -c 7,8 -o sum,sum |
+            cut -f1,4,5 > $TMP/$NAME.listA.totalsites
+
+    :param trans_regs: list of transcript:regions
+    :param sum_trans_regs: output path for summation
+    """
+
+    subprocess_pipes.pipe(
+        ["awk", '{print "test_"$2"_"$3"\t0\t1\t"$0}', trans_regs.as_posix()],
+        ["sortBed", "-i", "stdin"],
+        ["mergeBed", "-i", "stdin", "-c", "7,8", "-o", "sum,sum"],
+        ["cut", "-f1,4,5"],
+        output_path=sum_trans_regs,
+    )
+
+
+class SumPossibleAcrossRegions(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (params.epitopes_trans_regs, params.intra_epitopes_trans_regs)
+        for p in paths:
+            if not p.exists():
+                raise MissingDataError(p)
+
+    @staticmethod
+    def apply(params: Parameters):
+        SumPossibleAcrossRegions.check_ready(params)
+        _sum_possible_across_region(
+            params.epitopes_trans_regs, params.epitopes_trans_regs_sum
+        )
+        _sum_possible_across_region(
+            params.intra_epitopes_trans_regs,
+            params.intra_epitopes_trans_regs_sum,
+        )

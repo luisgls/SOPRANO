@@ -196,10 +196,7 @@ def main(_namespace=None):
         task_output("Randomizing transcripts")
         randomization_method = prepare_coordinates.RandomizeWithoutRegions
     else:
-        task_output(
-            f"No randomization selected: sorting input bed file: "
-            f"{params.bed_path.as_posix()}"
-        )
+        task_output("No randomization selected, sorting input bed file")
         randomization_method = prepare_coordinates.NonRandom
     randomization_method.apply(params)
 
@@ -238,6 +235,11 @@ def main(_namespace=None):
         " and non-target regions"
     )
     analysis.ComputeSSB192TheoreticalSubs.apply(params)
+
+    task_output(
+        "Computing sum over all posible sites in target and non-target regions"
+    )
+    analysis.SumPossibleAcrossRegions.apply(params)
 
 
 if __name__ == "__main__":
