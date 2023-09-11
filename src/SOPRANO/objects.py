@@ -31,12 +31,12 @@ class GenomePaths:
 
 GRCh37 = GenomePaths(
     sizes=_data_dir().joinpath("chrom_GRCh37.sizes"),
-    fasta=_data_dir().joinpath(""),  # TODO: implement
+    fasta=_data_dir().joinpath("Homo_sapiens.GRCh37.dna.toplevel.fa"),
 )
 
 GRCh38 = GenomePaths(
     sizes=_data_dir().joinpath("chrom_GRCh38.sizes"),  # TODO: implement
-    fasta=_data_dir().joinpath(""),  # TODO: implement
+    fasta=_data_dir().joinpath("Homo_sapiens.GRCh38.dna.toplevel.fa"),
 )
 
 
