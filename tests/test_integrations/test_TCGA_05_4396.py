@@ -13,6 +13,7 @@ EXAMPLES_DIR = SOPRANO_ROOT.joinpath("examples")
 input_file = EXAMPLES_DIR.joinpath("TCGA-05-4396-01A-21D-1855-08.annotated")
 bed_file = BIO_DIR.joinpath("TCGA-05-4396.Expressed.IEDBpeps.SB.epitope.bed")
 name = "TCGA-05-4396"
+genome_ref = "grch37"
 
 
 def test_pipeline(tmp_path):
@@ -29,6 +30,7 @@ def test_pipeline(tmp_path):
         transcript=objects.EnsemblTranscripts.transcript_length,
         protein_transcript=objects.EnsemblTranscripts.protein_transcript_length,
         transcript_ids=objects.EnsemblTranscripts.transcript_fasta,
+        genome_ref=genome_ref,
     )
 
     params = objects.Parameters.from_namespace(namespace)
