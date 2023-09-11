@@ -64,7 +64,7 @@ def _get_non_target_regions(
             "-bed",
             paths.intra_epitopes_cds.as_posix(),
             "-fo",
-            paths.epitopes_cds_fasta,
+            paths.intra_epitopes_cds_fasta,
         ]
     )
 
@@ -84,6 +84,7 @@ class ObtainFastaRegions(_PipelineComponent):
 
     @staticmethod
     def apply(params: Parameters):
+        ObtainFastaRegions.check_ready(params)
         _get_target_fasta_regions(params, params.transcripts)
         _get_non_target_regions(params, params.transcripts)
 
@@ -117,6 +118,7 @@ class GetTranscriptRegionsForSites(_PipelineComponent):
 
     @staticmethod
     def apply(params: Parameters):
+        GetTranscriptRegionsForSites.check_ready(params)
         _get_trans_regs(params.epitopes_cds_fasta, params.epitopes_trans_regs)
         _get_trans_regs(
             params.intra_epitopes_cds_fasta, params.intra_epitopes_trans_regs

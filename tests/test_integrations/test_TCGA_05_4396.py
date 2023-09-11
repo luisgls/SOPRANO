@@ -50,3 +50,10 @@ def test_pipeline(tmp_path):
     assert params.intra_epitopes_prot.exists()
     assert params.intra_epitopes_cds.exists()
     assert params.intra_epitopes_prot.exists()
+
+    # Check that fasta files are built
+    assert params.epitopes_cds_fasta.exists()
+    assert params.intra_epitopes_cds_fasta.exists()
+
+    assert params.epitopes_trans_regs.exists()
+    assert params.intra_epitopes_trans_regs.exists()
