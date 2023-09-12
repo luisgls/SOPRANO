@@ -436,5 +436,5 @@ class SiteCorrections(_PipelineComponent):
 
     @staticmethod
     def apply(params: Parameters):
-        SiteCorrections.apply(params)
+        SiteCorrections.check_ready(params)
         _correct_from_total_sites(params)
