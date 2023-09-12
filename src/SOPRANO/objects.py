@@ -132,6 +132,8 @@ class AnalysisPaths:
         self.final_intra_epitope_corrections = self._cached_path(
             "corrected_matrix", "intra_epitopes"
         )
+        self.epitope_nans = self._cached_path("epitopes", "nans")
+        self.intra_epitope_nans = self._cached_path("intra_epitopes", "nans")
 
     def _cached_path(self, *extensions):
         return cache_path_builder(

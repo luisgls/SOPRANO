@@ -5,6 +5,7 @@ from datetime import datetime
 
 from SOPRANO import (
     analysis,
+    intersect,
     objects,
     obtain_fasta_regions,
     prepare_coordinates,
@@ -297,6 +298,9 @@ def main(_namespace=None):
     else:
         # TODO: See line 243 - 306
         raise ValueError("Implement SSB7")
+
+    task_output("Intersecting by frequency")
+    intersect.IntersectByFrequency.apply(params)
 
 
 def parse_genome_args():

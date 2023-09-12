@@ -84,3 +84,7 @@ def test_pipeline(tmp_path):
     # Check that site corrections have been computed
     assert params.final_epitope_corrections.exists()
     assert params.final_intra_epitope_corrections.exists()
+
+    # Check that intersect by frequency has been performed
+    assert params.epitope_nans.exists()
+    assert params.intra_epitope_nans.exists()
