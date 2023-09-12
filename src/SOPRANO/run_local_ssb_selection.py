@@ -1,8 +1,14 @@
 import argparse
 import pathlib
+import subprocess
 from datetime import datetime
 
-from SOPRANO import objects, obtain_fasta_regions, prepare_coordinates
+from SOPRANO import (
+    analysis,
+    objects,
+    obtain_fasta_regions,
+    prepare_coordinates,
+)
 
 
 def check_path(cli_path: pathlib.Path | None, optional=False):
@@ -11,6 +17,20 @@ def check_path(cli_path: pathlib.Path | None, optional=False):
             raise Exception("Input path is not optional and path is None!")
     elif not cli_path.exists():
         raise Exception(f"CLI input path does not exist: {cli_path}")
+
+
+def check_genome(_namespace: argparse.Namespace) -> str:
+    ref = _namespace.genome_ref
+
+    available_refs = ("grch37", "grch38")
+
+    if ref.lower() not in available_refs:
+        raise ValueError(
+            f"Reference {ref} not supported. "
+            f"Permitted choices: {available_refs}"
+        )
+
+    return ref.lower()
 
 
 def parse_args():
@@ -122,6 +142,22 @@ def parse_args():
         type=pathlib.Path,
     )
 
+    genome_args = parser.add_argument_group()
+
+    genome_args.add_argument(
+        "--reference",
+        "-r",
+        dest="genome_ref",
+        default="GRCh37",
+        type=str,
+        help="Reference genome file definition. By default, uses GRCh37. Pass "
+        "instead GRCh38 if preferred. In order to download the reference "
+        "fasta file, you can execute the command:\n"
+        "GET_GENOMES -r GRCh37\n"
+        "or\n"
+        "GET_GENOMES -r GRCh38",
+    )
+
     args = parser.parse_args()
 
     check_path(args.input_path)
@@ -131,6 +167,7 @@ def parse_args():
     check_path(args.transcript)
     check_path(args.protein_transcript)
     check_path(args.transcript_ids)
+    check_genome(args)
 
     return args
 
@@ -166,11 +203,12 @@ def startup_output(**kwargs):
     print("Selection On PRotein ANnotated regiOns")
     line_output()
 
-    # Parameters used in pipeline
-    for k, v in kwargs.items():
-        print("-> {0:.<30}".format(k) + f"{v}")
+    if kwargs:
+        # Parameters used in pipeline
+        for k, v in kwargs.items():
+            print("-> {0:.<30}".format(k) + f"{v}")
 
-    line_output()
+        line_output()
 
 
 def main(_namespace=None):
@@ -191,10 +229,7 @@ def main(_namespace=None):
         task_output("Randomizing transcripts")
         randomization_method = prepare_coordinates.RandomizeWithoutRegions
     else:
-        task_output(
-            f"No randomization selected: sorting input bed file: "
-            f"{params.bed_path.as_posix()}"
-        )
+        task_output("No randomization selected, sorting input bed file")
         randomization_method = prepare_coordinates.NonRandom
     randomization_method.apply(params)
 
@@ -227,6 +262,74 @@ def main(_namespace=None):
         "Compiling list of transcript:regions to estimate number of sites"
     )
     obtain_fasta_regions.GetTranscriptRegionsForSites.apply(params)
+
+    if params.use_ssb192:
+        task_output(
+            "Estimating all theoretically possible 192 substitutions for "
+            "target and non-target regions"
+        )
+        analysis.ComputeSSB192TheoreticalSubs.apply(params)
+
+        task_output(
+            "Computing sum over all possible sites in target and non-target "
+            "regions"
+        )
+        analysis.SumPossibleAcrossRegions.apply(params)
+
+        task_output(
+            "Processing VEP annotated file to estimated 192 rate parameters"
+        )
+        analysis.FixSimulated.apply(params)
+        task_output("Applying column corrections for alternative format")
+        analysis.ColumnCorrect.apply(params)
+
+        task_output("Performing context corrections")
+        analysis.ContextCorrection.apply(params)
+
+        task_output("Flagging calculations")
+        analysis.FlagComputations.apply(params)
+
+        task_output("Computing triplet counts")
+        analysis.TripletCounts.apply(params)
+
+        task_output("Applying site corrections")
+        analysis.SiteCorrections.apply(params)
+    else:
+        # TODO: See line 243 - 306
+        raise ValueError("Implement SSB7")
+
+
+def parse_genome_args():
+    parser = argparse.ArgumentParser(description="Genome reference")
+
+    parser.add_argument(
+        "--reference",
+        "-r",
+        dest="genome_ref",
+        type=str,
+        help="GRCh37 or GRCh38",
+        required=True,
+    )
+
+    ref = check_genome(parser.parse_args())
+
+    return ref
+
+
+def download_genome():
+    ref = parse_genome_args()
+    startup_output()
+    soprano_root_dir = pathlib.Path(__file__).parent
+    installers_dir = soprano_root_dir.joinpath("bash_installers")
+    downloader_path = installers_dir.joinpath("download_reference.sh")
+    data_dir = soprano_root_dir.joinpath("data")
+
+    assert downloader_path.exists(), downloader_path
+    assert data_dir.exists(), data_dir
+
+    subprocess.run(
+        ["bash", downloader_path.as_posix(), ref, data_dir.as_posix()]
+    )
 
 
 if __name__ == "__main__":

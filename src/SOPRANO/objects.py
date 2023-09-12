@@ -24,19 +24,19 @@ EnsemblTranscripts = TranscriptPaths(
 
 
 @dataclass(frozen=True)
-class _GenomicPaths:
+class GenomePaths:
     sizes: pathlib.Path
     fasta: pathlib.Path
 
 
-GRCh37 = _GenomicPaths(
+GRCh37 = GenomePaths(
     sizes=_data_dir().joinpath("chrom_GRCh37.sizes"),
-    fasta=_data_dir().joinpath(""),  # TODO: implement
+    fasta=_data_dir().joinpath("Homo_sapiens.GRCh37.dna.toplevel.fa"),
 )
 
-GRCh38 = _GenomicPaths(
+GRCh38 = GenomePaths(
     sizes=_data_dir().joinpath("chrom_GRCh38.sizes"),  # TODO: implement
-    fasta=_data_dir().joinpath(""),  # TODO: implement
+    fasta=_data_dir().joinpath("Homo_sapiens.GRCh38.dna.toplevel.fa"),
 )
 
 
@@ -94,6 +94,9 @@ class AnalysisPaths:
         self.epitopes_trans_regs = self._cached_path(
             "epitopes_cds", "transcript_regions"
         )
+        self.epitopes_trans_regs_sum = self._cached_path(
+            "epitopes_cds", "transcript_regions", "sum"
+        )
 
         # Complement (intra) epitope files
         self.intra_epitopes = self._cached_path("intra_epitopes", "bed")
@@ -112,6 +115,22 @@ class AnalysisPaths:
         )
         self.intra_epitopes_trans_regs = self._cached_path(
             "intra_epitopes_cds", "transcript_regions"
+        )
+        self.intra_epitopes_trans_regs_sum = self._cached_path(
+            "intra_epitopes_cds", "transcript_regions", "sum"
+        )
+
+        # Analysis files
+        self.sim_fixed = self._cached_path("sim_fixed")
+        self.col_corrected = self._cached_path("col_corrected")
+        self.contextualised = self._cached_path("contextualised")
+        self.flagged = self._cached_path("flagged")
+        self.triplet_counts = self._cached_path("triplets", "counts")
+        self.final_epitope_corrections = self._cached_path(
+            "corrected_matrix", "epitopes"
+        )
+        self.final_intra_epitope_corrections = self._cached_path(
+            "corrected_matrix", "intra_epitopes"
         )
 
     def _cached_path(self, *extensions):
@@ -133,6 +152,7 @@ _NAMESPACE_KEYS = (
     "use_random",
     "exclude_drivers",
     "seed",
+    "genome_ref",
 )
 
 
@@ -149,12 +169,14 @@ class Parameters(AnalysisPaths):
         exclude_drivers: bool,
         seed: int,
         transcripts: TranscriptPaths,
+        genomes: GenomePaths,
     ):
         super().__init__(
             analysis_name, input_path, bed_path, cache_dir, target_regions
         )
 
         self.transcripts = transcripts
+        self.genomes = genomes
         self.use_ssb192 = use_ssb192
         self.use_target_regions = target_regions is not None
         self.use_random = use_random
@@ -173,6 +195,13 @@ class Parameters(AnalysisPaths):
             namespace.transcript_ids,
         )
 
+        if namespace.genome_ref == "grch37":
+            genomes = GRCh37
+        elif namespace.genome_ref == "grch38":
+            genomes = GRCh38
+        else:
+            raise KeyError(f"Unrecognized reference: {namespace.genome_ref}")
+
         return cls(
             namespace.analysis_name,
             namespace.input_path,
@@ -184,4 +213,5 @@ class Parameters(AnalysisPaths):
             namespace.exclude_drivers,
             namespace.seed,
             transcripts,
+            genomes,
         )

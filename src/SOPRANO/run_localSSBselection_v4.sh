@@ -194,7 +194,7 @@ if [[ $MUTRATE = "ssb192" ]];
         paste $NAME.tmp $NAME.tmp.bed $NAME.flag | awk '{if($15=="GOOD"){print $0}}' - | cut -f6,14 - |  sort -k2,2 |uniq -c | sed 's/^ \+//g' | sort -k1,1 -n | sed 's/ /\t/g' | awk '{OFS="\t"}{print $3,$2,$1}' | sed -e 's/\t[A-Z]\//_/g' > $NAME.finalVEP.triplets.counts
         
         
-        if [ -s "$COUNTS" ]
+        if [ -s "$COUNTS" ] # NOTE: Is this implemented??
         then 
                 cat $COUNTS > $NAME.finalVEP.triplets.counts
                 echo "Using provided file $COUNTS for correction"

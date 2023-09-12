@@ -52,13 +52,18 @@ def pipe(
     :return: string representation of stdout from cumulative piped processes
     """
 
-    # TODO: Should we be raising an error on non-zero exit status?
     ps = subprocess.run(args[0], input=_input, capture_output=True)
 
-    # TODO: Should we be catching warnings raised by bedtools?
-    #       e.g., these have the prefix ***** WARNING
-    #       and usually means something stupid has been done
-    #       could check stdout for this, and raise BedtoolsWarning?
+    exit_code = ps.returncode
+
+    if exit_code != 0:
+        msg = (
+            "The subprocess returned the non-zero exit {exit_code}:\n"
+            f"{args[0]}\n\n"
+            f"std output:\n{ps.stdout}\n\n"
+            f"std error:\n{ps.stderr}"
+        )
+        raise RuntimeError(msg)
 
     if len(args) > 1:
         return pipe(

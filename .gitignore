@@ -69,3 +69,4 @@ src/SOPRANO/tmp/
 
 # Data files
 src/SOPRANO/data/ensemble_transcriptID.fasta
+src/SOPRANO/data/Homo_sapiens.GRCh*.fa
