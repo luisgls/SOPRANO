@@ -316,15 +316,15 @@ awk '{NA+=$4}{NS+=$6}END{print NA"\t"NS}' $TMP/$NAME.final_corrected_matrix_B.tx
 #####Get variant counts from vep annotated file, split into silent and nonsilent
 ##silent
 egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|TF_binding_site_variant|upstream|incomplete|regulatory_region_variant|retained|\?' $FILE | grep -w synonymous_variant |
-awk '{if(length($3)>1||$10=="-"){}else{print}}' | cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" |  grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.silent.bed
+awk '{if(length($3)>1||$10=="-"){}else{print}}' | cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.silent.bed
 
 ##nonsilent
 egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|TF_binding_site_variant|upstream|incomplete|regulatory_region_variant|retained|\?' $FILE | grep -w -v synonymous_variant |
-awk '{if(length($3)>1||$10=="-"){}else{print}}'  |cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.nonsilent.bed
+awk '{if(length($3)>1||$10=="-"){}else{print}}' | cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.nonsilent.bed
 
 ##missense only
 egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|TF_binding_site_variant|upstream|incomplete|regulatory_region_variant|retained|\?' $FILE | grep -w -v synonymous_variant | grep -w missense_variant |
-awk '{if(length($3)>1||$10=="-"){}else{print}}'  |cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.missense.bed
+awk '{if(length($3)>1||$10=="-"){}else{print}}' | cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.missense.bed
 
 ##intronic
 grep -v "^#" $NAME | grep -w "intron_variant" | grep -v "splice" | awk -F"\t|_" '{FS="\t|_"}{print $1"_"$7"\t"$2"\t"$2"\t"$3}' > $TMP/$NAME.intronic.bed
@@ -393,15 +393,14 @@ else
         echo "INFO: intersected file (data_epitopes) not present, creating"
 fi
 
+if [ "$insil" -gt 0 ];
+then
+intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | cut -f1-11 -| sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
+fi
 
 if [ "$innonsil" -gt 0 ];
 then
 intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | cut -f1-11 -| sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_missense_variant"}' >> $TMP/$NAME.data_epitopes
-fi
-
-if [ "$insil" -gt 0 ];
-then
-intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | cut -f1-11 -| sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
 fi
 
 if [ "$outsil" -gt 0 ];

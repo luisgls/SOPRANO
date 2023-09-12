@@ -84,3 +84,25 @@ def test_pipeline(tmp_path):
     # Check that site corrections have been computed
     assert params.final_epitope_corrections.exists()
     assert params.final_intra_epitope_corrections.exists()
+
+    # Check that intersect by frequency has been performed
+    assert params.epitope_nans.exists()
+    assert params.intra_epitope_nans.exists()
+
+    # Check mutation counts
+    assert params.variants_silent.exists()
+    assert params.variants_nonsilent.exists()
+    assert params.variants_missense.exists()
+    assert params.variants_intronic.exists()
+    assert params.raw_silent_count.exists()
+    assert params.raw_nonsilent_count.exists()
+    assert params.raw_missense_count.exists()
+    assert params.in_silent_count.exists()
+    assert params.in_nonsilent_count.exists()
+    assert params.in_missense_count.exists()
+    assert params.out_silent_count.exists()
+    assert params.out_nonsilent_count.exists()
+    assert params.out_missense_count.exists()
+
+    # Check epitopes data file is build
+    assert params.data_epitopes.exists()

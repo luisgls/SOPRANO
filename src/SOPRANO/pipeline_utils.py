@@ -1,3 +1,5 @@
+import pathlib
+
 from SOPRANO.objects import Parameters
 
 
@@ -24,3 +26,12 @@ class _PipelineComponent:
     @staticmethod
     def check_ready(params: Parameters):
         pass
+
+
+def is_empty(path: pathlib.Path) -> bool:
+    """
+    Checks whether file at path has size of zero
+    :param path: pathlib Path object
+    :return: True if path is empty else False
+    """
+    return path.stat().st_size == 0

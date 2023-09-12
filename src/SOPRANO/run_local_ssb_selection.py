@@ -5,6 +5,7 @@ from datetime import datetime
 
 from SOPRANO import (
     analysis,
+    intersect,
     objects,
     obtain_fasta_regions,
     prepare_coordinates,
@@ -297,6 +298,27 @@ def main(_namespace=None):
     else:
         # TODO: See line 243 - 306
         raise ValueError("Implement SSB7")
+
+    task_output("Intersecting by frequency")
+    intersect.IntersectByFrequency.apply(params)
+
+    task_output("Computing silent variant counts")
+    intersect.GetSilentCounts.apply(params)
+
+    task_output("Computing nonsilent variant counts")
+    intersect.GetNonSilentCounts.apply(params)
+
+    task_output("Computing missense variant counts")
+    intersect.GetMissenseCounts.apply(params)
+
+    task_output("Computing intronic variant counts")
+    intersect.GetIntronicCounts.apply(params)
+
+    task_output("Computing On/Off region counts")
+    intersect.OnOffCounts.apply(params)
+
+    task_output("Building extended data epitope file")
+    intersect.BuildEpitopesDataFile.apply(params)
 
 
 def parse_genome_args():
