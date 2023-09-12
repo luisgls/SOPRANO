@@ -109,7 +109,7 @@ class GetSilentCounts(_PipelineComponent):
 
 
 def _get_nonsilent_variant_counts(paths: AnalysisPaths):
-    """
+    r"""
     Implements:
 
     egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|
@@ -149,7 +149,7 @@ class GetNonSilentCounts(_PipelineComponent):
 
 
 def _get_missense_variant_counts(paths: AnalysisPaths):
-    """
+    r"""
     Implements:
 
     egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|
@@ -198,6 +198,12 @@ def _get_intronic_variant_counts(paths: AnalysisPaths):
         awk -F"\t|_" '{FS="\t|_"}{print $1"_"$7"\t"$2"\t"$2"\t"$3}' >
             $TMP/$NAME.intronic.bed
 
+    NOTE: We added another step
+
+    tr "_" "\t"
+
+    to the implemented pipe before calling awk since the seperator was failing.
+
     :param paths:
     :return:
     """
@@ -206,7 +212,8 @@ def _get_intronic_variant_counts(paths: AnalysisPaths):
         ["grep", "-v", r"^#", paths.input_path.as_posix()],
         ["grep", "-w", "intron_variant"],
         ["grep", "-v", "splice"],
-        ["awk", r'-F"\t|_"', r'{FS="\t|_"}{print $1"_"$7"\t"$2"\t"$2"\t"$3}'],
+        ["tr", "_", "\t"],
+        ["awk", '{print $1"_"$7"\t"$2"\t"$2"\t"$3}'],
         output_path=paths.variants_intronic,
     )
 
