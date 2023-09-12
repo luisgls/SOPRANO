@@ -329,3 +329,117 @@ class OnOffCounts(_PipelineComponent):
         _print("Global region", raw_silent, raw_nonsilent, raw_missense)
         _print("(ON) Target region", in_silent, in_nonsilent, in_missense)
         _print("(OFF) Target region", out_silent, out_nonsilent, out_missense)
+
+
+def get_counts(in_out_counts: pathlib.Path):
+    return int(subprocess_pipes.pipe(["cat", in_out_counts.as_posix()]))
+
+
+def _update_epitopes_data_file(
+    variant_counts: pathlib.Path,
+    in_out_counts: pathlib.Path,
+    paths: AnalysisPaths,
+    _use_epitope: bool,
+    _label: str,
+):
+    """
+    Implements:
+
+    intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.epitopes.bed -wo |
+        awk '{OFS="\t"}{print $1,"1","2",$0}' | cut -f1-11 -|
+            sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 |
+                awk '{print $0"\textra_missense_variant"}' >>
+                    $TMP/$NAME.data_epitopes
+
+    and
+
+    intersectBed -b $TMP/$NAME.silent.bed -a
+    $TMP/$NAME.intra_epitopes_prot.bed -wo |
+        awk '{OFS="\t"}{print $1,"1","2",$0}' |
+            cut -f1-11 -| sortBed -i stdin | mergeBed -i stdin -c 10 -o count |
+                cut -f1,4 |
+                    awk '{print $0"\tintra_synonymous_variant"}' >>
+                        $TMP/$NAME.data_epitopes
+
+    :param variant_counts:
+    :param in_out_counts:
+    :param paths:
+    :return:
+    """
+
+    if get_counts(in_out_counts) > 0:
+        if _use_epitope:
+            epi_path = paths.epitopes
+            col_idx = "11"
+            awk_str = r'{print $0"\textra_' + _label + '_variant"}'
+        else:
+            epi_path = paths.intra_epitopes_prot
+            col_idx = "10"
+            awk_str = r'{print $0"\tintra_' + _label + '_variant"}'
+
+        subprocess_pipes.pipe(
+            [
+                "intersectBed",
+                "-b",
+                variant_counts.as_posix(),
+                "-a",
+                epi_path.as_posix(),
+                "-wo",
+            ],
+            ["awk", '{OFS="\t"}{print $1,"1","2",$0}'],
+            ["cut", "-f1-11", "-"],
+            ["sortBed", "-i", "stdin"],
+            [
+                "mergeBed",
+                "-i",
+                "stdin",
+                "-c",
+                col_idx,
+                "-o",
+                "count",
+            ],
+            ["cut", "-f1,4"],
+            ["awk", awk_str],
+            output_path=paths.data_epitopes,
+            mode="a",
+            overwrite=True,
+        )
+
+
+class BuildEpitopesDataFile(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (
+            params.variants_silent,
+            params.variants_nonsilent,
+            params.in_silent_count,
+            params.in_nonsilent_count,
+            params.out_silent_count,
+            params.out_nonsilent_count,
+        )
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        BuildEpitopesDataFile.check_ready(params)
+
+        variants = (params.variants_silent, params.variants_nonsilent)
+        in_counts = (params.in_silent_count, params.in_nonsilent_count)
+        out_counts = (params.out_silent_count, params.out_nonsilent_count)
+        labs = ("synonymous", "missense")
+
+        for variant_count, in_out_count, use_epi, lab in zip(
+            variants * 2,
+            in_counts + out_counts,
+            (True, True, False, False),
+            labs * 2,
+        ):
+            _update_epitopes_data_file(
+                variant_count,
+                in_out_count,
+                params,
+                _use_epitope=use_epi,
+                _label=lab,
+            )

@@ -160,6 +160,8 @@ class AnalysisPaths:
         )
         self.out_missense_count = self._cached_path("out", "missense", "count")
 
+        self.data_epitopes = self._cached_path("data", "epitopes")
+
     def _cached_path(self, *extensions):
         return cache_path_builder(
             self.cache_dir, self.analysis_name, *extensions

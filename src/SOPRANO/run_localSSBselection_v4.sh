@@ -393,15 +393,14 @@ else
         echo "INFO: intersected file (data_epitopes) not present, creating"
 fi
 
+if [ "$insil" -gt 0 ];
+then
+intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | cut -f1-11 -| sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
+fi
 
 if [ "$innonsil" -gt 0 ];
 then
 intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | cut -f1-11 -| sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_missense_variant"}' >> $TMP/$NAME.data_epitopes
-fi
-
-if [ "$insil" -gt 0 ];
-then
-intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | cut -f1-11 -| sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
 fi
 
 if [ "$outsil" -gt 0 ];

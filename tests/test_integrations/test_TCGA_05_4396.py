@@ -103,3 +103,6 @@ def test_pipeline(tmp_path):
     assert params.out_silent_count.exists()
     assert params.out_nonsilent_count.exists()
     assert params.out_missense_count.exists()
+
+    # Check epitopes data file is build
+    assert params.data_epitopes.exists()
