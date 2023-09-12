@@ -308,6 +308,9 @@ def main(_namespace=None):
     task_output("Computing nonsilent variant counts")
     intersect.GetNonSilentCounts.apply(params)
 
+    task_output("Computing missense variant counts")
+    intersect.GetMissenseCounts.apply(params)
+
 
 def parse_genome_args():
     parser = argparse.ArgumentParser(description="Genome reference")
