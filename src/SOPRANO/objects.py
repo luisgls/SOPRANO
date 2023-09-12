@@ -135,6 +135,9 @@ class AnalysisPaths:
         self.epitope_nans = self._cached_path("epitopes", "nans")
         self.intra_epitope_nans = self._cached_path("intra_epitopes", "nans")
 
+        # variant counts
+        self.variants_silent = self._cached_path("variants", "silent")
+
     def _cached_path(self, *extensions):
         return cache_path_builder(
             self.cache_dir, self.analysis_name, *extensions

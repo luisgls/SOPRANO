@@ -302,6 +302,9 @@ def main(_namespace=None):
     task_output("Intersecting by frequency")
     intersect.IntersectByFrequency.apply(params)
 
+    task_output("Computing silent variant counts")
+    intersect.GetSilentCounts.apply(params)
+
 
 def parse_genome_args():
     parser = argparse.ArgumentParser(description="Genome reference")

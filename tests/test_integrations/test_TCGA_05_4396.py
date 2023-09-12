@@ -88,3 +88,6 @@ def test_pipeline(tmp_path):
     # Check that intersect by frequency has been performed
     assert params.epitope_nans.exists()
     assert params.intra_epitope_nans.exists()
+
+    # Check mutation counts
+    assert params.variants_silent.exists()
