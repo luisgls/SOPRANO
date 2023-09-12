@@ -80,3 +80,7 @@ def test_pipeline(tmp_path):
 
     # Check triplet founts
     assert params.triplet_counts.exists()
+
+    # Check that site corrections have been computed
+    assert params.final_epitope_corrections.exists()
+    assert params.final_intra_epitope_corrections.exists()

@@ -126,6 +126,12 @@ class AnalysisPaths:
         self.contextualised = self._cached_path("contextualised")
         self.flagged = self._cached_path("flagged")
         self.triplet_counts = self._cached_path("triplets", "counts")
+        self.final_epitope_corrections = self._cached_path(
+            "corrected_matrix", "epitopes"
+        )
+        self.final_intra_epitope_corrections = self._cached_path(
+            "corrected_matrix", "intra_epitopes"
+        )
 
     def _cached_path(self, *extensions):
         return cache_path_builder(

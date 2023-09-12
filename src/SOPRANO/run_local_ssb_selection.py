@@ -291,6 +291,9 @@ def main(_namespace=None):
 
         task_output("Computing triplet counts")
         analysis.TripletCounts.apply(params)
+
+        task_output("Applying site corrections")
+        analysis.SiteCorrections.apply(params)
     else:
         # TODO: See line 243 - 306
         raise ValueError("Implement SSB7")

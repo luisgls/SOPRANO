@@ -8,6 +8,15 @@ SOPRANO_ROOT = pathlib.Path(__file__).parent
 SCRIPTS_DIR = SOPRANO_ROOT.joinpath("scripts")
 
 
+def is_empty(path: pathlib.Path) -> bool:
+    """
+    Checks whether file at path has size of zero
+    :param path: pathlib Path object
+    :return: True if path is empty else False
+    """
+    return path.stat().st_size == 0
+
+
 def _compute_theoretical_subs(
     cds_fasta: pathlib.Path, trans_regs: pathlib.Path
 ):
@@ -270,7 +279,7 @@ class FlagComputations(_PipelineComponent):
 
 
 def _initial_triplet_counts(paths: AnalysisPaths):
-    """
+    r"""
     Implements:
     paste $NAME.tmp $NAME.tmp.bed $NAME.flag |
         awk '{if($15=="GOOD"){print $0}}' - | cut -f6,14 - |
@@ -291,11 +300,11 @@ def _initial_triplet_counts(paths: AnalysisPaths):
         ["cut", "-f6,14"],
         ["sort", "-k2,2"],
         ["uniq", "-c"],
-        ["sed", "s/^ \+//g"],
+        ["sed", r"s/^ \+//g"],
         ["sort", "-k1,1", "-n"],
-        ["sed", "s/ /\t/g"],
-        ["awk", '{OFS="\t"}{print $3,$2,$1}'],
-        ["sed", "-e", "s/\t[A-Z]\//_/g"],
+        ["sed", r"s/ /\t/g"],
+        ["awk", r'{OFS="\t"}{print $3,$2,$1}'],
+        ["sed", "-e", r"s/\t[A-Z]\//_/g"],
         output_path=paths.triplet_counts,
     )
 
@@ -312,3 +321,120 @@ class TripletCounts(_PipelineComponent):
     def apply(params: Parameters):
         TripletCounts.check_ready(params)
         _initial_triplet_counts(params)
+
+
+class SOPRANOError(Exception):
+    pass
+
+
+def _check_triplet_counts(paths: AnalysisPaths):
+    """
+    Implements:
+
+    muts=`wc -l $NAME.tmp.bed | awk '{ print $1 }'`
+    back=`wc -l $NAME.finalVEP.triplets.counts | awk '{ print $1 }'`
+    fails=`grep -c "FAIL" $NAME.flag`
+    echo "Rate parameter file $NAME.finalVEP.triplets.counts has $back lines
+    of data."
+    rm $NAME.tmp $NAME.tmp.bed $NAME.flag
+    echo "Proccesed $muts mutations from VEP file. $fails mutations were
+    discarded (indels or reference conflicts)"
+    if [ "$back" -lt 7 ]
+    then
+            echo "Very few rate parameters to analyse data, please provide
+            rate parameter file with option -c"
+            exit 1
+        fi
+    else
+    echo "$NAME.finalVEP.triplets.counts is empty."
+    exit 1
+
+    :param paths:
+    :return:
+    """
+
+    if is_empty(paths.triplet_counts):
+        raise SOPRANOError(f"Triplet counts are empty: {paths.triplet_counts}")
+
+    mutations = subprocess_pipes.pipe(
+        ["wc", "-l", paths.flagged.as_posix()], ["awk", "{ print $1 }"]
+    )
+    back = subprocess_pipes.pipe(
+        ["wc", "-l", paths.triplet_counts.as_posix()], ["awk", "{ print $1 }"]
+    )
+    fails = subprocess_pipes.pipe(
+        ["grep", "-c", "FAIL", paths.flagged.as_posix()]
+    )
+
+    print(
+        f"Rate parameter file {paths.triplet_counts.as_posix()} has {back} "
+        f"lines of data.\n"
+        f"Processed {mutations} from VEP file. {fails} mutations were "
+        f"discarded (indels or reference conflicts)."
+    )
+
+    if int(back) < 7:
+        raise SOPRANOError(
+            "Too few rate parameters available to analyse data."
+        )
+
+
+def _correct_from_total_sites(paths: AnalysisPaths):
+    """
+    Implements:
+    perl $BASEDIR/scripts/correct_update_epitope_sitesV3.pl
+        $TMP/$NAME.listA.totalsites $NAME.finalVEP.triplets.counts >
+            $TMP/$NAME.final_corrected_matrix_A.txt
+    perl $BASEDIR/scripts/correct_update_epitope_sitesV3.pl
+        $TMP/$NAME.listB.totalsites $NAME.finalVEP.triplets.counts >
+            $TMP/$NAME.final_corrected_matrix_B.txt
+
+    NOTE: listA.total sites is the trans_regs_sum for epitopes
+    and listB.total sites is the trans_regs_sum for intra epitopes
+    in the parameter defs.
+
+    :param paths:
+    """
+
+    perl_script = SCRIPTS_DIR.joinpath("correct_update_epitope_sitesV3.pl")
+
+    subprocess_pipes.pipe(
+        [
+            "perl",
+            perl_script.as_posix(),
+            paths.epitopes_trans_regs_sum.as_posix(),
+            paths.triplet_counts.as_posix(),
+        ],
+        output_path=paths.final_epitope_corrections,
+    )
+
+    subprocess_pipes.pipe(
+        [
+            "perl",
+            perl_script.as_posix(),
+            paths.intra_epitopes_trans_regs_sum.as_posix(),
+            paths.triplet_counts.as_posix(),
+        ],
+        output_path=paths.final_intra_epitope_corrections,
+    )
+
+
+class SiteCorrections(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (
+            params.epitopes_trans_regs_sum,
+            params.intra_epitopes_trans_regs_sum,
+            params.triplet_counts,
+        )
+
+        for p in paths:
+            if not p.exists():
+                raise MissingDataError(p)
+
+        _check_triplet_counts(params)
+
+    @staticmethod
+    def apply(params: Parameters):
+        SiteCorrections.apply(params)
+        _correct_from_total_sites(params)
