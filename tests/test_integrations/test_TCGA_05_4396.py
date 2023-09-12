@@ -91,3 +91,4 @@ def test_pipeline(tmp_path):
 
     # Check mutation counts
     assert params.variants_silent.exists()
+    assert params.variants_nonsilent.exists()

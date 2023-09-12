@@ -137,6 +137,7 @@ class AnalysisPaths:
 
         # variant counts
         self.variants_silent = self._cached_path("variants", "silent")
+        self.variants_nonsilent = self._cached_path("variants", "nonsilent")
 
     def _cached_path(self, *extensions):
         return cache_path_builder(

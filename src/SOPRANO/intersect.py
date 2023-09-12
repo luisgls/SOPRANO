@@ -53,8 +53,9 @@ class IntersectByFrequency(_PipelineComponent):
 
 
 def _get_silent_variant_counts(paths: AnalysisPaths):
-    """
+    r"""
     Implements:
+
     egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|
         non_coding|splice_acceptor_variant|splice_donor_variant|
         TF_binding_site_variant|upstream|incomplete|regulatory_region_variant|
@@ -66,6 +67,7 @@ def _get_silent_variant_counts(paths: AnalysisPaths):
                             egrep -v -w -e "coding_sequence_variant" |
                                 grep -v "ENSEMBLTRANSCRIPT" >
                                     $TMP/$NAME.silent.bed
+
     :param paths:
     """
 
@@ -95,3 +97,51 @@ class GetSilentCounts(_PipelineComponent):
     @staticmethod
     def apply(params: Parameters):
         _get_silent_variant_counts(params)
+
+
+def _get_nonsilent_variant_counts(paths: AnalysisPaths):
+    """
+    Implements:
+
+    egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|
+        non_coding|splice_acceptor_variant|splice_donor_variant|
+        TF_binding_site_variant|upstream|incomplete|
+        regulatory_region_variant|retained|\?' $FILE |
+            grep -w -v synonymous_variant |
+                awk '{if(length($3)>1||$10=="-"){}else{print}}'  |
+                    cut -f4,5,7,10,89 -  |
+                        sed 's/\//\t/g' |
+                            awk '{print $2"\t"$4"\t"$4"\t"$3}' |
+                                egrep -v -w -e "coding_sequence_variant" |
+                                    grep -v "ENSEMBLTRANSCRIPT" >
+                                        $TMP/$NAME.nonsilent.bed
+
+    :param paths:
+    """
+
+    subprocess_pipes.pipe(
+        [
+            "egrep",
+            "-v",
+            "-e",
+            r"#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|"
+            r"non_coding|splice_acceptor_variant|splice_donor_variant|"
+            r"TF_binding_site_variant|upstream|incomplete|"
+            r"regulatory_region_variant|retained|\?",
+            paths.input_path.as_posix(),
+        ],
+        ["grep", "-w", "-v", "synonymous_variant"],
+        ["awk", r'{if(length($3)>1||$10=="-"){}else{print}}'],
+        ["cut", "-f4,5,7,10,89", "-"],
+        ["sed", r"s/\//\t/g"],
+        ["awk", r'{print $2"\t"$4"\t"$4"\t"$3}'],
+        ["egrep", "-v", "-w", "-e", "coding_sequence_variant"],
+        ["grep", "-v", "ENSEMBLTRANSCRIPT"],
+        output_path=paths.variants_nonsilent,
+    )
+
+
+class GetNonSilentCounts(_PipelineComponent):
+    @staticmethod
+    def apply(params: Parameters):
+        _get_nonsilent_variant_counts(params)
