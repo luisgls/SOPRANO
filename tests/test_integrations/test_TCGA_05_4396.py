@@ -93,3 +93,4 @@ def test_pipeline(tmp_path):
     assert params.variants_silent.exists()
     assert params.variants_nonsilent.exists()
     assert params.variants_missense.exists()
+    assert params.variants_intronic.exists()

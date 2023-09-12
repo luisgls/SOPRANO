@@ -188,3 +188,30 @@ class GetMissenseCounts(_PipelineComponent):
     @staticmethod
     def apply(params: Parameters):
         _get_missense_variant_counts(params)
+
+
+def _get_intronic_variant_counts(paths: AnalysisPaths):
+    """
+    Implements:
+
+    grep -v "^#" $NAME | grep -w "intron_variant" | grep -v "splice" |
+        awk -F"\t|_" '{FS="\t|_"}{print $1"_"$7"\t"$2"\t"$2"\t"$3}' >
+            $TMP/$NAME.intronic.bed
+
+    :param paths:
+    :return:
+    """
+
+    subprocess_pipes.pipe(
+        ["grep", "-v", r"^#", paths.input_path.as_posix()],
+        ["grep", "-w", "intron_variant"],
+        ["grep", "-v", "splice"],
+        ["awk", r'-F"\t|_"', r'{FS="\t|_"}{print $1"_"$7"\t"$2"\t"$2"\t"$3}'],
+        output_path=paths.variants_intronic,
+    )
+
+
+class GetIntronicCounts(_PipelineComponent):
+    @staticmethod
+    def apply(params: Parameters):
+        _get_intronic_variant_counts(params)
