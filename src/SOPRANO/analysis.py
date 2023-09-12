@@ -1,20 +1,15 @@
 import pathlib
 
 from SOPRANO.objects import AnalysisPaths, GenomePaths, Parameters
-from SOPRANO.pipeline_utils import MissingDataError, _PipelineComponent
+from SOPRANO.pipeline_utils import (
+    MissingDataError,
+    _PipelineComponent,
+    is_empty,
+)
 from SOPRANO.sh_utils import subprocess_pipes
 
 SOPRANO_ROOT = pathlib.Path(__file__).parent
 SCRIPTS_DIR = SOPRANO_ROOT.joinpath("scripts")
-
-
-def is_empty(path: pathlib.Path) -> bool:
-    """
-    Checks whether file at path has size of zero
-    :param path: pathlib Path object
-    :return: True if path is empty else False
-    """
-    return path.stat().st_size == 0
 
 
 def _compute_theoretical_subs(

@@ -314,6 +314,9 @@ def main(_namespace=None):
     task_output("Computing intronic variant counts")
     intersect.GetIntronicCounts.apply(params)
 
+    task_output("Computing On/Off region counts")
+    intersect.OnOffCounts.apply(params)
+
 
 def parse_genome_args():
     parser = argparse.ArgumentParser(description="Genome reference")

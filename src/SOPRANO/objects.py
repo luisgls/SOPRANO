@@ -136,10 +136,29 @@ class AnalysisPaths:
         self.intra_epitope_nans = self._cached_path("intra_epitopes", "nans")
 
         # variant counts
-        self.variants_silent = self._cached_path("variants", "silent")
-        self.variants_nonsilent = self._cached_path("variants", "nonsilent")
-        self.variants_missense = self._cached_path("variants", "missense")
-        self.variants_intronic = self._cached_path("variants", "intronic")
+        self.variants_silent = self._cached_path("variants", "silent", "bed")
+        self.variants_nonsilent = self._cached_path(
+            "variants", "nonsilent", "bed"
+        )
+        self.variants_missense = self._cached_path(
+            "variants", "missense", "bed"
+        )
+        self.variants_intronic = self._cached_path(
+            "variants", "intronic", "bed"
+        )
+        self.raw_silent_count = self._cached_path("raw", "silent", "count")
+        self.raw_nonsilent_count = self._cached_path(
+            "raw", "nonsilent", "count"
+        )
+        self.raw_missense_count = self._cached_path("raw", "missense", "count")
+        self.in_silent_count = self._cached_path("in", "silent", "count")
+        self.in_nonsilent_count = self._cached_path("in", "nonsilent", "count")
+        self.in_missense_count = self._cached_path("in", "missense", "count")
+        self.out_silent_count = self._cached_path("out", "silent", "count")
+        self.out_nonsilent_count = self._cached_path(
+            "out", "nonsilent", "count"
+        )
+        self.out_missense_count = self._cached_path("out", "missense", "count")
 
     def _cached_path(self, *extensions):
         return cache_path_builder(

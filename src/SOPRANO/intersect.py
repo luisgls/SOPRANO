@@ -1,7 +1,11 @@
 import pathlib
 
 from SOPRANO.objects import AnalysisPaths, Parameters
-from SOPRANO.pipeline_utils import MissingDataError, _PipelineComponent
+from SOPRANO.pipeline_utils import (
+    MissingDataError,
+    _PipelineComponent,
+    is_empty,
+)
 from SOPRANO.sh_utils import subprocess_pipes
 
 
@@ -222,3 +226,106 @@ class GetIntronicCounts(_PipelineComponent):
     @staticmethod
     def apply(params: Parameters):
         _get_intronic_variant_counts(params)
+
+
+def _count_mutations(variant_counts: pathlib.Path, output_path: pathlib.Path):
+    if is_empty(variant_counts):
+        counts = "0"
+    else:
+        counts = subprocess_pipes.pipe(
+            ["wc", "-l", variant_counts.as_posix()],
+            ["awk", r"{print $1}"],
+            output_path=output_path,
+        )
+
+    return counts
+
+
+def _count_intersected_mutations(
+    variant_counts: pathlib.Path,
+    on_off_regions: pathlib.Path,
+    output_path: pathlib.Path,
+):
+    if is_empty(variant_counts):
+        counts = "0"
+    else:
+        counts = subprocess_pipes.pipe(
+            [
+                "intersectBed",
+                "-b",
+                variant_counts.as_posix(),
+                "-a",
+                on_off_regions.as_posix(),
+                "-wo",
+            ],
+            ["wc", "-l"],
+            ["awk", r"{ print $1 }"],
+            output_path=output_path,
+        )
+
+    return counts
+
+
+class OnOffCounts(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (
+            params.variants_silent,
+            params.variants_nonsilent,
+            params.variants_missense,
+            params.variants_intronic,
+            params.epitopes,
+            params.intra_epitopes_prot,
+        )
+
+        for p in paths:
+            if not p.exists():
+                raise MissingDataError(p)
+
+    @staticmethod
+    def apply(params: Parameters):
+        raw_silent = _count_mutations(
+            params.variants_silent, params.raw_silent_count
+        )
+        raw_nonsilent = _count_mutations(
+            params.variants_nonsilent, params.raw_nonsilent_count
+        )
+        raw_missense = _count_mutations(
+            params.variants_missense, params.raw_missense_count
+        )
+        in_silent = _count_intersected_mutations(
+            params.variants_silent, params.epitopes, params.in_silent_count
+        )
+        in_nonsilent = _count_intersected_mutations(
+            params.variants_nonsilent,
+            params.epitopes,
+            params.in_nonsilent_count,
+        )
+        in_missense = _count_intersected_mutations(
+            params.variants_missense, params.epitopes, params.in_missense_count
+        )
+        out_silent = _count_intersected_mutations(
+            params.variants_silent,
+            params.intra_epitopes_prot,
+            params.out_silent_count,
+        )
+        out_nonsilent = _count_intersected_mutations(
+            params.variants_nonsilent,
+            params.intra_epitopes_prot,
+            params.out_nonsilent_count,
+        )
+        out_missense = _count_intersected_mutations(
+            params.variants_missense,
+            params.intra_epitopes_prot,
+            params.out_missense_count,
+        )
+
+        def _print(region, silent, nonsilent, missense):
+            print(f"{region}:")
+            print("{0:.<30}".format("Silent") + silent)
+            print("{0:.<30}".format("Non-silent") + nonsilent)
+            print("{0:.<30}".format("Missense") + missense)
+
+        _print("Global region", raw_silent, raw_nonsilent, raw_missense)
+        _print("(ON) Target region", in_silent, in_nonsilent, in_missense)
+        _print("(OFF) Target region", out_silent, out_nonsilent, out_missense)
