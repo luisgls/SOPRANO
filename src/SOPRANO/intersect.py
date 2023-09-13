@@ -3,6 +3,7 @@ import pathlib
 from SOPRANO.objects import AnalysisPaths, Parameters
 from SOPRANO.pipeline_utils import (
     MissingDataError,
+    SOPRANOError,
     _PipelineComponent,
     is_empty,
 )
@@ -443,3 +444,34 @@ class BuildEpitopesDataFile(_PipelineComponent):
                 _use_epitope=use_epi,
                 _label=lab,
             )
+
+
+def _check_target_mutations(paths: AnalysisPaths):
+    in_silent_count = get_counts(paths.in_silent_count)
+    in_nonsilent_count = get_counts(paths.in_nonsilent_count)
+    in_missense_count = get_counts(paths.in_missense_count)
+
+    if in_silent_count + in_nonsilent_count + in_missense_count == 0:
+        raise SOPRANOError(
+            f"No mutations found in target region for input file "
+            f"{paths.input_path}"
+        )
+
+
+class CheckTargetMutations(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (
+            params.in_silent_count,
+            params.in_nonsilent_count,
+            params.in_missense_count,
+        )
+
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        CheckTargetMutations.check_ready(params)
+        _check_target_mutations(params)

@@ -320,6 +320,8 @@ def main(_namespace=None):
     task_output("Building extended data epitope file")
     intersect.BuildEpitopesDataFile.apply(params)
 
+    intersect.CheckTargetMutations.apply(params)
+
 
 def parse_genome_args():
     parser = argparse.ArgumentParser(description="Genome reference")

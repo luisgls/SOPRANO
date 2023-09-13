@@ -7,6 +7,10 @@ class MissingDataError(Exception):
     pass
 
 
+class SOPRANOError(Exception):
+    pass
+
+
 class _PipelineComponent:
     """
     Components of the pipeline are designed to follow the pattern:
