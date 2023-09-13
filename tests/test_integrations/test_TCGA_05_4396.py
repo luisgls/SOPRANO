@@ -14,9 +14,22 @@ input_file = EXAMPLES_DIR.joinpath("TCGA-05-4396-01A-21D-1855-08.annotated")
 bed_file = BIO_DIR.joinpath("TCGA-05-4396.Expressed.IEDBpeps.SB.epitope.bed")
 name = "TCGA-05-4396"
 genome_ref = "grch37"
+exclude_drivers = True
+
+# TODO: Quick test in cache dir with:
+# Rscript $_WIN_HOME/software/SOPRANO/src/SOPRANO/scripts/
+# calculateKaKsEpiCorrected_CI_intron_V3.R TCGA-05-4396.data.epitopes
+# TCGA-05-4396.epitopes.nans TCGA-05-4396.intra_epitopes.nans
+# TCGA-05-4396.intron.rate
 
 
 def test_pipeline(tmp_path):
+    """
+    Test the TCGA-05-4396 end-to-end to validate results.
+
+    :param tmp_path:
+    :return:
+    """
     namespace = Namespace(
         analysis_name=name,
         input_path=input_file,
@@ -25,7 +38,7 @@ def test_pipeline(tmp_path):
         target_regions=None,
         use_ssb192=True,
         use_random=False,
-        exclude_drivers=False,
+        exclude_drivers=exclude_drivers,
         seed=-1,
         transcript=objects.EnsemblTranscripts.transcript_length,
         protein_transcript=objects.EnsemblTranscripts.protein_transcript_length,
@@ -109,3 +122,7 @@ def test_pipeline(tmp_path):
 
     # Check intron rate has been computed
     assert params.intron_rate.exists()
+
+    # coverage ON_dnds ON_lowci ON_highci ON_muts OFF_dnds OFF_lowci OFF_highci OFF_muts Pval ON_na ON_NA ON_ns ON_NS OFF_na OFF_NA OFF_ns OFF_NS                                                 # noqa: E501
+    # ExonicOnly 0.170545315483698 0.0312367028034305 0.931140579583117 6 0.890687718057257 0.510646130660438 1.5535705238312 63 0.330510882590904 2 1974270 4 673405 46 19525700 17 6427220      # noqa: E501
+    # ExonicIntronic 0.170545315483698 0.0312367028034305 0.931140579583117 6 0.890687718057257 0.510646130660438 1.5535705238312 63 0.330510882590904 2 1974270 4 673405 46 19525700 17 6427220  # noqa: E501
