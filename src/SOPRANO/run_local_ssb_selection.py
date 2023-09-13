@@ -100,6 +100,7 @@ def parse_args():
         "similar to the target.",
     )
 
+    # TODO: This is true by default in the original implementation
     analysis_params_group.add_argument(
         "--exclude_drivers",
         dest="exclude_drivers",
