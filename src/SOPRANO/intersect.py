@@ -235,9 +235,14 @@ def _count_mutations(variant_counts: pathlib.Path, output_path: pathlib.Path):
     else:
         counts = subprocess_pipes.pipe(
             ["wc", "-l", variant_counts.as_posix()],
-            ["awk", r"{print $1}"],
+            ["awk", r"{print $1+1}"],
             output_path=output_path,
         )
+        # In the awk print we have $1+1 since our internal piping
+        # convention is such that when pipes are written to a file,
+        # they do not have a trailing \n.
+        # This means that wc -l will in fact count n_lines - 1
+        # since it looks for \n
 
     return counts
 
