@@ -106,3 +106,6 @@ def test_pipeline(tmp_path):
 
     # Check epitopes data file is build
     assert params.data_epitopes.exists()
+
+    # Check intron rate has been computed
+    assert params.intron_rate.exists()

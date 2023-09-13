@@ -5,6 +5,7 @@ from datetime import datetime
 
 from SOPRANO import (
     analysis,
+    dnds,
     intersect,
     objects,
     obtain_fasta_regions,
@@ -321,6 +322,9 @@ def main(_namespace=None):
     intersect.BuildEpitopesDataFile.apply(params)
 
     intersect.CheckTargetMutations.apply(params)
+
+    task_output("Computing intron rate")
+    dnds.ComputeIntronRate.apply(params)
 
 
 def parse_genome_args():

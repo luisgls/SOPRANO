@@ -43,10 +43,12 @@ GRCh38 = GenomePaths(
 @dataclass(frozen=True)
 class AuxiliaryPaths:
     genes_to_exclude: pathlib.Path
+    intron_length: pathlib.Path
 
 
 AuxiliaryFiles = AuxiliaryPaths(
-    genes_to_exclude=_data_dir().joinpath("genes2exclude.txt")
+    genes_to_exclude=_data_dir().joinpath("genes2exclude.txt"),
+    intron_length=_data_dir().joinpath("transcript_intron_length.bed"),
 )
 
 
@@ -161,6 +163,8 @@ class AnalysisPaths:
         self.out_missense_count = self._cached_path("out", "missense", "count")
 
         self.data_epitopes = self._cached_path("data", "epitopes")
+
+        self.intron_rate = self._cached_path("intron", "rate")
 
     def _cached_path(self, *extensions):
         return cache_path_builder(
