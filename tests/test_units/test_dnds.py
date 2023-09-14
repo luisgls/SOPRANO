@@ -54,3 +54,28 @@ def test__compute_mutation_counts():
     computed_series = dnds_intron._compute_mutation_counts(mock_df)
 
     assert computed_series.equals(expected_series)
+
+
+def test__define_variables():
+    mock_series = pd.Series({"m_1": 1, "m_2": 2})
+    mock_df_1 = pd.DataFrame({"x_1": [3], "x_2": [4]})
+    mock_df_2 = pd.DataFrame({"y_1": [5], "y_2": [6]})
+
+    expected_series = pd.Series(
+        {"m_1": 1, "m_2": 2, "x_1": 3, "x_2": 4, "y_1": 5, "y_2": 6}
+    )
+
+    computed_series = dnds_intron._define_variables(
+        mock_series, mock_df_1, mock_df_2
+    )
+
+    assert computed_series.equals(expected_series)
+
+
+# merged, extra, intra = dnds_intron._preprocess_dfs(paths)
+#
+# muts = dnds_intron._compute_mutation_counts(merged)
+#
+# vars = dnds_intron._define_variables(muts, extra, intra)
+#
+# print(vars)

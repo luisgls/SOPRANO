@@ -23,12 +23,15 @@ def _preprocess_dfs(paths: AnalysisPaths):
         .reset_index()
     )
 
-    site_names = ("NA", "NS")
-    df_sites_extra = pd.read_csv(
-        paths.epitope_nans, delimiter="\t", names=site_names
+    site_names = ("site_1", "site_2")
+    extra_site_names = ["extra_" + s for s in site_names]
+    intra_site_names = ["intra_" + s for s in site_names]
+
+    sites_extra_df = pd.read_csv(
+        paths.epitope_nans, delimiter="\t", names=extra_site_names
     )
-    df_sites_intra = pd.read_csv(
-        paths.intra_epitope_nans, delimiter="\t", names=site_names
+    sites_intra_df = pd.read_csv(
+        paths.intra_epitope_nans, delimiter="\t", names=intra_site_names
     )
 
     intron_df = pd.read_csv(
@@ -42,10 +45,22 @@ def _preprocess_dfs(paths: AnalysisPaths):
         intron_df, how="outer", on="EnsemblID"
     ).fillna(0)
 
-    return merged_df, df_sites_extra, df_sites_intra
+    return merged_df, sites_extra_df, sites_intra_df
 
 
-def _compute_mutation_counts(merged_df: pd.DataFrame):
+def _compute_mutation_counts(merged_df: pd.DataFrame) -> pd.Series:
     mutations_only = merged_df.drop(["EnsemblID"], axis=1)
     mutations_sums = mutations_only.sum(axis=0)
     return mutations_sums
+
+
+def _define_variables(
+    mutation_sums: pd.Series,
+    extra_sites: pd.DataFrame,
+    intra_sites: pd.DataFrame,
+):
+    variables = mutation_sums.copy()
+
+    variables = pd.concat([variables, extra_sites.squeeze()])
+    variables = pd.concat([variables, intra_sites.squeeze()])
+    return variables
