@@ -43,3 +43,9 @@ def _preprocess_dfs(paths: AnalysisPaths):
     ).fillna(0)
 
     return merged_df, df_sites_extra, df_sites_intra
+
+
+def _compute_mutation_counts(merged_df: pd.DataFrame):
+    mutations_only = merged_df.drop(["EnsemblID"], axis=1)
+    mutations_sums = mutations_only.sum(axis=0)
+    return mutations_sums

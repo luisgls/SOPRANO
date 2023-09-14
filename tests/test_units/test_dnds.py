@@ -40,3 +40,17 @@ def test__preprocess_dfs():
     assert sites_intra.head().equals(
         pd.read_csv(test_intra_path, delimiter="\t")
     )
+
+
+def test__compute_mutation_counts():
+    mock_df = pd.DataFrame(
+        {"EnsemblID": ["ENSTxxx"] * 10, "mut_1": [0] * 10, "mut_2": [1] * 10}
+    )
+
+    expected_series = pd.Series(
+        {"mut_1": 0, "mut_2": 10}, index=["mut_1", "mut_2"]
+    )
+
+    computed_series = dnds_intron._compute_mutation_counts(mock_df)
+
+    assert computed_series.equals(expected_series)
