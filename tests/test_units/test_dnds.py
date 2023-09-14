@@ -44,7 +44,12 @@ def test__preprocess_dfs():
 
 def test__compute_mutation_counts():
     mock_df = pd.DataFrame(
-        {"EnsemblID": ["ENSTxxx"] * 10, "mut_1": [0] * 10, "mut_2": [1] * 10}
+        {
+            "EnsemblID": ["ENSTxxx"] * 10,
+            "intronrate": [123] * 10,
+            "mut_1": [0] * 10,
+            "mut_2": [1] * 10,
+        }
     )
 
     expected_series = pd.Series(
@@ -72,10 +77,68 @@ def test__define_variables():
     assert computed_series.equals(expected_series)
 
 
+def test__rescale_intron_by_synonymous():
+    mock_vars = pd.Series(
+        {
+            "mutsintron": 1,
+            "intra_synonymous_variant": 1,
+            "extra_synonymous_variant": 1,
+            "intra_site_2": 1,
+            "extra_site_2": 1,
+        }
+    )
+
+    expected_value = 1.0
+    assert (
+        dnds_intron._rescale_intron_by_synonymous(mock_vars) == expected_value
+    )
+
+
+def test__compute_kaks_intra_extra():
+    mock_vars = pd.Series(
+        {
+            "intra_synonymous_variant": 1,
+            "extra_synonymous_variant": 1,
+            "intra_missense_variant": 2,
+            "extra_missense_variant": 1,
+            "intra_site_1": 1,
+            "extra_site_1": 1,
+            "intra_site_2": 2,
+            "extra_site_2": 1,
+        }
+    )
+
+    assert dnds_intron._compute_kaks_extra(mock_vars) == 1
+    assert dnds_intron._compute_kaks_intra(mock_vars) == 4
+
+
+def test__compute_kaks_intron():
+    mock_vars = pd.Series(
+        {
+            "mutsintron": 1,
+            "intra_synonymous_variant": 1,
+            "extra_synonymous_variant": 1,
+            "intra_missense_variant": 1,
+            "extra_missense_variant": 1,
+            "intra_site_1": 1,
+            "extra_site_1": 1,
+            "intra_site_2": 1,
+            "extra_site_2": 1,
+        }
+    )
+
+    assert dnds_intron._compute_kaks_intron(mock_vars) == 1.0
+
+
 # merged, extra, intra = dnds_intron._preprocess_dfs(paths)
 #
 # muts = dnds_intron._compute_mutation_counts(merged)
 #
 # vars = dnds_intron._define_variables(muts, extra, intra)
-#
-# print(vars)
+# #
+# # print(vars)
+# #
+# print(dnds_intron._rescale_intron_by_synonymous(vars))
+# print(dnds_intron._compute_kaks_extra(vars))
+# print(dnds_intron._compute_kaks_intra(vars))
+# print(dnds_intron._compute_kaks_intron(vars))

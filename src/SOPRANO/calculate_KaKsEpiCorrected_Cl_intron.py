@@ -2,6 +2,15 @@ import pandas as pd
 
 from SOPRANO.objects import AnalysisPaths
 
+_DISCARD_INTRON = True
+
+# TODO: Discuss - this looks like a potential bug
+#       in the R implementation...
+#       df3<-merge(df2,df.intron,by.x="EnsembleID",by.y="EnsemblID", all.x = T)
+#       Effectively, this removes the intron values from the calculation.
+#       Probably want all.y=T where y is df.intron
+#       The above flag mimics this behaviour.
+
 
 def _preprocess_dfs(paths: AnalysisPaths):
     data_path = paths.data_epitopes.as_posix()
@@ -45,11 +54,15 @@ def _preprocess_dfs(paths: AnalysisPaths):
         intron_df, how="outer", on="EnsemblID"
     ).fillna(0)
 
+    if _DISCARD_INTRON:
+        merged_df["mutsintron"] *= 0
+        merged_df["intronlength"] *= 0
+
     return merged_df, sites_extra_df, sites_intra_df
 
 
 def _compute_mutation_counts(merged_df: pd.DataFrame) -> pd.Series:
-    mutations_only = merged_df.drop(["EnsemblID"], axis=1)
+    mutations_only = merged_df.drop(["EnsemblID", "intronrate"], axis=1)
     mutations_sums = mutations_only.sum(axis=0)
     return mutations_sums
 
@@ -64,3 +77,64 @@ def _define_variables(
     variables = pd.concat([variables, extra_sites.squeeze()])
     variables = pd.concat([variables, intra_sites.squeeze()])
     return variables
+
+
+def _rescale_intron_by_synonymous(variables: pd.Series):
+    # Sum over intron and synonymous muts
+    n_intron = variables["mutsintron"]
+    n_intra_syn = variables["intra_synonymous_variant"]
+    n_extra_syn = variables["extra_synonymous_variant"]
+
+    # Second element of intra and extra sites
+    n_intra_sites_2 = variables["intra_site_2"]
+    n_extra_sites_2 = variables["extra_site_2"]
+
+    ri = n_intra_syn / n_intra_sites_2
+    re = n_extra_syn / n_extra_sites_2
+
+    return 2 * n_intron / (ri + re)
+
+
+def _compute_kaks(variables: pd.Series, prefix: str):
+    if prefix not in ("intra", "extra"):
+        raise ValueError(prefix)
+
+    # Sum vals over missesne and synonymous muts
+    n_mis = variables[f"{prefix}_missense_variant"]
+    n_syn = variables[f"{prefix}_synonymous_variant"]
+
+    # First and second elements of sites vector
+    sites_1 = variables[f"{prefix}_site_1"]
+    sites_2 = variables[f"{prefix}_site_2"]
+
+    rn = n_mis / n_syn
+    rs = sites_2 / sites_1
+
+    return rn * rs
+
+
+def _compute_kaks_extra(variables: pd.Series):
+    return _compute_kaks(variables, prefix="extra")
+
+
+def _compute_kaks_intra(variables: pd.Series):
+    return _compute_kaks(variables, prefix="intra")
+
+
+def _compute_kaks_intron(variables: pd.Series):
+    # Sum vals over intron, missesne and synonymous intra muts
+    n_int = variables["mutsintron"]
+    n_mis = variables["intra_missense_variant"]
+    n_syn = variables["intra_synonymous_variant"]
+
+    # First and second elements of sites vector
+    sites_1 = variables["intra_site_1"]
+    sites_2 = variables["intra_site_2"]
+
+    # Get intron muts rescaled by synonymous muts
+    n_intron_rescaled = _rescale_intron_by_synonymous(variables)
+
+    rn = n_mis / (n_syn + n_int)
+    rs = (sites_2 + n_intron_rescaled) / sites_1
+
+    return rn * rs
