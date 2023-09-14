@@ -141,18 +141,7 @@ def _compute_kaks_intron(variables: pd.Series):
     return rn * rs
 
 
-def _compute_conf_interval(variables: pd.Series, prefix: str, method: str):
-    if method != "katz":
-        raise ValueError(f"Unimplemented method: {method}")
-
-    if prefix not in ("intra", "extra"):
-        raise ValueError(prefix)
-
-    n_mis = variables[f"{prefix}_missense_variant"]
-    n_syn = variables[f"{prefix}_synonymous_variant"]
-    sites_1 = variables[f"{prefix}_site_1"]
-    sites_2 = variables[f"{prefix}_site_2"]
-
+def _katz_confidence_interval(n_mis, n_syn, sites_1, sites_2, prefix):
     # TODO: Find out why +1 in sites:
     # Is this to avoid divergence in case of 0?
     # If so, maybe consider max(1, sites_x)
@@ -170,3 +159,68 @@ def _compute_conf_interval(variables: pd.Series, prefix: str, method: str):
     high = global_dnds * np.exp(1.96 * sqrt)
 
     return pd.Series({f"{prefix}_Cl_low": low, f"{prefix}_Cl_high": high})
+
+
+def _compute_conf_interval(variables: pd.Series, prefix: str, method: str):
+    if method != "katz":
+        raise ValueError(f"Unimplemented method: {method}")
+
+    if prefix == "intra":
+        n_mis = variables["intra_missense_variant"]
+        n_syn = variables["intra_synonymous_variant"]
+        sites_1 = variables["intra_site_1"]
+        sites_2 = variables["intra_site_2"]
+    elif prefix == "extra":
+        n_mis = variables["extra_missense_variant"]
+        n_syn = variables["extra_synonymous_variant"]
+        sites_1 = variables["extra_site_1"]
+        sites_2 = variables["extra_site_2"]
+    elif prefix == "intron":
+        n_mis = variables["intra_missense_variant"]
+        n_syn = variables["intra_synonymous_variant"] + variables["mutsintron"]
+        sites_1 = variables["intra_site_1"]
+        sites_2 = variables["intra_site_2"] + _rescale_intron_by_synonymous(
+            variables
+        )
+    else:
+        raise ValueError(prefix)
+
+    return _katz_confidence_interval(n_mis, n_syn, sites_1, sites_2, prefix)
+
+
+def _compute_pvalue(
+    variables: pd.Series, conf_intervals: pd.Series, prefix: str
+):
+    """
+
+    :param variables:
+    :param conf_intervals: Confidence intervals computed from
+            non-target region with or without intronic information
+    """
+    high = conf_intervals["intra_Cl_high"]
+    low = conf_intervals["intra_Cl_low"]
+
+    extra_kak = _compute_kaks_extra(variables)
+
+    if prefix == "intron":
+        intra_kak = _compute_kaks_intron(variables)
+    elif prefix == "intra":
+        intra_kak = _compute_kaks_intra(variables)
+    else:
+        raise ValueError(f"pvalue not configured for prefix: {prefix}")
+
+    delta_kak = extra_kak - intra_kak
+    standard_error = (high - low) / 3.92
+    z = delta_kak / standard_error
+
+    pval_1 = np.exp(-0.717 * z - 0.416 * z**2)
+    pval_2 = np.exp(0.717 * z + 0.416 * z**2)
+
+    if 0 < pval_2 <= 1:
+        pval = pval_2
+    else:
+        pval = pval_1
+
+    pval = max([pval, 1e-4])
+
+    return pval

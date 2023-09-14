@@ -135,10 +135,21 @@ def test__compute_conf_interval():
     pass
 
 
-# merged, extra, intra = dnds_intron._preprocess_dfs(paths)
-#
-# muts = dnds_intron._compute_mutation_counts(merged)
-#
-# vars = dnds_intron._define_variables(muts, extra, intra)
-#
-# print(dnds_intron._compute_conf_interval(vars, "intra", "katz"))
+merged, extra, intra = dnds_intron._preprocess_dfs(paths)
+
+muts = dnds_intron._compute_mutation_counts(merged)
+
+vars = dnds_intron._define_variables(muts, extra, intra)
+
+cl_epi = dnds_intron._compute_conf_interval(vars, "extra", "katz")
+cl_nonepi = dnds_intron._compute_conf_interval(vars, "intra", "katz")
+cl_intron = dnds_intron._compute_conf_interval(vars, "intron", "katz")
+
+pval_nonepi = dnds_intron._compute_pvalue(vars, cl_nonepi, "intra")
+pval_intron = dnds_intron._compute_pvalue(vars, cl_nonepi, "intron")
+
+print("epitope", cl_epi)
+print("non-epitope", cl_nonepi)
+print("intron", cl_intron)
+print("pval non-epitope", pval_nonepi)
+print("pval intron", pval_intron)
