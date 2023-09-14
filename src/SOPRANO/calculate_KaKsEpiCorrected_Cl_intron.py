@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 from SOPRANO.objects import AnalysisPaths
@@ -138,3 +139,34 @@ def _compute_kaks_intron(variables: pd.Series):
     rs = (sites_2 + n_intron_rescaled) / sites_1
 
     return rn * rs
+
+
+def _compute_conf_interval(variables: pd.Series, prefix: str, method: str):
+    if method != "katz":
+        raise ValueError(f"Unimplemented method: {method}")
+
+    if prefix not in ("intra", "extra"):
+        raise ValueError(prefix)
+
+    n_mis = variables[f"{prefix}_missense_variant"]
+    n_syn = variables[f"{prefix}_synonymous_variant"]
+    sites_1 = variables[f"{prefix}_site_1"]
+    sites_2 = variables[f"{prefix}_site_2"]
+
+    # TODO: Find out why +1 in sites:
+    # Is this to avoid divergence in case of 0?
+    # If so, maybe consider max(1, sites_x)
+    p1 = n_mis / (sites_1 + 1)
+    p2 = n_syn / (sites_2 + 1)
+
+    global_dnds = p1 / p2
+
+    f1 = (1 - p1) / (sites_1 * p1)
+    f2 = (1 - p2) / (sites_2 * p2)
+
+    sqrt = np.sqrt(f1 + f2)
+
+    low = global_dnds * np.exp(-1.96 * sqrt)
+    high = global_dnds * np.exp(1.96 * sqrt)
+
+    return pd.Series({f"{prefix}_Cl_low": low, f"{prefix}_Cl_high": high})

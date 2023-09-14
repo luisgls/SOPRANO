@@ -130,15 +130,15 @@ def test__compute_kaks_intron():
     assert dnds_intron._compute_kaks_intron(mock_vars) == 1.0
 
 
+def test__compute_conf_interval():
+    # TODO: Implement
+    pass
+
+
 # merged, extra, intra = dnds_intron._preprocess_dfs(paths)
 #
 # muts = dnds_intron._compute_mutation_counts(merged)
 #
 # vars = dnds_intron._define_variables(muts, extra, intra)
-# #
-# # print(vars)
-# #
-# print(dnds_intron._rescale_intron_by_synonymous(vars))
-# print(dnds_intron._compute_kaks_extra(vars))
-# print(dnds_intron._compute_kaks_intra(vars))
-# print(dnds_intron._compute_kaks_intron(vars))
+#
+# print(dnds_intron._compute_conf_interval(vars, "intra", "katz"))
