@@ -166,6 +166,8 @@ class AnalysisPaths:
 
         self.intron_rate = self._cached_path("intron", "rate")
 
+        self.results_path = self._cached_path("results.tsv")
+
     def _cached_path(self, *extensions):
         return cache_path_builder(
             self.cache_dir, self.analysis_name, *extensions

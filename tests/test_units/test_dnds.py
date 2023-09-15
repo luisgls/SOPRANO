@@ -6,7 +6,7 @@ from SOPRANO import calculate_KaKsEpiCorrected_Cl_intron as dnds_intron
 from SOPRANO.objects import AnalysisPaths
 
 # TODO: Fixture....
-data_dir = pathlib.Path("dnds_data")
+data_dir = pathlib.Path(__file__).parent.joinpath("dnds_data")
 data_epitopes_path = data_dir.joinpath("TCGA-05-4396.data.epitopes")
 epi_nans_path = data_dir.joinpath("TCGA-05-4396.epitopes.nans")
 intra_nans_path = data_dir.joinpath("TCGA-05-4396.intra_epitopes.nans")
@@ -47,13 +47,30 @@ def test__compute_mutation_counts():
         {
             "EnsemblID": ["ENSTxxx"] * 10,
             "intronrate": [123] * 10,
-            "mut_1": [0] * 10,
-            "mut_2": [1] * 10,
+            "extra_missense_variant": [0] * 10,
+            "extra_synonymous_variant": [1] * 10,
+            "intra_missense_variant": [0] * 10,
+            "intra_synonymous_variant": [1] * 10,
         }
     )
 
     expected_series = pd.Series(
-        {"mut_1": 0, "mut_2": 10}, index=["mut_1", "mut_2"]
+        {
+            "extra_missense_variant": 0,
+            "extra_synonymous_variant": 10,
+            "intra_missense_variant": 0,
+            "intra_synonymous_variant": 10,
+            "mut_total_epitope": 10,
+            "mut_total_non_epitope": 10,
+        },
+        index=[
+            "extra_missense_variant",
+            "extra_synonymous_variant",
+            "intra_missense_variant",
+            "intra_synonymous_variant",
+            "mut_total_epitope",
+            "mut_total_non_epitope",
+        ],
     )
 
     computed_series = dnds_intron._compute_mutation_counts(mock_df)
@@ -135,21 +152,25 @@ def test__compute_conf_interval():
     pass
 
 
-merged, extra, intra = dnds_intron._preprocess_dfs(paths)
-
-muts = dnds_intron._compute_mutation_counts(merged)
-
-vars = dnds_intron._define_variables(muts, extra, intra)
-
-cl_epi = dnds_intron._compute_conf_interval(vars, "extra", "katz")
-cl_nonepi = dnds_intron._compute_conf_interval(vars, "intra", "katz")
-cl_intron = dnds_intron._compute_conf_interval(vars, "intron", "katz")
-
-pval_nonepi = dnds_intron._compute_pvalue(vars, cl_nonepi, "intra")
-pval_intron = dnds_intron._compute_pvalue(vars, cl_nonepi, "intron")
-
-print("epitope", cl_epi)
-print("non-epitope", cl_nonepi)
-print("intron", cl_intron)
-print("pval non-epitope", pval_nonepi)
-print("pval intron", pval_intron)
+# merged, extra, intra = dnds_intron._preprocess_dfs(paths)
+#
+# muts = dnds_intron._compute_mutation_counts(merged)
+#
+# vars = dnds_intron._define_variables(muts, extra, intra)
+# #
+# # cl_epi = dnds_intron._compute_conf_interval(vars, "extra", "katz")
+# # cl_nonepi = dnds_intron._compute_conf_interval(vars, "intra", "katz")
+# # cl_intron = dnds_intron._compute_conf_interval(vars, "intron", "katz")
+# #
+# # pval_nonepi = dnds_intron._compute_pvalue(vars, cl_nonepi, "intra")
+# # pval_intron = dnds_intron._compute_pvalue(vars, cl_nonepi, "intron")
+#
+# # print("epitope", cl_epi)
+# # print("non-epitope", cl_nonepi)
+# # print("intron", cl_intron)
+# # print("pval non-epitope", pval_nonepi)
+# # print("pval intron", pval_intron)
+#
+# res = dnds_intron._compute_coverage(paths)
+# #
+# # print("x" in muts)

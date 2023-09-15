@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 from SOPRANO.objects import AnalysisPaths
+from SOPRANO.pipeline_utils import is_empty
 
 _DISCARD_INTRON = True
 
@@ -44,39 +45,67 @@ def _preprocess_dfs(paths: AnalysisPaths):
         paths.intra_epitope_nans, delimiter="\t", names=intra_site_names
     )
 
-    intron_df = pd.read_csv(
-        paths.intron_rate,
-        delimiter="\t",
-        names=("EnsemblID", "intronrate", "mutsintron", "intronlength"),
-    )
+    if is_empty(paths.intron_rate):
+        merged_df = spread_mutations_df
+    else:
+        intron_df = pd.read_csv(
+            paths.intron_rate,
+            delimiter="\t",
+            names=("EnsemblID", "intronrate", "mutsintron", "intronlength"),
+        )
 
-    # Merge mutations with intron df
-    merged_df = spread_mutations_df.merge(
-        intron_df, how="outer", on="EnsemblID"
-    ).fillna(0)
+        # Merge mutations with intron df
+        merged_df = spread_mutations_df.merge(
+            intron_df, how="outer", on="EnsemblID"
+        ).fillna(0)
 
-    if _DISCARD_INTRON:
-        merged_df["mutsintron"] *= 0
-        merged_df["intronlength"] *= 0
+        if _DISCARD_INTRON:
+            merged_df["mutsintron"] *= 0
+            merged_df["intronlength"] *= 0
 
     return merged_df, sites_extra_df, sites_intra_df
 
 
 def _compute_mutation_counts(merged_df: pd.DataFrame) -> pd.Series:
-    mutations_only = merged_df.drop(["EnsemblID", "intronrate"], axis=1)
-    mutations_sums = mutations_only.sum(axis=0)
-    return mutations_sums
+    try:
+        mutations_only = merged_df.drop(["EnsemblID", "intronrate"], axis=1)
+    except KeyError:
+        mutations_only = merged_df.drop(["EnsemblID"], axis=1)
+    mutations_sums = mutations_only.sum(axis=0)  # type: pd.Series
+
+    n_total_epitope = (
+        mutations_sums["extra_missense_variant"]
+        + mutations_sums["extra_synonymous_variant"]
+    )
+    n_total_nonepitope = (
+        mutations_sums["intra_missense_variant"]
+        + mutations_sums["intra_synonymous_variant"]
+    )
+    combined_sums = pd.Series(
+        {
+            "mut_total_epitope": n_total_epitope,
+            "mut_total_non_epitope": n_total_nonepitope,
+        }
+    )
+    if "mutsintron" in mutations_sums:
+        n_total_intron = n_total_nonepitope + mutations_sums["mutsintron"]
+        combined_sums = pd.concat(
+            [combined_sums, pd.Series({"mut_total_intron": n_total_intron})]
+        )
+
+    return pd.concat([mutations_sums, combined_sums])
 
 
 def _define_variables(
     mutation_sums: pd.Series,
     extra_sites: pd.DataFrame,
     intra_sites: pd.DataFrame,
-):
-    variables = mutation_sums.copy()
-
-    variables = pd.concat([variables, extra_sites.squeeze()])
-    variables = pd.concat([variables, intra_sites.squeeze()])
+) -> pd.Series:
+    variables = mutation_sums.copy()  # type: pd.Series
+    sq_extra = extra_sites.squeeze()  # type: pd.Series
+    sq_intra = intra_sites.squeeze()  # type: pd.Series
+    variables = pd.concat([variables, sq_extra])
+    variables = pd.concat([variables, sq_intra])
     return variables
 
 
@@ -188,6 +217,25 @@ def _compute_conf_interval(variables: pd.Series, prefix: str, method: str):
     return _katz_confidence_interval(n_mis, n_syn, sites_1, sites_2, prefix)
 
 
+def _compute_all_conf_intervals(variables: pd.Series, method: str):
+    conf_intervals_extra_intra = pd.concat(
+        [
+            _compute_conf_interval(variables, "extra", method),
+            _compute_conf_interval(variables, "intra", method),
+        ]
+    )
+
+    if "mutsintron" in variables:
+        return pd.concat(
+            [
+                conf_intervals_extra_intra,
+                _compute_conf_interval(variables, "intron", method),
+            ]
+        )
+    else:
+        return conf_intervals_extra_intra
+
+
 def _compute_pvalue(
     variables: pd.Series, conf_intervals: pd.Series, prefix: str
 ):
@@ -197,15 +245,17 @@ def _compute_pvalue(
     :param conf_intervals: Confidence intervals computed from
             non-target region with or without intronic information
     """
-    high = conf_intervals["intra_Cl_high"]
-    low = conf_intervals["intra_Cl_low"]
 
     extra_kak = _compute_kaks_extra(variables)
 
     if prefix == "intron":
         intra_kak = _compute_kaks_intron(variables)
+        high = conf_intervals["intron_Cl_high"]
+        low = conf_intervals["intron_Cl_low"]
     elif prefix == "intra":
         intra_kak = _compute_kaks_intra(variables)
+        high = conf_intervals["intra_Cl_high"]
+        low = conf_intervals["intra_Cl_low"]
     else:
         raise ValueError(f"pvalue not configured for prefix: {prefix}")
 
@@ -224,3 +274,76 @@ def _compute_pvalue(
     pval = max([pval, 1e-4])
 
     return pval
+
+
+def _compute_coverage(paths: AnalysisPaths):
+    merged_df, extra_df, intra_df = _preprocess_dfs(paths)
+
+    mut_counts = _compute_mutation_counts(merged_df)
+
+    vars = _define_variables(mut_counts, extra_df, intra_df)
+
+    kaks_extra = _compute_kaks_extra(vars)
+    kaks_intra = _compute_kaks_intra(vars)
+
+    conf_intervals = _compute_all_conf_intervals(vars, "katz")
+    pval_intra = _compute_pvalue(vars, conf_intervals, "intra")
+
+    results_df = pd.DataFrame(
+        {
+            "Coverage": ["Exonic_Only"],
+            "ON_dNdS": [kaks_extra],
+            "ON_Low_CI": [conf_intervals["extra_Cl_low"]],
+            "ON_High_CI": [conf_intervals["extra_Cl_high"]],
+            "ON_Mutations": [mut_counts["mut_total_epitope"]],
+            "OFF_dNdS": [kaks_intra],
+            "OFF_Low_CI": [conf_intervals["intra_Cl_low"]],
+            "OFF_High_CI": [conf_intervals["intra_Cl_high"]],
+            "OFF_Mutations": [mut_counts["mut_total_non_epitope"]],
+            "Pvalue": [pval_intra],
+            "ON_na": [vars["extra_missense_variant"]],
+            "ON_NA": [vars["extra_site_1"]],
+            "ON_ns": [vars["extra_synonymous_variant"]],
+            "ON_NS": [vars["extra_site_2"]],
+            "OFF_na": [vars["intra_missense_variant"]],
+            "OFF_NA": [vars["intra_site_1"]],
+            "OFF_ns": [vars["intra_synonymous_variant"]],
+            "OFF_NS": [vars["intra_site_2"]],
+        }
+    )
+
+    if "mutsintron" in mut_counts:
+        kaks_intron = _compute_kaks_intron(vars)
+        pval_intron = _compute_pvalue(vars, conf_intervals, "intron")
+
+        rs_intron = _rescale_intron_by_synonymous(vars)
+
+        intron_df = pd.DataFrame(
+            {
+                "Coverage": ["Exonic_Intronic"],
+                "ON_dNdS": [kaks_extra],
+                "ON_Low_CI": [conf_intervals["extra_Cl_low"]],
+                "ON_High_CI": [conf_intervals["extra_Cl_high"]],
+                "ON_Mutations": [mut_counts["mut_total_epitope"]],
+                "OFF_dNdS": [kaks_intron],
+                "OFF_Low_CI": [conf_intervals["intron_Cl_low"]],
+                "OFF_High_CI": [conf_intervals["intron_Cl_high"]],
+                "OFF_Mutations": [mut_counts["mut_total_intron"]],
+                "Pvalue": [pval_intron],
+                "ON_na": [vars["extra_missense_variant"]],
+                "ON_NA": [vars["extra_site_1"]],
+                "ON_ns": [vars["extra_synonymous_variant"]],
+                "ON_NS": [vars["extra_site_2"]],
+                "OFF_na": [vars["intra_missense_variant"]],
+                "OFF_NA": [vars["intra_site_1"]],
+                "OFF_ns": [
+                    vars["intra_synonymous_variant"] + vars["mutsintron"]
+                ],
+                "OFF_NS": [vars["intra_site_2"] + rs_intron],
+            }
+        )
+        results_df = pd.concat([results_df, intron_df], axis=0)
+
+    print(f"Exporting results to {paths.results_path}:")
+    print(results_df)
+    results_df.to_csv(paths.results_path, sep="\t")

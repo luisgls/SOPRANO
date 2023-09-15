@@ -327,6 +327,9 @@ def main(_namespace=None):
     task_output("Computing intron rate")
     dnds.ComputeIntronRate.apply(params)
 
+    task_output("Computing dNdS statistics")
+    dnds.ComputeStatistics.apply(params)
+
 
 def parse_genome_args():
     parser = argparse.ArgumentParser(description="Genome reference")

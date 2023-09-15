@@ -123,6 +123,8 @@ def test_pipeline(tmp_path):
     # Check intron rate has been computed
     assert params.intron_rate.exists()
 
+    # Check results file exists!
+    assert params.results_path.exists()
     # coverage ON_dnds ON_lowci ON_highci ON_muts OFF_dnds OFF_lowci OFF_highci OFF_muts Pval ON_na ON_NA ON_ns ON_NS OFF_na OFF_NA OFF_ns OFF_NS                                                 # noqa: E501
     # ExonicOnly 0.170545315483698 0.0312367028034305 0.931140579583117 6 0.890687718057257 0.510646130660438 1.5535705238312 63 0.330510882590904 2 1974270 4 673405 46 19525700 17 6427220      # noqa: E501
     # ExonicIntronic 0.170545315483698 0.0312367028034305 0.931140579583117 6 0.890687718057257 0.510646130660438 1.5535705238312 63 0.330510882590904 2 1974270 4 673405 46 19525700 17 6427220  # noqa: E501

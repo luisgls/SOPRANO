@@ -1,3 +1,4 @@
+from SOPRANO.calculate_KaKsEpiCorrected_Cl_intron import _compute_coverage
 from SOPRANO.objects import (
     AnalysisPaths,
     AuxiliaryFiles,
@@ -54,3 +55,23 @@ class ComputeIntronRate(_PipelineComponent):
     @staticmethod
     def apply(params: Parameters):
         _intersect_introns(params, AuxiliaryFiles)
+
+
+class ComputeStatistics(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (
+            params.data_epitopes,
+            params.epitope_nans,
+            params.intra_epitope_nans,
+            params.intron_rate,
+        )
+
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        ComputeStatistics.check_ready(params)
+        _compute_coverage(params)
