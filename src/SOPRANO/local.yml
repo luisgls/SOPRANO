@@ -10,3 +10,4 @@ dependencies:
   - pip
   - ca-certificates
   - openssl
+  - pandas
