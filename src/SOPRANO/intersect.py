@@ -3,6 +3,7 @@ import pathlib
 from SOPRANO.objects import AnalysisPaths, Parameters
 from SOPRANO.pipeline_utils import (
     MissingDataError,
+    SOPRANOError,
     _PipelineComponent,
     is_empty,
 )
@@ -234,9 +235,14 @@ def _count_mutations(variant_counts: pathlib.Path, output_path: pathlib.Path):
     else:
         counts = subprocess_pipes.pipe(
             ["wc", "-l", variant_counts.as_posix()],
-            ["awk", r"{print $1}"],
+            ["awk", r"{print $1+1}"],
             output_path=output_path,
         )
+        # In the awk print we have $1+1 since our internal piping
+        # convention is such that when pipes are written to a file,
+        # they do not have a trailing \n.
+        # This means that wc -l will in fact count n_lines - 1
+        # since it looks for \n
 
     return counts
 
@@ -443,3 +449,34 @@ class BuildEpitopesDataFile(_PipelineComponent):
                 _use_epitope=use_epi,
                 _label=lab,
             )
+
+
+def _check_target_mutations(paths: AnalysisPaths):
+    in_silent_count = get_counts(paths.in_silent_count)
+    in_nonsilent_count = get_counts(paths.in_nonsilent_count)
+    in_missense_count = get_counts(paths.in_missense_count)
+
+    if in_silent_count + in_nonsilent_count + in_missense_count == 0:
+        raise SOPRANOError(
+            f"No mutations found in target region for input file "
+            f"{paths.input_path}"
+        )
+
+
+class CheckTargetMutations(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (
+            params.in_silent_count,
+            params.in_nonsilent_count,
+            params.in_missense_count,
+        )
+
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        CheckTargetMutations.check_ready(params)
+        _check_target_mutations(params)

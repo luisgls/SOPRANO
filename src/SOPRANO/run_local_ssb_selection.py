@@ -5,6 +5,7 @@ from datetime import datetime
 
 from SOPRANO import (
     analysis,
+    dnds,
     intersect,
     objects,
     obtain_fasta_regions,
@@ -99,6 +100,7 @@ def parse_args():
         "similar to the target.",
     )
 
+    # TODO: This is true by default in the original implementation
     analysis_params_group.add_argument(
         "--exclude_drivers",
         dest="exclude_drivers",
@@ -319,6 +321,14 @@ def main(_namespace=None):
 
     task_output("Building extended data epitope file")
     intersect.BuildEpitopesDataFile.apply(params)
+
+    intersect.CheckTargetMutations.apply(params)
+
+    task_output("Computing intron rate")
+    dnds.ComputeIntronRate.apply(params)
+
+    task_output("Computing dNdS statistics")
+    dnds.ComputeStatistics.apply(params)
 
 
 def parse_genome_args():

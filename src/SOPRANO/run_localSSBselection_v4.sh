@@ -4,12 +4,13 @@
 ####Hardcode where genome and fasta file are
 ####Version 3.1
 
-BASEDIR=/home/lortiz/tools/SOPRANO
+BASEDIR=/mnt/c/Users/kmarzouk/software/SOPRANO/src/SOPRANO
 SUPA=$BASEDIR/data 
 TRANS=$BASEDIR/data/ensemble_transcriptID.fasta
-TMP=$BASEDIR/tmp/
-FASTA=/location/to/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa
-GENOME=/location/to/Homo_sapiens.GRCh37.75.dna.primary_assembly.genome
+TMP=$BASEDIR/tmp
+__DATA=/mnt/c/Users/kmarzouk/software/SOPRANO/src/SOPRANO/data
+FASTA=$__DATA/Homo_sapiens.GRCh37.dna.toplevel.fa
+GENOME=$__DATA/chrom_GRCh37.sizes
 
 
 ###Check arguments before running
@@ -98,7 +99,7 @@ then
     echo "#Option random enabled, running dN/dS for matching target region length"
     ## Define excluded regions for the randomization
     ## Excluding region to be tested
-    rm $TMP/$NAME.exclusion.ori
+    # rm $TMP/$NAME.exclusion.ori
     cut -f1,2,3 $BED > $TMP/$NAME.exclusion.ori
     ## Excluding the first two aminoacids of the transcript to be tested
     cut -f1 $BED | awk '{OFS="\t"}{print $1,0,2}' | sortBed -i stdin  >> $TMP/$NAME.exclusion.ori
@@ -215,7 +216,7 @@ if [[ $MUTRATE = "ssb192" ]];
                 back=`wc -l $NAME.finalVEP.triplets.counts | awk '{ print $1 }'`
                 fails=`grep -c "FAIL" $NAME.flag`
                 echo "Rate parameter file $NAME.finalVEP.triplets.counts has $back lines of data."
-                rm $NAME.tmp $NAME.tmp.bed $NAME.flag 
+                # rm $NAME.tmp $NAME.tmp.bed $NAME.flag
                 echo "Proccesed $muts mutations from VEP file. $fails mutations were discarded (indels or reference conflicts)"
                 
             if [ "$back" -lt 7 ]
@@ -287,7 +288,7 @@ else
             back=`wc -l $NAME.finalVEP.triplets.counts | awk '{ print $1 }'`
             fails=`grep -c "FAIL" $NAME.flag`
             echo "Rate parameter file $NAME.finalVEP.triplets.counts has $back lines of data."
-            rm $NAME.tmp $NAME.tmp.bed $NAME.flag 
+            # rm $NAME.tmp $NAME.tmp.bed $NAME.flag
             echo "Proccesed $muts mutations from VEP file. $fails mutations were discarded (indels or reference conflicts)"
             
             if [ "$back" -lt 7 ]
@@ -365,7 +366,7 @@ fi
 if [ -s "$NAME.finalVEP.triplets.counts" ]
 then
 	echo "Removing rate parameter files"
-        rm $NAME.finalVEP.triplets.counts $NAME.finalVEP.triplets192.counts $NAME
+        # rm $NAME.finalVEP.triplets.counts $NAME.finalVEP.triplets192.counts $NAME
 else
         echo "WARNING:triplets counts not present"
 fi
@@ -387,7 +388,7 @@ echo "There are $outnonsil non-silent, $outmissen missense-only, and $outsil sil
 
 if [ -s "$TMP/$NAME.data_epitopes" ]
 then
-        rm $TMP/$NAME.data_epitopes
+        # rm $TMP/$NAME.data_epitopes
         echo "INFO: past epitope-associated file, removing"
 else
         echo "INFO: intersected file (data_epitopes) not present, creating"
@@ -440,7 +441,7 @@ fi
     if [ -s "$OUT/$NAME.SSB_dNdS.txt" ]
     then
             echo "SOPRANO SUCCESS ... removing tmp files"
-            rm "$TMP/$NAME."*
+            # rm "$TMP/$NAME."*
             
             echo
     else

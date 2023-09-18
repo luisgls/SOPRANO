@@ -235,26 +235,21 @@ def _build_flag_file(paths: AnalysisPaths):
     :param paths:
     """
 
+    # Note: We had erroneous behaviour using the chain of "-F" via sub pipes
+    # so implement alternatively:
     subprocess_pipes.pipe(
         [
             "paste",
             paths.col_corrected.as_posix(),
             paths.contextualised.as_posix(),
         ],
-        ["cut", "-f6,14"],  # Gets e.g. C/T  TCC
+        ["cut", "-f6,14"],
+        ["tr", "/", r"\t"],
         [
             "awk",
-            "-F",
-            "/",
-            '{FS="/"}{OFS="\t"}{print $1,$2}',
-        ],  # Splits e.g. C  T   TCC
-        [
-            "awk",
-            "-F",
-            '""',
-            '{FS=""}{OFS="\t"}'
-            '{if( ($1==$6) && ($3!="-") ){print "GOOD"}else{print "FAIL"}}',
-        ],  # Binary calc: GOOD or BAD for each row TODO: Just leave as bool?
+            r'{if($1 == substr($3,2,1) && $2 != "-")'
+            r'{print "GOOD"}else{print "FAIL"}}',
+        ],
         output_path=paths.flagged,
     )
 
