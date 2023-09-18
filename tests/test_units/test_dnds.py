@@ -2,7 +2,7 @@ import pathlib
 
 import pandas as pd
 
-from SOPRANO import calculate_KaKsEpiCorrected_Cl_intron as dnds_intron
+import SOPRANO.dnds
 from SOPRANO.objects import AnalysisPaths
 
 # TODO: Fixture....
@@ -27,7 +27,7 @@ paths.intron_rate = intron_path
 
 
 def test__preprocess_dfs():
-    merged, sites_extra, sites_intra = dnds_intron._preprocess_dfs(paths)
+    merged, sites_extra, sites_intra = SOPRANO.dnds._preprocess_dfs(paths)
 
     test_merged_path = data_dir.joinpath("merged.tsv")
     test_extra_path = data_dir.joinpath("sites_extra.tsv")
@@ -73,7 +73,7 @@ def test__compute_mutation_counts():
         ],
     )
 
-    computed_series = dnds_intron._compute_mutation_counts(mock_df)
+    computed_series = SOPRANO.dnds._compute_mutation_counts(mock_df)
 
     assert computed_series.equals(expected_series)
 
@@ -87,7 +87,7 @@ def test__define_variables():
         {"m_1": 1, "m_2": 2, "x_1": 3, "x_2": 4, "y_1": 5, "y_2": 6}
     )
 
-    computed_series = dnds_intron._define_variables(
+    computed_series = SOPRANO.dnds._define_variables(
         mock_series, mock_df_1, mock_df_2
     )
 
@@ -107,7 +107,7 @@ def test__rescale_intron_by_synonymous():
 
     expected_value = 1.0
     assert (
-        dnds_intron._rescale_intron_by_synonymous(mock_vars) == expected_value
+        SOPRANO.dnds._rescale_intron_by_synonymous(mock_vars) == expected_value
     )
 
 
@@ -125,8 +125,8 @@ def test__compute_kaks_intra_extra():
         }
     )
 
-    assert dnds_intron._compute_kaks_extra(mock_vars) == 1
-    assert dnds_intron._compute_kaks_intra(mock_vars) == 4
+    assert SOPRANO.dnds._compute_kaks_extra(mock_vars) == 1
+    assert SOPRANO.dnds._compute_kaks_intra(mock_vars) == 4
 
 
 def test__compute_kaks_intron():
@@ -144,7 +144,7 @@ def test__compute_kaks_intron():
         }
     )
 
-    assert dnds_intron._compute_kaks_intron(mock_vars) == 1.0
+    assert SOPRANO.dnds._compute_kaks_intron(mock_vars) == 1.0
 
 
 def test__compute_conf_interval():
@@ -152,25 +152,25 @@ def test__compute_conf_interval():
     pass
 
 
-# merged, extra, intra = dnds_intron._preprocess_dfs(paths)
+merged, extra, intra = SOPRANO.dnds._preprocess_dfs(paths)
+
+muts = SOPRANO.dnds._compute_mutation_counts(merged)
+
+vars = SOPRANO.dnds._define_variables(muts, extra, intra)
 #
-# muts = dnds_intron._compute_mutation_counts(merged)
+# cl_epi = dnds_intron._compute_conf_interval(vars, "extra", "katz")
+# cl_nonepi = dnds_intron._compute_conf_interval(vars, "intra", "katz")
+# cl_intron = dnds_intron._compute_conf_interval(vars, "intron", "katz")
 #
-# vars = dnds_intron._define_variables(muts, extra, intra)
-# #
-# # cl_epi = dnds_intron._compute_conf_interval(vars, "extra", "katz")
-# # cl_nonepi = dnds_intron._compute_conf_interval(vars, "intra", "katz")
-# # cl_intron = dnds_intron._compute_conf_interval(vars, "intron", "katz")
-# #
-# # pval_nonepi = dnds_intron._compute_pvalue(vars, cl_nonepi, "intra")
-# # pval_intron = dnds_intron._compute_pvalue(vars, cl_nonepi, "intron")
+# pval_nonepi = dnds_intron._compute_pvalue(vars, cl_nonepi, "intra")
+# pval_intron = dnds_intron._compute_pvalue(vars, cl_nonepi, "intron")
+
+# print("epitope", cl_epi)
+# print("non-epitope", cl_nonepi)
+# print("intron", cl_intron)
+# print("pval non-epitope", pval_nonepi)
+# print("pval intron", pval_intron)
+
+res = SOPRANO.dnds._compute_coverage(paths)
 #
-# # print("epitope", cl_epi)
-# # print("non-epitope", cl_nonepi)
-# # print("intron", cl_intron)
-# # print("pval non-epitope", pval_nonepi)
-# # print("pval intron", pval_intron)
-#
-# res = dnds_intron._compute_coverage(paths)
-# #
-# # print("x" in muts)
+# print("x" in muts)
