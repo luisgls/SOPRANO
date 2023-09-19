@@ -240,9 +240,9 @@ class Parameters(AnalysisPaths):
             namespace.transcript_ids,
         )
 
-        if namespace.genome_ref == "grch37":
+        if namespace.genome_ref == "GRCh37":
             genomes = GRCh37
-        elif namespace.genome_ref == "grch38":
+        elif namespace.genome_ref == "GRCh38":
             genomes = GRCh38
         else:
             raise KeyError(f"Unrecognized reference: {namespace.genome_ref}")

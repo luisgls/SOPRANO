@@ -13,7 +13,7 @@ EXAMPLES_DIR = SOPRANO_ROOT.joinpath("examples")
 input_file = EXAMPLES_DIR.joinpath("TCGA-05-4396-01A-21D-1855-08.annotated")
 bed_file = BIO_DIR.joinpath("TCGA-05-4396.Expressed.IEDBpeps.SB.epitope.bed")
 name = "TCGA-05-4396"
-genome_ref = "grch37"
+genome_ref = "GRCh37"
 exclude_drivers = True
 
 # TODO: Quick test in cache dir with:
