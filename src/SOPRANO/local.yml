@@ -12,3 +12,4 @@ dependencies:
   - openssl
   - pandas
   - samtools
+  - coreutils # [osx]
