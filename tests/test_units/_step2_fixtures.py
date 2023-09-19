@@ -162,7 +162,9 @@ def step_2_defs(tmp_path):
         "test_data", anno_path, bed_path, tmpdir, target_regions=targets_path
     )
     transcripts = TranscriptPaths(trans_path, trans_prot_path, trans_ids_path)
-    auxiliaries = AuxiliaryPaths(genes2exclude_path)
+
+    mock_intron_path = paths.cache_dir.joinpath("intron.stuff")
+    auxiliaries = AuxiliaryPaths(genes2exclude_path, mock_intron_path)
 
     for _input_path, _input_content in zip(
         (
