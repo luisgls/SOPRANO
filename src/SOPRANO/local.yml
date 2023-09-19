@@ -11,3 +11,4 @@ dependencies:
   - ca-certificates
   - openssl
   - pandas
+  - samtools

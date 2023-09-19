@@ -29,14 +29,24 @@ class GenomePaths:
     fasta: pathlib.Path
 
 
+def _genome_pars_to_paths(ref, release):
+    data_dir = (
+        _data_dir().joinpath("homo_sapiens").joinpath(f"{release}_{ref}")
+    )
+
+    genome_path = data_dir.joinpath(f"Homo_sapiens.{ref}.dna.toplevel.fa")
+    chroms_path = data_dir.joinpath(f"Homo_sapiens.{ref}.dna.toplevel.chrom")
+    return genome_path, chroms_path
+
+
 GRCh37 = GenomePaths(
-    sizes=_data_dir().joinpath("chrom_GRCh37.sizes"),
-    fasta=_data_dir().joinpath("Homo_sapiens.GRCh37.dna.toplevel.fa"),
+    sizes=_genome_pars_to_paths("GRCh37", 110)[1],
+    fasta=_genome_pars_to_paths("GRCh37", 110)[0],
 )
 
 GRCh38 = GenomePaths(
-    sizes=_data_dir().joinpath("chrom_GRCh38.sizes"),  # TODO: implement
-    fasta=_data_dir().joinpath("Homo_sapiens.GRCh38.dna.toplevel.fa"),
+    sizes=_genome_pars_to_paths("GRCh38", 110)[1],
+    fasta=_genome_pars_to_paths("GRCh38", 110)[0],
 )
 
 

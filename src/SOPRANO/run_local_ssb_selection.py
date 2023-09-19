@@ -21,18 +21,19 @@ def check_path(cli_path: pathlib.Path | None, optional=False):
         raise Exception(f"CLI input path does not exist: {cli_path}")
 
 
-def check_genome(_namespace: argparse.Namespace) -> str:
+def check_genome(_namespace: argparse.Namespace) -> tuple:
     ref = _namespace.genome_ref
+    release = _namespace.release
 
-    available_refs = ("grch37", "grch38")
+    available_refs = ("GRCh37", "GRCh38")
 
-    if ref.lower() not in available_refs:
+    if ref not in available_refs:
         raise ValueError(
             f"Reference {ref} not supported. "
             f"Permitted choices: {available_refs}"
         )
 
-    return ref.lower()
+    return ref, release
 
 
 def parse_args():
@@ -159,6 +160,14 @@ def parse_args():
         "GET_GENOMES -r GRCh37\n"
         "or\n"
         "GET_GENOMES -r GRCh38",
+    )
+
+    genome_args.add_argument(
+        "--release",
+        dest="release",
+        type=str,
+        help="Ensembl release number, e.g., 109, 110. Defaults to 110.",
+        default="110",
     )
 
     args = parser.parse_args()
@@ -343,24 +352,39 @@ def parse_genome_args():
         required=True,
     )
 
-    ref = check_genome(parser.parse_args())
+    parser.add_argument(
+        "--release",
+        dest="release",
+        type=str,
+        help="Ensemblv release number, e.g., 109, 110. Defaults to 110.",
+        default="110",
+    )
 
-    return ref
+    ref_release = check_genome(parser.parse_args())
+
+    return ref_release
 
 
 def download_genome():
-    ref = parse_genome_args()
+    ref, release = parse_genome_args()
     startup_output()
     soprano_root_dir = pathlib.Path(__file__).parent
     installers_dir = soprano_root_dir.joinpath("bash_installers")
     downloader_path = installers_dir.joinpath("download_reference.sh")
-    data_dir = soprano_root_dir.joinpath("data")
+    data_dir = (
+        soprano_root_dir.joinpath("data")
+        .joinpath("homo_sapiens")
+        .joinpath(f"{release}_{ref}")
+    )
+
+    if not data_dir.exists():
+        data_dir.mkdir(parents=True)
 
     assert downloader_path.exists(), downloader_path
     assert data_dir.exists(), data_dir
 
     subprocess.run(
-        ["bash", downloader_path.as_posix(), ref, data_dir.as_posix()]
+        ["bash", downloader_path.as_posix(), ref, release, data_dir.as_posix()]
     )
 
 
