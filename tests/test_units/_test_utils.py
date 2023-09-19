@@ -13,7 +13,10 @@ def check_expected_content(
     with open(written_content_path, "r") as f:
         written_content = f.readlines()
 
-    assert len(expected_content) == len(written_content)
+    assert len(expected_content) == len(written_content), (
+        len(expected_content),
+        len(written_content),
+    )
 
     for e, w in zip(expected_content, written_content):
-        assert e.strip() == w.strip()
+        assert e.strip() == w.strip(), (e, w)
