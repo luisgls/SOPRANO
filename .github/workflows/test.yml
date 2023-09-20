@@ -35,7 +35,8 @@ jobs:
   test:
     strategy:
       matrix:
-        os: ["ubuntu-latest"]  # To include macos-latest
+#        os: ["ubuntu-latest", "macos-latest"]  # TODO: use full matrix on PR to main/python else just ubuntu
+        os: ["macos-latest"]  # TMP Whilst testing
         python-version: ["3.11"]
     name: test with python ${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
