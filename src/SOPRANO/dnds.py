@@ -423,6 +423,8 @@ def _compute_coverage(paths: AnalysisPaths):
         )
         results_df = pd.concat([results_df, intron_df], axis=0)
 
+        # NOTE: ON/OFF_NS appear sensitive to the reference genome release!
+
     print(f"Exporting results to {paths.results_path}:")
     print(results_df)
     results_df.to_csv(paths.results_path, sep="\t")

@@ -10,3 +10,6 @@ dependencies:
   - pip
   - ca-certificates
   - openssl
+  - pandas
+  - samtools
+  - coreutils # [osx]
