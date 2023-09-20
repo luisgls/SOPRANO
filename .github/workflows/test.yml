@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - python-dev
+      - osx-actions
   pull_request:
     branches:
       - python
