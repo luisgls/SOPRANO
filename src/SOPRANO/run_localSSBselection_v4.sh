@@ -4,12 +4,13 @@
 ####Hardcode where genome and fasta file are
 ####Version 3.1
 
-BASEDIR=/home/lortiz/tools/SOPRANO
+BASEDIR=/mnt/c/Users/kmarzouk/software/SOPRANO/src/SOPRANO
 SUPA=$BASEDIR/data 
 TRANS=$BASEDIR/data/ensemble_transcriptID.fasta
-TMP=$BASEDIR/tmp/
-FASTA=/location/to/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa
-GENOME=/location/to/Homo_sapiens.GRCh37.75.dna.primary_assembly.genome
+TMP=$BASEDIR/tmp
+__DATA=/mnt/c/Users/kmarzouk/software/SOPRANO/src/SOPRANO/data
+FASTA=$__DATA/Homo_sapiens.GRCh37.dna.toplevel.fa
+GENOME=$__DATA/chrom_GRCh37.sizes
 
 
 ###Check arguments before running
@@ -94,20 +95,20 @@ cut -f1 $BED | sort -u | fgrep -w -f - $SUPA/ensemble_transcript.length > $TMP/$
 
 ###Randomize protein positions of target region
 if [[ $MODEL = "random" ]];
-    then
-        echo "#Option random enabled, running dN/dS for matching target region length"
-        ## Define excluded regions for the randomization
-        ## Excluding region to be tested
-        rm $TMP/$NAME.exclusion.ori
-        cut -f1,2,3 $BED > $TMP/$NAME.exclusion.ori
-        ## Excluding the first two aminoacids of the transcript to be tested
-        cut -f1 $BED | awk '{OFS="\t"}{print $1,0,2}' | sortBed -i stdin  >> $TMP/$NAME.exclusion.ori
-        
-        ##Sort excluded regions file
-        sortBed -i $TMP/$NAME.exclusion.ori > $TMP/$NAME.exclusion.bed
-        bedtools shuffle -i $BED -g $TMP/$NAME.protein_length_filt.txt -excl $TMP/$NAME.exclusion.bed -chrom > $TMP/$NAME.epitopes.ori2
-        
-        ###Option to randomize only on a set of target protein regions
+then
+    echo "#Option random enabled, running dN/dS for matching target region length"
+    ## Define excluded regions for the randomization
+    ## Excluding region to be tested
+    # rm $TMP/$NAME.exclusion.ori
+    cut -f1,2,3 $BED > $TMP/$NAME.exclusion.ori
+    ## Excluding the first two aminoacids of the transcript to be tested
+    cut -f1 $BED | awk '{OFS="\t"}{print $1,0,2}' | sortBed -i stdin  >> $TMP/$NAME.exclusion.ori
+
+    ##Sort excluded regions file
+    sortBed -i $TMP/$NAME.exclusion.ori > $TMP/$NAME.exclusion.bed
+    bedtools shuffle -i $BED -g $TMP/$NAME.protein_length_filt.txt -excl $TMP/$NAME.exclusion.bed -chrom > $TMP/$NAME.epitopes.ori2
+
+    ###Option to randomize only on a set of target protein regions
     if [ -s "$TARGET" ]
     then
         echo "Target file to randomize regions provided"
@@ -119,9 +120,9 @@ if [[ $MODEL = "random" ]];
         echo "Target file to randomize regions not provided, using default (all)"
     fi
 else
-	##If non randomized
-        sort -u $BED > $TMP/$NAME.epitopes.ori2    
-        echo "#Calculating dN/dS for target region"
+    ## If non randomized
+    sort -u $BED > $TMP/$NAME.epitopes.ori2
+    echo "#Calculating dN/dS for target region"
 fi
 
 ##Exclude positively selected genes
@@ -194,7 +195,7 @@ if [[ $MUTRATE = "ssb192" ]];
         paste $NAME.tmp $NAME.tmp.bed $NAME.flag | awk '{if($15=="GOOD"){print $0}}' - | cut -f6,14 - |  sort -k2,2 |uniq -c | sed 's/^ \+//g' | sort -k1,1 -n | sed 's/ /\t/g' | awk '{OFS="\t"}{print $3,$2,$1}' | sed -e 's/\t[A-Z]\//_/g' > $NAME.finalVEP.triplets.counts
         
         
-        if [ -s "$COUNTS" ]
+        if [ -s "$COUNTS" ] # NOTE: Is this implemented??
         then 
                 cat $COUNTS > $NAME.finalVEP.triplets.counts
                 echo "Using provided file $COUNTS for correction"
@@ -215,7 +216,7 @@ if [[ $MUTRATE = "ssb192" ]];
                 back=`wc -l $NAME.finalVEP.triplets.counts | awk '{ print $1 }'`
                 fails=`grep -c "FAIL" $NAME.flag`
                 echo "Rate parameter file $NAME.finalVEP.triplets.counts has $back lines of data."
-                rm $NAME.tmp $NAME.tmp.bed $NAME.flag 
+                # rm $NAME.tmp $NAME.tmp.bed $NAME.flag
                 echo "Proccesed $muts mutations from VEP file. $fails mutations were discarded (indels or reference conflicts)"
                 
             if [ "$back" -lt 7 ]
@@ -287,7 +288,7 @@ else
             back=`wc -l $NAME.finalVEP.triplets.counts | awk '{ print $1 }'`
             fails=`grep -c "FAIL" $NAME.flag`
             echo "Rate parameter file $NAME.finalVEP.triplets.counts has $back lines of data."
-            rm $NAME.tmp $NAME.tmp.bed $NAME.flag 
+            # rm $NAME.tmp $NAME.tmp.bed $NAME.flag
             echo "Proccesed $muts mutations from VEP file. $fails mutations were discarded (indels or reference conflicts)"
             
             if [ "$back" -lt 7 ]
@@ -316,15 +317,15 @@ awk '{NA+=$4}{NS+=$6}END{print NA"\t"NS}' $TMP/$NAME.final_corrected_matrix_B.tx
 #####Get variant counts from vep annotated file, split into silent and nonsilent
 ##silent
 egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|TF_binding_site_variant|upstream|incomplete|regulatory_region_variant|retained|\?' $FILE | grep -w synonymous_variant |
-awk '{if(length($3)>1||$10=="-"){}else{print}}' | cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" |  grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.silent.bed
+awk '{if(length($3)>1||$10=="-"){}else{print}}' | cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.silent.bed
 
 ##nonsilent
 egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|TF_binding_site_variant|upstream|incomplete|regulatory_region_variant|retained|\?' $FILE | grep -w -v synonymous_variant |
-awk '{if(length($3)>1||$10=="-"){}else{print}}'  |cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.nonsilent.bed
+awk '{if(length($3)>1||$10=="-"){}else{print}}' | cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.nonsilent.bed
 
 ##missense only
 egrep -v -e '#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|non_coding|splice_acceptor_variant|splice_donor_variant|TF_binding_site_variant|upstream|incomplete|regulatory_region_variant|retained|\?' $FILE | grep -w -v synonymous_variant | grep -w missense_variant |
-awk '{if(length($3)>1||$10=="-"){}else{print}}'  |cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.missense.bed
+awk '{if(length($3)>1||$10=="-"){}else{print}}' | cut -f4,5,7,10,89 -  | sed 's/\//\t/g' | awk '{print $2"\t"$4"\t"$4"\t"$3}' |  egrep -v -w -e "coding_sequence_variant" | grep -v "ENSEMBLTRANSCRIPT" > $TMP/$NAME.missense.bed
 
 ##intronic
 grep -v "^#" $NAME | grep -w "intron_variant" | grep -v "splice" | awk -F"\t|_" '{FS="\t|_"}{print $1"_"$7"\t"$2"\t"$2"\t"$3}' > $TMP/$NAME.intronic.bed
@@ -365,7 +366,7 @@ fi
 if [ -s "$NAME.finalVEP.triplets.counts" ]
 then
 	echo "Removing rate parameter files"
-        rm $NAME.finalVEP.triplets.counts $NAME.finalVEP.triplets192.counts $NAME
+        # rm $NAME.finalVEP.triplets.counts $NAME.finalVEP.triplets192.counts $NAME
 else
         echo "WARNING:triplets counts not present"
 fi
@@ -387,21 +388,20 @@ echo "There are $outnonsil non-silent, $outmissen missense-only, and $outsil sil
 
 if [ -s "$TMP/$NAME.data_epitopes" ]
 then
-        rm $TMP/$NAME.data_epitopes
+        # rm $TMP/$NAME.data_epitopes
         echo "INFO: past epitope-associated file, removing"
 else
         echo "INFO: intersected file (data_epitopes) not present, creating"
 fi
 
+if [ "$insil" -gt 0 ];
+then
+intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | cut -f1-11 -| sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
+fi
 
 if [ "$innonsil" -gt 0 ];
 then
 intersectBed -b $TMP/$NAME.nonsilent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | cut -f1-11 -| sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_missense_variant"}' >> $TMP/$NAME.data_epitopes
-fi
-
-if [ "$insil" -gt 0 ];
-then
-intersectBed -b $TMP/$NAME.silent.bed -a $TMP/$NAME.epitopes.bed -wo | awk '{OFS="\t"}{print $1,"1","2",$0}' | cut -f1-11 -| sortBed -i stdin | mergeBed -i stdin -c 11 -o count | cut -f1,4 | awk '{print $0"\textra_synonymous_variant"}' >> $TMP/$NAME.data_epitopes
 fi
 
 if [ "$outsil" -gt 0 ];
@@ -441,7 +441,7 @@ fi
     if [ -s "$OUT/$NAME.SSB_dNdS.txt" ]
     then
             echo "SOPRANO SUCCESS ... removing tmp files"
-            rm "$TMP/$NAME."*
+            # rm "$TMP/$NAME."*
             
             echo
     else
