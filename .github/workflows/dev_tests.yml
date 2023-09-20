@@ -1,4 +1,4 @@
-name: SOPRANO Tests
+name: SOPRANO (Dev) Tests
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - python-dev
   pull_request:
     branches:
-      - python
+      - python-dev
 
 jobs:
   lint:
@@ -35,7 +35,7 @@ jobs:
   test:
     strategy:
       matrix:
-        os: ["ubuntu-latest"]  # To include macos-latest
+        os: ["ubuntu-latest"]
         python-version: ["3.11"]
     name: test with python ${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -60,8 +60,3 @@ jobs:
         run: |
           micromamba activate soprano-dev
           pytest tests/test_units
-#      - name: Test integration
-#        shell: bash -l {0}
-#        run: |
-#          micromamba activate soprano-dev
-#          pytest tests/test_integrations
