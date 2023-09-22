@@ -239,11 +239,13 @@ def _compute_kaks_intron(variables: pd.Series):
 
 
 def _katz_confidence_interval(n_mis, n_syn, sites_1, sites_2, prefix):
-    # TODO: Find out why +1 in sites:
-    # Is this to avoid divergence in case of 0?
-    # If so, maybe consider max(1, sites_x)
-    p1 = n_mis / (sites_1 + 1)
-    p2 = n_syn / (sites_2 + 1)
+    # Usually sites number is >> 1, but it is possible to have 0 value.
+    # Therefore, take max(sites, 1) to avoid divergence in ratios
+    sites_1 = max([sites_1, 1])
+    sites_2 = max([sites_2, 1])
+
+    p1 = n_mis / sites_1
+    p2 = n_syn / sites_2
 
     global_dnds = p1 / p2
 
