@@ -125,11 +125,8 @@ def _preprocess_dfs(paths: AnalysisPaths):
 
         # Merge mutations with intron df
         merged_df = spread_mutations_df.merge(
-            intron_df, how="outer", on="EnsemblID"
+            intron_df, how="left", on="EnsemblID"
         ).fillna(0)
-
-        # TODO: Double check this is equivalent to
-        #   merge(df2,df.intron,by.x="EnsembleID",by.y="EnsemblID", all.x = T)
 
     return merged_df, sites_extra_df, sites_intra_df
 
