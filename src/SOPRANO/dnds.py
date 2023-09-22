@@ -83,16 +83,6 @@ class ComputeStatistics(_PipelineComponent):
         _compute_coverage(params)
 
 
-# TODO: Discuss - this looks like a potential bug
-#       in the R implementation...
-#       df3<-merge(df2,df.intron,by.x="EnsembleID",by.y="EnsemblID", all.x = T)
-#       Effectively, this removes the intron values from the calculation.
-#       Probably want all.y=T where y is df.intron
-#       The above flag mimics this behaviour.
-
-_DISCARD_INTRON = True
-
-
 def _preprocess_dfs(paths: AnalysisPaths):
     data_path = paths.data_epitopes.as_posix()
 
@@ -138,9 +128,8 @@ def _preprocess_dfs(paths: AnalysisPaths):
             intron_df, how="outer", on="EnsemblID"
         ).fillna(0)
 
-        if _DISCARD_INTRON:
-            merged_df["mutsintron"] *= 0
-            merged_df["intronlength"] *= 0
+        # TODO: Double check this is equivalent to
+        #   merge(df2,df.intron,by.x="EnsembleID",by.y="EnsemblID", all.x = T)
 
     return merged_df, sites_extra_df, sites_intra_df
 
