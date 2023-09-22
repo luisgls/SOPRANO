@@ -198,6 +198,7 @@ _NAMESPACE_KEYS = (
     "exclude_drivers",
     "seed",
     "genome_ref",
+    "release",
 )
 
 
@@ -230,9 +231,11 @@ class Parameters(AnalysisPaths):
 
     @classmethod
     def from_namespace(cls, namespace: Namespace):
-        assert set(namespace.__dict__.keys()) == set(
-            _NAMESPACE_KEYS
-        ), namespace.__dict__.keys()
+        for k in namespace.__dict__.keys():
+            assert k in _NAMESPACE_KEYS, k
+
+        for k in _NAMESPACE_KEYS:
+            assert k in namespace.__dict__.keys(), k
 
         transcripts = TranscriptPaths(
             namespace.transcript,
