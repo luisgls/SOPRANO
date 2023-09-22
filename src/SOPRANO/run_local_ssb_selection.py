@@ -112,6 +112,7 @@ def parse_args():
 
     analysis_params_group.add_argument(
         "--seed",
+        "-s",
         dest="seed",
         default=-1,
         type=int,
@@ -164,6 +165,7 @@ def parse_args():
 
     genome_args.add_argument(
         "--release",
+        "-q",
         dest="release",
         type=str,
         help="Ensembl release number, e.g., 109, 110. Defaults to 110.",
