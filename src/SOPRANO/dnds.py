@@ -415,4 +415,4 @@ def _compute_coverage(paths: AnalysisPaths):
 
     print(f"Exporting results to {paths.results_path}:")
     print(results_df)
-    results_df.to_csv(paths.results_path, sep="\t")
+    results_df.to_csv(paths.results_path, sep="\t", index=False)
