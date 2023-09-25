@@ -1,3 +1,4 @@
+import os
 import pathlib
 
 import streamlit as st
@@ -64,3 +65,12 @@ if use_random:
     )
 
     # TODO: Option for randomization regions
+
+# Pipeline job name & cache
+job_name = st.text_input("Define a name for the output of your analysis:")
+_DEFAULT_CACHE = pathlib.Path(__file__).parent.parent.parent / "pipeline_cache"
+_CACHE = os.environ.get("SOPRANO_CACHE", _DEFAULT_CACHE)
+cache_dir = _CACHE / job_name
+
+# If all ok ...
+cache_dir.mkdir(exist_ok=True)
