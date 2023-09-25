@@ -46,3 +46,21 @@ st.text(f"Selected: {input_path}")
 bed_selection = st.selectbox("Select a BED protein file:", _BED_OPTIONS.keys())
 bed_path = _BED_OPTIONS[bed_selection]
 st.text(f"Selected: {bed_path}")
+
+# Substitution method
+subs_selection = st.selectbox("Select a substitution method:", (192, 7))
+use_ssb192 = subs_selection == 192
+
+# Exclude driver genes
+exclude_drives = st.checkbox("Exclude driver genes:", value=True)
+
+# Use randomization
+use_random = st.checkbox("Use randomization:", value=False)
+
+if use_random:
+    # Select random seed
+    random_seed = st.number_input(
+        "Select random seed for randomization:", min_value=-1, value="min"
+    )
+
+    # TODO: Option for randomization regions
