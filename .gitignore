@@ -72,3 +72,6 @@ src/SOPRANO/data/ensemble_transcriptID.fasta
 src/SOPRANO/data/homo_sapiens/**/Homo_sapiens.GRCh*.fa
 src/SOPRANO/data/homo_sapiens/**/Homo_sapiens.GRCh*.fa.gz
 /example_output.txt
+
+# App output files
+pipeline_cache/
