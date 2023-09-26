@@ -15,6 +15,7 @@ bed_file = BIO_DIR.joinpath("TCGA-05-4396.Expressed.IEDBpeps.SB.epitope.bed")
 name = "TCGA-05-4396"
 genome_ref = "GRCh37"
 exclude_drivers = True
+release = 110
 
 # TODO: Quick test in cache dir with:
 # Rscript $_WIN_HOME/software/SOPRANO/src/SOPRANO/scripts/
@@ -44,6 +45,7 @@ def test_pipeline(tmp_path):
         protein_transcript=objects.EnsemblTranscripts.protein_transcript_length,
         transcript_ids=objects.EnsemblTranscripts.transcript_fasta,
         genome_ref=genome_ref,
+        release=release,
     )
 
     params = objects.Parameters.from_namespace(namespace)
