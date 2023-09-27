@@ -391,6 +391,9 @@ def download_genome():
 
 
 def local_st_app():
+    """
+    Runs streamlit app interface for SOPRANO
+    """
     soprano_src_dir = pathlib.Path(__file__).parent
     app_path = soprano_src_dir.joinpath("st_app.py")
     subprocess.run(["streamlit", "run", app_path])
