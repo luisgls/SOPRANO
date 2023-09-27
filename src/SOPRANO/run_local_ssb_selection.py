@@ -3,7 +3,7 @@ import pathlib
 import subprocess
 
 import SOPRANO.pipeline_utils
-from SOPRANO import analysis, dnds, intersect, objects
+from SOPRANO import dnds, intersect, objects
 from SOPRANO.pipeline_utils import task_output
 
 
@@ -292,7 +292,7 @@ def main(_namespace=None):
         SOPRANO.pipeline_utils.TripletCounts.apply(params)
 
         task_output("Applying site corrections")
-        analysis.SiteCorrections.apply(params)
+        SOPRANO.pipeline_utils.SiteCorrections.apply(params)
     else:
         # TODO: See line 243 - 306
         raise ValueError("Implement SSB7")

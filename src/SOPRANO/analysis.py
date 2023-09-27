@@ -1,11 +1,7 @@
 import pathlib
 
-from SOPRANO.objects import AnalysisPaths, GenomePaths, Parameters
-from SOPRANO.pipeline_utils import (
-    MissingDataError,
-    _PipelineComponent,
-    is_empty,
-)
+from SOPRANO.objects import AnalysisPaths, GenomePaths
+from SOPRANO.pipeline_utils import is_empty
 from SOPRANO.sh_utils import subprocess_pipes
 
 SOPRANO_ROOT = pathlib.Path(__file__).parent
@@ -296,24 +292,3 @@ def _correct_from_total_sites(paths: AnalysisPaths):
         ],
         output_path=paths.final_intra_epitope_corrections,
     )
-
-
-class SiteCorrections(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.epitopes_trans_regs_sum,
-            params.intra_epitopes_trans_regs_sum,
-            params.triplet_counts,
-        )
-
-        for p in paths:
-            if not p.exists():
-                raise MissingDataError(p)
-
-        _check_triplet_counts(params)
-
-    @staticmethod
-    def apply(params: Parameters):
-        SiteCorrections.check_ready(params)
-        _correct_from_total_sites(params)

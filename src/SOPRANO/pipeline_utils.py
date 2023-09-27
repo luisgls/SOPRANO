@@ -3,9 +3,11 @@ from datetime import datetime
 
 from SOPRANO.analysis import (
     _build_flag_file,
+    _check_triplet_counts,
     _col_correct,
     _compute_theoretical_subs,
     _context_correction,
+    _correct_from_total_sites,
     _fix_simulated,
     _initial_triplet_counts,
     _sum_possible_across_region,
@@ -635,3 +637,38 @@ class TripletCounts2(_PipelineComponent2):
 
     def _apply(self, params: Parameters):
         _initial_triplet_counts(params)
+
+
+class SiteCorrections(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (
+            params.epitopes_trans_regs_sum,
+            params.intra_epitopes_trans_regs_sum,
+            params.triplet_counts,
+        )
+
+        for p in paths:
+            if not p.exists():
+                raise MissingDataError(p)
+
+        _check_triplet_counts(params)
+
+    @staticmethod
+    def apply(params: Parameters):
+        SiteCorrections.check_ready(params)
+        _correct_from_total_sites(params)
+
+
+class SiteCorrections2(_PipelineComponent2):
+    msg = "Performing site corrections"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(
+            params.epitopes_trans_regs_sum,
+            params.intra_epitopes_trans_regs_sum,
+            params.triplet_counts,
+        )
+
+    def _apply(self, params: Parameters):
+        _correct_from_total_sites(params)
