@@ -1,7 +1,10 @@
 import pathlib
 from datetime import datetime
 
-from SOPRANO.analysis import _compute_theoretical_subs
+from SOPRANO.analysis import (
+    _compute_theoretical_subs,
+    _sum_possible_across_region,
+)
 from SOPRANO.objects import AuxiliaryFiles, Parameters
 from SOPRANO.obtain_fasta_regions import (
     _get_non_target_regions,
@@ -464,4 +467,42 @@ class ComputeSSB192TheoreticalSubs2(_PipelineComponent2):
         )
         _compute_theoretical_subs(
             params.intra_epitopes_cds_fasta, params.intra_epitopes_trans_regs
+        )
+
+
+class SumPossibleAcrossRegions(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (params.epitopes_trans_regs, params.intra_epitopes_trans_regs)
+        for p in paths:
+            if not p.exists():
+                raise MissingDataError(p)
+
+    @staticmethod
+    def apply(params: Parameters):
+        SumPossibleAcrossRegions.check_ready(params)
+        _sum_possible_across_region(
+            params.epitopes_trans_regs, params.epitopes_trans_regs_sum
+        )
+        _sum_possible_across_region(
+            params.intra_epitopes_trans_regs,
+            params.intra_epitopes_trans_regs_sum,
+        )
+
+
+class SumPossibleAcrossRegions2(_PipelineComponent2):
+    msg = "Computing sum over possible sites in on and off target regions"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(
+            params.epitopes_trans_regs, params.intra_epitopes_trans_regs
+        )
+
+    def _apply(self, params: Parameters):
+        _sum_possible_across_region(
+            params.epitopes_trans_regs, params.epitopes_trans_regs_sum
+        )
+        _sum_possible_across_region(
+            params.intra_epitopes_trans_regs,
+            params.intra_epitopes_trans_regs_sum,
         )

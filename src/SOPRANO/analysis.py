@@ -60,26 +60,6 @@ def _sum_possible_across_region(
     )
 
 
-class SumPossibleAcrossRegions(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (params.epitopes_trans_regs, params.intra_epitopes_trans_regs)
-        for p in paths:
-            if not p.exists():
-                raise MissingDataError(p)
-
-    @staticmethod
-    def apply(params: Parameters):
-        SumPossibleAcrossRegions.check_ready(params)
-        _sum_possible_across_region(
-            params.epitopes_trans_regs, params.epitopes_trans_regs_sum
-        )
-        _sum_possible_across_region(
-            params.intra_epitopes_trans_regs,
-            params.intra_epitopes_trans_regs_sum,
-        )
-
-
 def _fix_simulated(paths: AnalysisPaths):
     """
     Implements:

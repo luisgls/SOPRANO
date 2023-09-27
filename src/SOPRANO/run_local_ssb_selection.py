@@ -273,7 +273,7 @@ def main(_namespace=None):
             "Computing sum over all possible sites in target and non-target "
             "regions"
         )
-        analysis.SumPossibleAcrossRegions.apply(params)
+        SOPRANO.pipeline_utils.SumPossibleAcrossRegions.apply(params)
 
         task_output(
             "Processing VEP annotated file to estimated 192 rate parameters"
