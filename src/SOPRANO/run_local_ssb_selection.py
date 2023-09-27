@@ -310,7 +310,7 @@ def main(_namespace=None):
     SOPRANO.pipeline_utils.GetMissenseCounts.apply(params)
 
     task_output("Computing intronic variant counts")
-    intersect.GetIntronicCounts.apply(params)
+    SOPRANO.pipeline_utils.GetIntronicCounts.apply(params)
 
     task_output("Computing On/Off region counts")
     intersect.OnOffCounts.apply(params)

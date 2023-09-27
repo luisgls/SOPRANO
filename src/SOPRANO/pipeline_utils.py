@@ -13,6 +13,7 @@ from SOPRANO.analysis import (
     _sum_possible_across_region,
 )
 from SOPRANO.intersect import (
+    _get_intronic_variant_counts,
     _get_missense_variant_counts,
     _get_nonsilent_variant_counts,
     _get_silent_variant_counts,
@@ -758,3 +759,16 @@ class GetMissenseCounts2(_PipelineComponent2):
 
     def _apply(self, params: Parameters):
         _get_missense_variant_counts(params)
+
+
+class GetIntronicCounts(_PipelineComponent):
+    @staticmethod
+    def apply(params: Parameters):
+        _get_intronic_variant_counts(params)
+
+
+class GetIntronicCounts2(_PipelineComponent2):
+    msg = "Computing intronic mutation counts"
+
+    def _apply(self, params: Parameters):
+        _get_intronic_variant_counts(params)

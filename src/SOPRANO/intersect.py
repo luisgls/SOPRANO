@@ -182,12 +182,6 @@ def _get_intronic_variant_counts(paths: AnalysisPaths):
     )
 
 
-class GetIntronicCounts(_PipelineComponent):
-    @staticmethod
-    def apply(params: Parameters):
-        _get_intronic_variant_counts(params)
-
-
 def _count_mutations(variant_counts: pathlib.Path, output_path: pathlib.Path):
     if is_empty(variant_counts):
         counts = "0"
