@@ -243,23 +243,6 @@ def _non_randomized(paths: AnalysisPaths):
         ["sort", "-u", paths.bed_path], output_path=paths.exclusions_shuffled
     )
 
-    # TODO: Shouldn't this be instead "sort -k 1,1 -k2,2n -u $BED > ..."
-    #         sort -k 1,1 -k2,2n -u $BED > ...
-    #         Consider the following case:
-    #         ENST00000001008 189     198
-    #         ENST00000001008 27      36
-    #         If sort -u then this is already sorted!
-    #         (presuming hierarchy should be chrom, then start, then stop)
-
-
-class NonRandom(_Randomize):
-    """No randomization implemented"""
-
-    @staticmethod
-    def apply(params: Parameters):
-        _Randomize.check_ready(params)
-        _non_randomized(params)
-
 
 class RandomizeWithoutRegions(_Randomize):
     """Randomizes without user input file"""

@@ -236,7 +236,7 @@ def main(_namespace=None):
         randomization_method = prepare_coordinates.RandomizeWithoutRegions
     else:
         task_output("No randomization selected, sorting input bed file")
-        randomization_method = prepare_coordinates.NonRandom
+        randomization_method = SOPRANO.pipeline_utils.NonRandom
     randomization_method.apply(params)
 
     if params.exclude_drivers:

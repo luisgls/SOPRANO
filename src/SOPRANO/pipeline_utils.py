@@ -2,7 +2,10 @@ import pathlib
 from datetime import datetime
 
 from SOPRANO.objects import Parameters
-from SOPRANO.prepare_coordinates import filter_transcript_files
+from SOPRANO.prepare_coordinates import (
+    _non_randomized,
+    filter_transcript_files,
+)
 
 
 def time_output():
@@ -131,3 +134,19 @@ class _Randomize2(_PipelineComponent2):
             params.filtered_transcript,
             params.filtered_protein_transcript,
         )
+
+
+class NonRandom(_Randomize):
+    """No randomization implemented"""
+
+    @staticmethod
+    def apply(params: Parameters):
+        _Randomize.check_ready(params)
+        _non_randomized(params)
+
+
+class NonRandom2(_Randomize2):
+    """No randomization implemented"""
+
+    def apply(self, params: Parameters):
+        _non_randomized(params)
