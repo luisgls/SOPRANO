@@ -265,3 +265,19 @@ class BuildProteinComplement2(_PipelineComponent2):
 
     def _apply(self, params: Parameters):
         _get_protein_complement(params)
+
+
+class _SSB192Selection(_PipelineComponent):
+    """Intermediate class for ssb192 mutrate selection"""
+
+    @staticmethod
+    def check_ready(params: Parameters):
+        if not params.epitopes.exists():
+            raise MissingDataError(params.epitopes.as_posix())
+
+
+class _SSB192Selection2(_PipelineComponent2):
+    """Intermediate class for ssb192 mutrate selection"""
+
+    def check_ready(self, params: Parameters):
+        _check_paths(params.epitopes)

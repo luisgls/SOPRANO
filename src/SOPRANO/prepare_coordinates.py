@@ -7,7 +7,11 @@ from SOPRANO.objects import (
     Parameters,
     TranscriptPaths,
 )
-from SOPRANO.pipeline_utils import MissingDataError, _PipelineComponent
+from SOPRANO.pipeline_utils import (
+    MissingDataError,
+    _PipelineComponent,
+    _SSB192Selection,
+)
 from SOPRANO.sh_utils import subprocess_pipes
 
 
@@ -366,15 +370,6 @@ def _prep_not_ssb192(paths: AnalysisPaths):
         ["awk", '{OFS="\t"}{print $1,($2*3)-3,$3*3,$0}', paths.epitopes],
         output_path=paths.epitopes_cds,
     )
-
-
-class _SSB192Selection(_PipelineComponent):
-    """Intermediate class for ssb192 mutrate selection"""
-
-    @staticmethod
-    def check_ready(params: Parameters):
-        if not params.epitopes.exists():
-            raise MissingDataError(params.epitopes.as_posix())
 
 
 class UseSSB192(_SSB192Selection):
