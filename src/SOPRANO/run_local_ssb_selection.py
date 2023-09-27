@@ -1,7 +1,6 @@
 import argparse
 import pathlib
 import subprocess
-from datetime import datetime
 
 from SOPRANO import (
     analysis,
@@ -11,6 +10,7 @@ from SOPRANO import (
     obtain_fasta_regions,
     prepare_coordinates,
 )
+from SOPRANO.pipeline_utils import task_output
 
 
 def check_path(cli_path: pathlib.Path | None, optional=False):
@@ -196,15 +196,6 @@ def title_output():
 ███████  ██████  ██      ██   ██ ██   ██ ██   ████  ██████  
 """
     )
-
-
-def time_output():
-    now = datetime.now()
-    return now.strftime("%d/%m/%Y %H:%M:%S")
-
-
-def task_output(msg):
-    print(f"[{time_output()}] {msg}")
 
 
 def line_output(n=60):
