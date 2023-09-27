@@ -140,25 +140,6 @@ def _context_correction(paths: AnalysisPaths, genomes: GenomePaths):
     )
 
 
-class ContextCorrection(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.col_corrected,
-            params.genomes.fasta,
-            params.genomes.sizes,
-        )
-
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        ContextCorrection.check_ready(params)
-        _context_correction(params, params.genomes)
-
-
 def _build_flag_file(paths: AnalysisPaths):
     """
     Implements:

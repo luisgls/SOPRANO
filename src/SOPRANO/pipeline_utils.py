@@ -4,6 +4,7 @@ from datetime import datetime
 from SOPRANO.analysis import (
     _col_correct,
     _compute_theoretical_subs,
+    _context_correction,
     _fix_simulated,
     _sum_possible_across_region,
 )
@@ -549,3 +550,36 @@ class ColumnCorrect2(_PipelineComponent2):
 
     def _apply(self, params: Parameters):
         _col_correct(params)
+
+
+class ContextCorrection(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (
+            params.col_corrected,
+            params.genomes.fasta,
+            params.genomes.sizes,
+        )
+
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        ContextCorrection.check_ready(params)
+        _context_correction(params, params.genomes)
+
+
+class ContextCorrection2(_PipelineComponent2):
+    msg = "Applying context corrections"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(
+            params.col_corrected,
+            params.genomes.fasta,
+            params.genomes.sizes,
+        )
+
+    def _apply(self, params: Parameters):
+        _context_correction(params, params.genomes)

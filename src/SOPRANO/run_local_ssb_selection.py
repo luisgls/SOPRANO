@@ -283,7 +283,7 @@ def main(_namespace=None):
         SOPRANO.pipeline_utils.ColumnCorrect.apply(params)
 
         task_output("Performing context corrections")
-        analysis.ContextCorrection.apply(params)
+        SOPRANO.pipeline_utils.ContextCorrection.apply(params)
 
         task_output("Flagging calculations")
         analysis.FlagComputations.apply(params)
