@@ -316,7 +316,7 @@ def main(_namespace=None):
     SOPRANO.pipeline_utils.OnOffCounts.apply(params)
 
     task_output("Building extended data epitope file")
-    intersect.BuildEpitopesDataFile.apply(params)
+    SOPRANO.pipeline_utils.BuildEpitopesDataFile.apply(params)
 
     intersect.CheckTargetMutations.apply(params)
 

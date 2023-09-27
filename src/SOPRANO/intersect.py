@@ -300,45 +300,6 @@ def _update_epitopes_data_file(
         )
 
 
-class BuildEpitopesDataFile(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.variants_silent,
-            params.variants_nonsilent,
-            params.in_silent_count,
-            params.in_nonsilent_count,
-            params.out_silent_count,
-            params.out_nonsilent_count,
-        )
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        BuildEpitopesDataFile.check_ready(params)
-
-        variants = (params.variants_silent, params.variants_nonsilent)
-        in_counts = (params.in_silent_count, params.in_nonsilent_count)
-        out_counts = (params.out_silent_count, params.out_nonsilent_count)
-        labs = ("synonymous", "missense")
-
-        for variant_count, in_out_count, use_epi, lab in zip(
-            variants * 2,
-            in_counts + out_counts,
-            (True, True, False, False),
-            labs * 2,
-        ):
-            _update_epitopes_data_file(
-                variant_count,
-                in_out_count,
-                params,
-                _use_epitope=use_epi,
-                _label=lab,
-            )
-
-
 def _check_target_mutations(paths: AnalysisPaths):
     in_silent_count = get_counts(paths.in_silent_count)
     in_nonsilent_count = get_counts(paths.in_nonsilent_count)

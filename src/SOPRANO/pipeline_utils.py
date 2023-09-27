@@ -20,6 +20,7 @@ from SOPRANO.intersect import (
     _get_nonsilent_variant_counts,
     _get_silent_variant_counts,
     _intersect_by_frequency,
+    _update_epitopes_data_file,
 )
 from SOPRANO.objects import AuxiliaryFiles, Parameters
 from SOPRANO.obtain_fasta_regions import (
@@ -900,3 +901,76 @@ class OnOffCounts2(_PipelineComponent2):
         _print("Global region", raw_silent, raw_nonsilent, raw_missense)
         _print("(ON) Target region", in_silent, in_nonsilent, in_missense)
         _print("(OFF) Target region", out_silent, out_nonsilent, out_missense)
+
+
+class BuildEpitopesDataFile(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (
+            params.variants_silent,
+            params.variants_nonsilent,
+            params.in_silent_count,
+            params.in_nonsilent_count,
+            params.out_silent_count,
+            params.out_nonsilent_count,
+        )
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        BuildEpitopesDataFile.check_ready(params)
+
+        variants = (params.variants_silent, params.variants_nonsilent)
+        in_counts = (params.in_silent_count, params.in_nonsilent_count)
+        out_counts = (params.out_silent_count, params.out_nonsilent_count)
+        labs = ("synonymous", "missense")
+
+        for variant_count, in_out_count, use_epi, lab in zip(
+            variants * 2,
+            in_counts + out_counts,
+            (True, True, False, False),
+            labs * 2,
+        ):
+            _update_epitopes_data_file(
+                variant_count,
+                in_out_count,
+                params,
+                _use_epitope=use_epi,
+                _label=lab,
+            )
+
+
+class BuildEpitopesDataFile2(_PipelineComponent2):
+    msg = "Building epitope combined data file"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(
+            params.variants_silent,
+            params.variants_nonsilent,
+            params.in_silent_count,
+            params.in_nonsilent_count,
+            params.out_silent_count,
+            params.out_nonsilent_count,
+        )
+
+    def _apply(self, params: Parameters):
+        variants = (params.variants_silent, params.variants_nonsilent)
+        in_counts = (params.in_silent_count, params.in_nonsilent_count)
+        out_counts = (params.out_silent_count, params.out_nonsilent_count)
+        labs = ("synonymous", "missense")
+
+        for variant_count, in_out_count, use_epi, lab in zip(
+            variants * 2,
+            in_counts + out_counts,
+            (True, True, False, False),
+            labs * 2,
+        ):
+            _update_epitopes_data_file(
+                variant_count,
+                in_out_count,
+                params,
+                _use_epitope=use_epi,
+                _label=lab,
+            )
