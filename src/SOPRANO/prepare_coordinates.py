@@ -7,11 +7,7 @@ from SOPRANO.objects import (
     Parameters,
     TranscriptPaths,
 )
-from SOPRANO.pipeline_utils import (
-    MissingDataError,
-    _PipelineComponent,
-    _SSB192Selection,
-)
+from SOPRANO.pipeline_utils import MissingDataError, _PipelineComponent
 from SOPRANO.sh_utils import subprocess_pipes
 
 
@@ -370,15 +366,6 @@ def _prep_not_ssb192(paths: AnalysisPaths):
         ["awk", '{OFS="\t"}{print $1,($2*3)-3,$3*3,$0}', paths.epitopes],
         output_path=paths.epitopes_cds,
     )
-
-
-class NotSSB192(_SSB192Selection):
-    """Does not apply ssb192 selection in CDS coordiante prep"""
-
-    @staticmethod
-    def apply(params: Parameters):
-        _SSB192Selection.check_ready(params)
-        _prep_not_ssb192(params)
 
 
 def transform_coordinates(paths: AnalysisPaths):

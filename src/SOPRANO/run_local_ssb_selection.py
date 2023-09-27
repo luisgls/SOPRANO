@@ -255,7 +255,7 @@ def main(_namespace=None):
         ssb192_method = SOPRANO.pipeline_utils.UseSSB192
     else:
         task_output("Preparing CDS coords without SSB192 mutrate")
-        ssb192_method = prepare_coordinates.NotSSB192
+        ssb192_method = SOPRANO.pipeline_utils.NotSSB192
     ssb192_method.apply(params)
 
     task_output("Building intra epitope CDS file")
