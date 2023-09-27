@@ -2,6 +2,7 @@ import pathlib
 from datetime import datetime
 
 from SOPRANO.analysis import (
+    _build_flag_file,
     _col_correct,
     _compute_theoretical_subs,
     _context_correction,
@@ -583,3 +584,27 @@ class ContextCorrection2(_PipelineComponent2):
 
     def _apply(self, params: Parameters):
         _context_correction(params, params.genomes)
+
+
+class FlagComputations(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (params.col_corrected, params.contextualised)
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        FlagComputations.check_ready(params)
+        _build_flag_file(params)
+
+
+class FlagComputations2(_PipelineComponent2):
+    msg = "Flagging calculations"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(params.col_corrected, params.contextualised)
+
+    def _apply(self, params: Parameters):
+        _build_flag_file(params)

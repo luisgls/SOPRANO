@@ -286,7 +286,7 @@ def main(_namespace=None):
         SOPRANO.pipeline_utils.ContextCorrection.apply(params)
 
         task_output("Flagging calculations")
-        analysis.FlagComputations.apply(params)
+        SOPRANO.pipeline_utils.FlagComputations.apply(params)
 
         task_output("Computing triplet counts")
         analysis.TripletCounts.apply(params)

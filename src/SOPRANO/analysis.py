@@ -171,20 +171,6 @@ def _build_flag_file(paths: AnalysisPaths):
     )
 
 
-class FlagComputations(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (params.col_corrected, params.contextualised)
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        FlagComputations.check_ready(params)
-        _build_flag_file(params)
-
-
 def _initial_triplet_counts(paths: AnalysisPaths):
     r"""
     Implements:
