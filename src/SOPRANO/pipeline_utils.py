@@ -13,6 +13,7 @@ from SOPRANO.analysis import (
     _sum_possible_across_region,
 )
 from SOPRANO.intersect import (
+    _get_nonsilent_variant_counts,
     _get_silent_variant_counts,
     _intersect_by_frequency,
 )
@@ -730,3 +731,16 @@ class GetSilentCounts2(_PipelineComponent2):
 
     def _apply(self, params: Parameters):
         _get_silent_variant_counts(params)
+
+
+class GetNonSilentCounts(_PipelineComponent):
+    @staticmethod
+    def apply(params: Parameters):
+        _get_nonsilent_variant_counts(params)
+
+
+class GetNonSilentCounts2(_PipelineComponent2):
+    msg = "Computing non-silent mutation counts"
+
+    def _apply(self, params: Parameters):
+        _get_nonsilent_variant_counts(params)

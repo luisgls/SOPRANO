@@ -118,12 +118,6 @@ def _get_nonsilent_variant_counts(paths: AnalysisPaths):
     )
 
 
-class GetNonSilentCounts(_PipelineComponent):
-    @staticmethod
-    def apply(params: Parameters):
-        _get_nonsilent_variant_counts(params)
-
-
 def _get_missense_variant_counts(paths: AnalysisPaths):
     r"""
     Implements:
