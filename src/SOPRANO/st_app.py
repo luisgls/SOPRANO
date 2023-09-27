@@ -6,11 +6,12 @@ import time
 import pandas as pd
 import streamlit as st
 
-from SOPRANO import objects, run_local_ssb_selection
+from SOPRANO import objects, run_local_ssb_selection, st_stdout
 
 # Cache location
 _DEFAULT_CACHE = pathlib.Path(__file__).parent.parent.parent / "pipeline_cache"
-_CACHE = os.environ.get("SOPRANO_CACHE", _DEFAULT_CACHE)
+cache_from_env = os.environ.get("SOPRANO_CACHE", _DEFAULT_CACHE.as_posix())
+_CACHE = pathlib.Path(cache_from_env)
 
 # Find genome options
 _HOMO_SAPIENS_DIR = pathlib.Path(__file__).parent / "data" / "homo_sapiens"
@@ -149,7 +150,9 @@ if __name__ == "__main__":
         st.session_state.cache_dir.mkdir(exist_ok=True)
 
         t_start = time.time()
-        run_local_ssb_selection.main(st.session_state.namespace)
+        output = st.empty()
+        with st_stdout.st_capture(output.code):
+            run_local_ssb_selection.main(st.session_state.namespace)
         t_end = time.time()
 
         st.session_state.compute_time_str = (
