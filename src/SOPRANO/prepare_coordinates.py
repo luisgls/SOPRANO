@@ -326,21 +326,6 @@ def _get_protein_complement(paths: AnalysisPaths):
     )
 
 
-class BuildProteinComplement(_PipelineComponent):
-    """Build protein complement file"""
-
-    @staticmethod
-    def check_ready(params: Parameters):
-        for path in (params.epitopes, params.filtered_protein_transcript):
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        BuildProteinComplement.check_ready(params)
-        _get_protein_complement(params)
-
-
 def _prep_ssb192(paths: AnalysisPaths):
     """
     Implements:

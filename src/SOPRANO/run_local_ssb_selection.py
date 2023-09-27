@@ -248,7 +248,7 @@ def main(_namespace=None):
     drivers_method.apply(params)
 
     task_output("Building protein complement")
-    prepare_coordinates.BuildProteinComplement.apply(params)
+    SOPRANO.pipeline_utils.BuildProteinComplement.apply(params)
 
     if params.use_ssb192:
         task_output("Preparing CDS coords with SSB192 mutrate")

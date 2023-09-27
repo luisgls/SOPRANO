@@ -6,6 +6,7 @@ from SOPRANO.prepare_coordinates import (
     _define_excluded_regions_for_randomization,
     _exclude_positively_selected_genes,
     _exclude_positively_selected_genes_disabled,
+    _get_protein_complement,
     _non_randomized,
     _randomize_with_target_file,
     _sort_excluded_regions_for_randomization,
@@ -239,3 +240,28 @@ class GeneExclusionsDisabled2(_GeneExclusions2):
 
     def _apply(self, params: Parameters):
         _exclude_positively_selected_genes_disabled(params)
+
+
+class BuildProteinComplement(_PipelineComponent):
+    """Build protein complement file"""
+
+    @staticmethod
+    def check_ready(params: Parameters):
+        for path in (params.epitopes, params.filtered_protein_transcript):
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        BuildProteinComplement.check_ready(params)
+        _get_protein_complement(params)
+
+
+class BuildProteinComplement2(_PipelineComponent2):
+    msg = "Building protein complement"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(params.epitopes, params.filtered_protein_transcript)
+
+    def _apply(self, params: Parameters):
+        _get_protein_complement(params)
