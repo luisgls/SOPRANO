@@ -233,7 +233,7 @@ def main(_namespace=None):
         randomization_method = prepare_coordinates.RandomizeWithRegions
     elif params.use_random:
         task_output("Randomizing transcripts")
-        randomization_method = prepare_coordinates.RandomizeWithoutRegions
+        randomization_method = SOPRANO.pipeline_utils.RandomizeWithoutRegions
     else:
         task_output("No randomization selected, sorting input bed file")
         randomization_method = SOPRANO.pipeline_utils.NonRandom

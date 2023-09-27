@@ -3,7 +3,9 @@ from datetime import datetime
 
 from SOPRANO.objects import Parameters
 from SOPRANO.prepare_coordinates import (
+    _define_excluded_regions_for_randomization,
     _non_randomized,
+    _sort_excluded_regions_for_randomization,
     filter_transcript_files,
 )
 
@@ -146,7 +148,25 @@ class NonRandom(_Randomize):
 
 
 class NonRandom2(_Randomize2):
-    """No randomization implemented"""
+    msg = "No randomization selected; selecting unique items from bed file"
 
     def apply(self, params: Parameters):
         _non_randomized(params)
+
+
+class RandomizeWithoutRegions(_Randomize):
+    """Randomizes without user input file"""
+
+    @staticmethod
+    def apply(params: Parameters):
+        _Randomize.check_ready(params)
+        _define_excluded_regions_for_randomization(params)
+        _sort_excluded_regions_for_randomization(params, seed=params.seed)
+
+
+class RandomizeWithoutRegions2(_Randomize2):
+    msg = "Performing randomization without supplement bed file definitions"
+
+    def apply(self, params: Parameters):
+        _define_excluded_regions_for_randomization(params)
+        _sort_excluded_regions_for_randomization(params, seed=params.seed)

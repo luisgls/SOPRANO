@@ -244,16 +244,6 @@ def _non_randomized(paths: AnalysisPaths):
     )
 
 
-class RandomizeWithoutRegions(_Randomize):
-    """Randomizes without user input file"""
-
-    @staticmethod
-    def apply(params: Parameters):
-        _Randomize.check_ready(params)
-        _define_excluded_regions_for_randomization(params)
-        _sort_excluded_regions_for_randomization(params, seed=params.seed)
-
-
 class RandomizeWithRegions(_Randomize):
     """Randomizes with user input file"""
 
