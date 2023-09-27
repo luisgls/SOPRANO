@@ -390,5 +390,11 @@ def download_genome():
     )
 
 
+def local_st_app():
+    soprano_src_dir = pathlib.Path(__file__).parent
+    app_path = soprano_src_dir.joinpath("st_app.py")
+    subprocess.run(["streamlit", "run", app_path])
+
+
 if __name__ == "__main__":
     main()
