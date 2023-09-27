@@ -1,12 +1,7 @@
 import pathlib
 
-from SOPRANO.objects import AnalysisPaths, Parameters
-from SOPRANO.pipeline_utils import (
-    MissingDataError,
-    SOPRANOError,
-    _PipelineComponent,
-    is_empty,
-)
+from SOPRANO.objects import AnalysisPaths
+from SOPRANO.pipeline_utils import SOPRANOError, is_empty
 from SOPRANO.sh_utils import subprocess_pipes
 
 
@@ -310,22 +305,3 @@ def _check_target_mutations(paths: AnalysisPaths):
             f"No mutations found in target region for input file "
             f"{paths.input_path}"
         )
-
-
-class CheckTargetMutations(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.in_silent_count,
-            params.in_nonsilent_count,
-            params.in_missense_count,
-        )
-
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        CheckTargetMutations.check_ready(params)
-        _check_target_mutations(params)

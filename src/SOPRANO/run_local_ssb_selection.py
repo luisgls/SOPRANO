@@ -3,7 +3,7 @@ import pathlib
 import subprocess
 
 import SOPRANO.pipeline_utils
-from SOPRANO import dnds, intersect, objects
+from SOPRANO import dnds, objects
 from SOPRANO.pipeline_utils import task_output
 
 
@@ -318,7 +318,7 @@ def main(_namespace=None):
     task_output("Building extended data epitope file")
     SOPRANO.pipeline_utils.BuildEpitopesDataFile.apply(params)
 
-    intersect.CheckTargetMutations.apply(params)
+    SOPRANO.pipeline_utils.CheckTargetMutations.apply(params)
 
     task_output("Computing intron rate")
     dnds.ComputeIntronRate.apply(params)

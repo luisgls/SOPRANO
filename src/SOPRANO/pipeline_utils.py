@@ -13,6 +13,7 @@ from SOPRANO.analysis import (
     _sum_possible_across_region,
 )
 from SOPRANO.intersect import (
+    _check_target_mutations,
     _count_intersected_mutations,
     _count_mutations,
     _get_intronic_variant_counts,
@@ -974,3 +975,36 @@ class BuildEpitopesDataFile2(_PipelineComponent2):
                 _use_epitope=use_epi,
                 _label=lab,
             )
+
+
+class CheckTargetMutations(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (
+            params.in_silent_count,
+            params.in_nonsilent_count,
+            params.in_missense_count,
+        )
+
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        CheckTargetMutations.check_ready(params)
+        _check_target_mutations(params)
+
+
+class CheckTargetMutations2(_PipelineComponent2):
+    msg = "Checking target mutations"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(
+            params.in_silent_count,
+            params.in_nonsilent_count,
+            params.in_missense_count,
+        )
+
+    def _apply(self, params: Parameters):
+        _check_target_mutations(params)
