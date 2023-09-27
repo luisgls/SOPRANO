@@ -8,6 +8,7 @@ from SOPRANO.prepare_coordinates import (
     _exclude_positively_selected_genes_disabled,
     _get_protein_complement,
     _non_randomized,
+    _prep_ssb192,
     _randomize_with_target_file,
     _sort_excluded_regions_for_randomization,
     filter_transcript_files,
@@ -281,3 +282,19 @@ class _SSB192Selection2(_PipelineComponent2):
 
     def check_ready(self, params: Parameters):
         _check_paths(params.epitopes)
+
+
+class UseSSB192(_SSB192Selection):
+    """Applies ssb192 selection in CDS coordinate prep"""
+
+    @staticmethod
+    def apply(params: Parameters):
+        _SSB192Selection.check_ready(params)
+        _prep_ssb192(params)
+
+
+class UseSSB1922(_SSB192Selection2):
+    msg = "Preparing CDS coordinates using 192 substitution"
+
+    def _apply(self, params: Parameters):
+        _prep_ssb192(params)

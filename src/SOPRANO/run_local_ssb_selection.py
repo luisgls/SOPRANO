@@ -252,7 +252,7 @@ def main(_namespace=None):
 
     if params.use_ssb192:
         task_output("Preparing CDS coords with SSB192 mutrate")
-        ssb192_method = prepare_coordinates.UseSSB192
+        ssb192_method = SOPRANO.pipeline_utils.UseSSB192
     else:
         task_output("Preparing CDS coords without SSB192 mutrate")
         ssb192_method = prepare_coordinates.NotSSB192

@@ -372,15 +372,6 @@ def _prep_not_ssb192(paths: AnalysisPaths):
     )
 
 
-class UseSSB192(_SSB192Selection):
-    """Applies ssb192 selection in CDS coordinate prep"""
-
-    @staticmethod
-    def apply(params: Parameters):
-        _SSB192Selection.check_ready(params)
-        _prep_ssb192(params)
-
-
 class NotSSB192(_SSB192Selection):
     """Does not apply ssb192 selection in CDS coordiante prep"""
 
