@@ -106,3 +106,28 @@ class FilterTranscripts2(_PipelineComponent2):
             params.transcripts.transcript_length,
             params.transcripts.protein_transcript_length,
         )
+
+
+class _Randomize(_PipelineComponent):
+    """Intermediate class for randomization procedures"""
+
+    @staticmethod
+    def check_ready(params: Parameters):
+        for path in (
+            params.filtered_transcript,
+            params.filtered_protein_transcript,
+        ):
+            if not path.exists():
+                raise MissingDataError(
+                    f"Filtered transcript not found: {path}"
+                )
+
+
+class _Randomize2(_PipelineComponent2):
+    """Intermediate class for randomization procedures"""
+
+    def check_ready(self, params: Parameters):
+        _check_paths(
+            params.filtered_transcript,
+            params.filtered_protein_transcript,
+        )

@@ -8,7 +8,11 @@ from SOPRANO.objects import (
     Parameters,
     TranscriptPaths,
 )
-from SOPRANO.pipeline_utils import MissingDataError, _PipelineComponent
+from SOPRANO.pipeline_utils import (
+    MissingDataError,
+    _PipelineComponent,
+    _Randomize,
+)
 from SOPRANO.sh_utils import subprocess_pipes
 
 
@@ -246,21 +250,6 @@ def _non_randomized(paths: AnalysisPaths):
     #         ENST00000001008 27      36
     #         If sort -u then this is already sorted!
     #         (presuming hierarchy should be chrom, then start, then stop)
-
-
-class _Randomize(_PipelineComponent):
-    """Intermediate class for randomization procedures"""
-
-    @staticmethod
-    def check_ready(params: Parameters):
-        for path in (
-            params.filtered_transcript,
-            params.filtered_protein_transcript,
-        ):
-            if not path.exists():
-                raise MissingDataError(
-                    f"Filtered transcript not found: {path}"
-                )
 
 
 class NonRandom(_Randomize):
