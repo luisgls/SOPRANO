@@ -24,6 +24,7 @@ from SOPRANO.intersect import (
     _intersect_by_frequency,
     _update_epitopes_data_file,
 )
+from SOPRANO.misc_utils import MissingDataError
 from SOPRANO.objects import AuxiliaryFiles, Parameters
 from SOPRANO.obtain_fasta_regions import (
     _get_non_target_regions,
@@ -52,23 +53,6 @@ def time_output():
 
 def task_output(msg):
     print(f"[{time_output()}] {msg}")
-
-
-def is_empty(path: pathlib.Path) -> bool:
-    """
-    Checks whether file at path has size of zero
-    :param path: pathlib Path object
-    :return: True if path is empty else False
-    """
-    return path.stat().st_size == 0
-
-
-class MissingDataError(Exception):
-    pass
-
-
-class SOPRANOError(Exception):
-    pass
 
 
 def _check_paths(*dependent_paths: pathlib.Path):

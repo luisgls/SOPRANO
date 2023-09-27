@@ -1,7 +1,7 @@
 import pathlib
 
+from SOPRANO.misc_utils import is_empty
 from SOPRANO.objects import AnalysisPaths, GenomePaths
-from SOPRANO.pipeline_utils import is_empty
 from SOPRANO.sh_utils import subprocess_pipes
 
 SOPRANO_ROOT = pathlib.Path(__file__).parent

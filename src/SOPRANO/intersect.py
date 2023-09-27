@@ -1,7 +1,7 @@
 import pathlib
 
+from SOPRANO.misc_utils import SOPRANOError, is_empty
 from SOPRANO.objects import AnalysisPaths
-from SOPRANO.pipeline_utils import SOPRANOError, is_empty
 from SOPRANO.sh_utils import subprocess_pipes
 
 

@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
+from SOPRANO.misc_utils import is_empty
 from SOPRANO.objects import AnalysisPaths, AuxiliaryPaths
-from SOPRANO.pipeline_utils import is_empty
 from SOPRANO.sh_utils import subprocess_pipes
 
 
