@@ -1,12 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from SOPRANO.objects import (
-    AnalysisPaths,
-    AuxiliaryFiles,
-    AuxiliaryPaths,
-    Parameters,
-)
+from SOPRANO.objects import AnalysisPaths, AuxiliaryPaths, Parameters
 from SOPRANO.pipeline_utils import (
     MissingDataError,
     _PipelineComponent,
@@ -50,17 +45,6 @@ def _intersect_introns(paths: AnalysisPaths, aux_files: AuxiliaryPaths):
         ["awk", r'{print $4"\t"$8/($6+1)"\t"$8"\t"$6}'],
         output_path=paths.intron_rate,
     )
-
-
-class ComputeIntronRate(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        if not params.variants_intronic.exists():
-            raise MissingDataError(params.variants_intronic)
-
-    @staticmethod
-    def apply(params: Parameters):
-        _intersect_introns(params, AuxiliaryFiles)
 
 
 class ComputeStatistics(_PipelineComponent):

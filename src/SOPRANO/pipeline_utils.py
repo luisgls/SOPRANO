@@ -12,6 +12,7 @@ from SOPRANO.analysis import (
     _initial_triplet_counts,
     _sum_possible_across_region,
 )
+from SOPRANO.dnds import _intersect_introns
 from SOPRANO.intersect import (
     _check_target_mutations,
     _count_intersected_mutations,
@@ -1008,3 +1009,24 @@ class CheckTargetMutations2(_PipelineComponent2):
 
     def _apply(self, params: Parameters):
         _check_target_mutations(params)
+
+
+class ComputeIntronRate(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        if not params.variants_intronic.exists():
+            raise MissingDataError(params.variants_intronic)
+
+    @staticmethod
+    def apply(params: Parameters):
+        _intersect_introns(params, AuxiliaryFiles)
+
+
+class ComputeIntronRate2(_PipelineComponent2):
+    msg = "Computing intronic rate"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(params.variants_intronic)
+
+    def _apply(self, params: Parameters):
+        _intersect_introns(params, AuxiliaryFiles)

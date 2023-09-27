@@ -321,7 +321,7 @@ def main(_namespace=None):
     SOPRANO.pipeline_utils.CheckTargetMutations.apply(params)
 
     task_output("Computing intron rate")
-    dnds.ComputeIntronRate.apply(params)
+    SOPRANO.pipeline_utils.ComputeIntronRate.apply(params)
 
     task_output("Computing dNdS statistics")
     dnds.ComputeStatistics.apply(params)
