@@ -2,6 +2,7 @@ import pathlib
 from datetime import datetime
 
 from SOPRANO.analysis import (
+    _col_correct,
     _compute_theoretical_subs,
     _fix_simulated,
     _sum_possible_across_region,
@@ -526,3 +527,25 @@ class FixSimulated2(_PipelineComponent2):
 
     def _apply(self, params: Parameters):
         _fix_simulated(params)
+
+
+class ColumnCorrect(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        if not params.sim_fixed.exists():
+            raise MissingDataError(params.sim_fixed)
+
+    @staticmethod
+    def apply(params: Parameters):
+        ColumnCorrect.check_ready(params)
+        _col_correct(params)
+
+
+class ColumnCorrect2(_PipelineComponent2):
+    msg = "Applying column corrections"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(params.sim_fixed)
+
+    def _apply(self, params: Parameters):
+        _col_correct(params)

@@ -280,7 +280,7 @@ def main(_namespace=None):
         )
         SOPRANO.pipeline_utils.FixSimulated.apply(params)
         task_output("Applying column corrections for alternative format")
-        analysis.ColumnCorrect.apply(params)
+        SOPRANO.pipeline_utils.ColumnCorrect.apply(params)
 
         task_output("Performing context corrections")
         analysis.ContextCorrection.apply(params)

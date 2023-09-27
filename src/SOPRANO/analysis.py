@@ -103,18 +103,6 @@ def _col_correct(paths: AnalysisPaths):
     )
 
 
-class ColumnCorrect(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        if not params.sim_fixed.exists():
-            raise MissingDataError(params.sim_fixed)
-
-    @staticmethod
-    def apply(params: Parameters):
-        ColumnCorrect.check_ready(params)
-        _col_correct(params)
-
-
 def _context_correction(paths: AnalysisPaths, genomes: GenomePaths):
     """
     Implements:
