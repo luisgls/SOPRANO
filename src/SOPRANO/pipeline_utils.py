@@ -1,9 +1,10 @@
 import pathlib
 from datetime import datetime
 
-from SOPRANO.objects import Parameters
+from SOPRANO.objects import AuxiliaryFiles, Parameters
 from SOPRANO.prepare_coordinates import (
     _define_excluded_regions_for_randomization,
+    _exclude_positively_selected_genes,
     _non_randomized,
     _randomize_with_target_file,
     _sort_excluded_regions_for_randomization,
@@ -205,3 +206,19 @@ class _GeneExclusions(_PipelineComponent):
 class _GeneExclusions2(_PipelineComponent2):
     def check_ready(self, params: Parameters):
         _check_paths(params.exclusions_shuffled)
+
+
+class GeneExclusions(_GeneExclusions):
+    """Applies gene exclusions"""
+
+    @staticmethod
+    def apply(params: Parameters):
+        _GeneExclusions.check_ready(params)
+        _exclude_positively_selected_genes(params, AuxiliaryFiles)
+
+
+class GeneExclusions2(_GeneExclusions2):
+    msg = "Excluding positively selected genes"
+
+    def apply(self, params: Parameters):
+        _exclude_positively_selected_genes(params, AuxiliaryFiles)

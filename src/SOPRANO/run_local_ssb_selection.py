@@ -241,7 +241,7 @@ def main(_namespace=None):
 
     if params.exclude_drivers:
         task_output("Excluding positively selected genes")
-        drivers_method = prepare_coordinates.GeneExclusions
+        drivers_method = SOPRANO.pipeline_utils.GeneExclusions
     else:
         task_output("Retaining positively selected genes")
         drivers_method = prepare_coordinates.GeneExclusionsDisabled

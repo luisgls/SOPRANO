@@ -3,7 +3,6 @@ import subprocess
 
 from SOPRANO.objects import (
     AnalysisPaths,
-    AuxiliaryFiles,
     AuxiliaryPaths,
     Parameters,
     TranscriptPaths,
@@ -285,15 +284,6 @@ def _exclude_positively_selected_genes(
         ],
         output_path=paths.epitopes,
     )
-
-
-class GeneExclusions(_GeneExclusions):
-    """Applies gene exclusions"""
-
-    @staticmethod
-    def apply(params: Parameters):
-        _GeneExclusions.check_ready(params)
-        _exclude_positively_selected_genes(params, AuxiliaryFiles)
 
 
 class GeneExclusionsDisabled(_GeneExclusions):
