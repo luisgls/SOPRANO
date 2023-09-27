@@ -313,7 +313,7 @@ def main(_namespace=None):
     SOPRANO.pipeline_utils.GetIntronicCounts.apply(params)
 
     task_output("Computing On/Off region counts")
-    intersect.OnOffCounts.apply(params)
+    SOPRANO.pipeline_utils.OnOffCounts.apply(params)
 
     task_output("Building extended data epitope file")
     intersect.BuildEpitopesDataFile.apply(params)
