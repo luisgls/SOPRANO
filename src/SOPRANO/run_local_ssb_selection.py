@@ -289,7 +289,7 @@ def main(_namespace=None):
         SOPRANO.pipeline_utils.FlagComputations.apply(params)
 
         task_output("Computing triplet counts")
-        analysis.TripletCounts.apply(params)
+        SOPRANO.pipeline_utils.TripletCounts.apply(params)
 
         task_output("Applying site corrections")
         analysis.SiteCorrections.apply(params)

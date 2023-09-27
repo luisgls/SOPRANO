@@ -7,6 +7,7 @@ from SOPRANO.analysis import (
     _compute_theoretical_subs,
     _context_correction,
     _fix_simulated,
+    _initial_triplet_counts,
     _sum_possible_across_region,
 )
 from SOPRANO.objects import AuxiliaryFiles, Parameters
@@ -608,3 +609,29 @@ class FlagComputations2(_PipelineComponent2):
 
     def _apply(self, params: Parameters):
         _build_flag_file(params)
+
+
+class TripletCounts(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (params.col_corrected, params.contextualised, params.flagged)
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        TripletCounts.check_ready(params)
+        _initial_triplet_counts(params)
+
+
+class TripletCounts2(_PipelineComponent2):
+    msg = "Counting triplets"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(
+            params.col_corrected, params.contextualised, params.flagged
+        )
+
+    def _apply(self, params: Parameters):
+        _initial_triplet_counts(params)

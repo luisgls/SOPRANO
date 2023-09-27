@@ -202,20 +202,6 @@ def _initial_triplet_counts(paths: AnalysisPaths):
     )
 
 
-class TripletCounts(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (params.col_corrected, params.contextualised, params.flagged)
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        TripletCounts.check_ready(params)
-        _initial_triplet_counts(params)
-
-
 class SOPRANOError(Exception):
     pass
 
