@@ -267,7 +267,7 @@ def main(_namespace=None):
             "Estimating all theoretically possible 192 substitutions for "
             "target and non-target regions"
         )
-        analysis.ComputeSSB192TheoreticalSubs.apply(params)
+        SOPRANO.pipeline_utils.ComputeSSB192TheoreticalSubs.apply(params)
 
         task_output(
             "Computing sum over all possible sites in target and non-target "

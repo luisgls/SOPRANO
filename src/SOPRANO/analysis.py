@@ -38,31 +38,6 @@ def _compute_theoretical_subs(
     )
 
 
-class ComputeSSB192TheoreticalSubs(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.epitopes_cds_fasta,
-            params.intra_epitopes_cds_fasta,
-            params.epitopes_trans_regs,
-            params.intra_epitopes_trans_regs,
-        )
-
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        ComputeSSB192TheoreticalSubs.check_ready(params)
-        _compute_theoretical_subs(
-            params.epitopes_cds_fasta, params.epitopes_trans_regs
-        )
-        _compute_theoretical_subs(
-            params.intra_epitopes_cds_fasta, params.intra_epitopes_trans_regs
-        )
-
-
 def _sum_possible_across_region(
     trans_regs: pathlib.Path, sum_trans_regs: pathlib.Path
 ):

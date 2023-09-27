@@ -1,6 +1,7 @@
 import pathlib
 from datetime import datetime
 
+from SOPRANO.analysis import _compute_theoretical_subs
 from SOPRANO.objects import AuxiliaryFiles, Parameters
 from SOPRANO.obtain_fasta_regions import (
     _get_non_target_regions,
@@ -417,5 +418,50 @@ class GetTranscriptRegionsForSites2(_PipelineComponent2):
     def _apply(self, params: Parameters):
         _get_trans_regs(params.epitopes_cds_fasta, params.epitopes_trans_regs)
         _get_trans_regs(
+            params.intra_epitopes_cds_fasta, params.intra_epitopes_trans_regs
+        )
+
+
+class ComputeSSB192TheoreticalSubs(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (
+            params.epitopes_cds_fasta,
+            params.intra_epitopes_cds_fasta,
+            params.epitopes_trans_regs,
+            params.intra_epitopes_trans_regs,
+        )
+
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        ComputeSSB192TheoreticalSubs.check_ready(params)
+        _compute_theoretical_subs(
+            params.epitopes_cds_fasta, params.epitopes_trans_regs
+        )
+        _compute_theoretical_subs(
+            params.intra_epitopes_cds_fasta, params.intra_epitopes_trans_regs
+        )
+
+
+class ComputeSSB192TheoreticalSubs2(_PipelineComponent2):
+    msg = "Computing all theoretical substitutions for SSB192"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(
+            params.epitopes_cds_fasta,
+            params.intra_epitopes_cds_fasta,
+            params.epitopes_trans_regs,
+            params.intra_epitopes_trans_regs,
+        )
+
+    def _apply(self, params: Parameters):
+        _compute_theoretical_subs(
+            params.epitopes_cds_fasta, params.epitopes_trans_regs
+        )
+        _compute_theoretical_subs(
             params.intra_epitopes_cds_fasta, params.intra_epitopes_trans_regs
         )
