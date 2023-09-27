@@ -3,7 +3,7 @@ import pathlib
 import subprocess
 
 import SOPRANO.pipeline_utils
-from SOPRANO import dnds, objects
+from SOPRANO import objects
 from SOPRANO.pipeline_utils import task_output
 
 
@@ -324,7 +324,7 @@ def main(_namespace=None):
     SOPRANO.pipeline_utils.ComputeIntronRate.apply(params)
 
     task_output("Computing dNdS statistics")
-    dnds.ComputeStatistics.apply(params)
+    SOPRANO.pipeline_utils.ComputeStatistics.apply(params)
 
 
 def parse_genome_args():

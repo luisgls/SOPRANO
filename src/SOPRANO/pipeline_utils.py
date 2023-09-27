@@ -12,7 +12,7 @@ from SOPRANO.analysis import (
     _initial_triplet_counts,
     _sum_possible_across_region,
 )
-from SOPRANO.dnds import _intersect_introns
+from SOPRANO.dnds import _compute_coverage, _intersect_introns
 from SOPRANO.intersect import (
     _check_target_mutations,
     _count_intersected_mutations,
@@ -1030,3 +1030,38 @@ class ComputeIntronRate2(_PipelineComponent2):
 
     def _apply(self, params: Parameters):
         _intersect_introns(params, AuxiliaryFiles)
+
+
+class ComputeStatistics(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (
+            params.data_epitopes,
+            params.epitope_nans,
+            params.intra_epitope_nans,
+            params.intron_rate,
+        )
+
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        ComputeStatistics.check_ready(params)
+        _compute_coverage(params)
+
+
+class ComputeStatistics2(_PipelineComponent2):
+    msg = "Computing dN/dS statistical summary"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(
+            params.data_epitopes,
+            params.epitope_nans,
+            params.intra_epitope_nans,
+            params.intron_rate,
+        )
+
+    def _apply(self, params: Parameters):
+        _compute_coverage(params)
