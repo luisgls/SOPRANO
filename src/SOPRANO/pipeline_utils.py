@@ -191,3 +191,17 @@ class RandomizeWithRegions2(_Randomize2):
         _randomize_with_target_file(
             params, params.transcripts, seed=params.seed
         )
+
+
+class _GeneExclusions(_PipelineComponent):
+    """Intermediate class for gene exclusions"""
+
+    @staticmethod
+    def check_ready(params: Parameters):
+        if not params.exclusions_shuffled.exists():
+            raise MissingDataError(f"{params.exclusions_shuffled}")
+
+
+class _GeneExclusions2(_PipelineComponent2):
+    def check_ready(self, params: Parameters):
+        _check_paths(params.exclusions_shuffled)

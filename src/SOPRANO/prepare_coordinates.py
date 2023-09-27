@@ -8,7 +8,11 @@ from SOPRANO.objects import (
     Parameters,
     TranscriptPaths,
 )
-from SOPRANO.pipeline_utils import MissingDataError, _PipelineComponent
+from SOPRANO.pipeline_utils import (
+    MissingDataError,
+    _GeneExclusions,
+    _PipelineComponent,
+)
 from SOPRANO.sh_utils import subprocess_pipes
 
 
@@ -281,15 +285,6 @@ def _exclude_positively_selected_genes(
         ],
         output_path=paths.epitopes,
     )
-
-
-class _GeneExclusions(_PipelineComponent):
-    """Intermediate class for gene exclusions"""
-
-    @staticmethod
-    def check_ready(params: Parameters):
-        if not params.exclusions_shuffled.exists():
-            raise MissingDataError(f"{params.exclusions_shuffled}")
 
 
 class GeneExclusions(_GeneExclusions):
