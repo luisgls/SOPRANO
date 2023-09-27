@@ -7,11 +7,7 @@ from SOPRANO.objects import (
     Parameters,
     TranscriptPaths,
 )
-from SOPRANO.pipeline_utils import (
-    MissingDataError,
-    _GeneExclusions,
-    _PipelineComponent,
-)
+from SOPRANO.pipeline_utils import MissingDataError, _PipelineComponent
 from SOPRANO.sh_utils import subprocess_pipes
 
 
@@ -284,15 +280,6 @@ def _exclude_positively_selected_genes(
         ],
         output_path=paths.epitopes,
     )
-
-
-class GeneExclusionsDisabled(_GeneExclusions):
-    """No gene exclusions"""
-
-    @staticmethod
-    def apply(params: Parameters):
-        _GeneExclusions.check_ready(params)
-        _exclude_positively_selected_genes_disabled(params)
 
 
 def _get_protein_complement(paths: AnalysisPaths):

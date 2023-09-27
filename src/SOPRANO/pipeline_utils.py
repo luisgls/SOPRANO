@@ -5,6 +5,7 @@ from SOPRANO.objects import AuxiliaryFiles, Parameters
 from SOPRANO.prepare_coordinates import (
     _define_excluded_regions_for_randomization,
     _exclude_positively_selected_genes,
+    _exclude_positively_selected_genes_disabled,
     _non_randomized,
     _randomize_with_target_file,
     _sort_excluded_regions_for_randomization,
@@ -222,3 +223,19 @@ class GeneExclusions2(_GeneExclusions2):
 
     def _apply(self, params: Parameters):
         _exclude_positively_selected_genes(params, AuxiliaryFiles)
+
+
+class GeneExclusionsDisabled(_GeneExclusions):
+    """No gene exclusions"""
+
+    @staticmethod
+    def apply(params: Parameters):
+        _GeneExclusions.check_ready(params)
+        _exclude_positively_selected_genes_disabled(params)
+
+
+class GeneExclusionsDisabled2(_GeneExclusions2):
+    msg = "Retaining positively selected genes"
+
+    def _apply(self, params: Parameters):
+        _exclude_positively_selected_genes_disabled(params)

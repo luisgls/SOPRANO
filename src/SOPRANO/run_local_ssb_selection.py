@@ -244,7 +244,7 @@ def main(_namespace=None):
         drivers_method = SOPRANO.pipeline_utils.GeneExclusions
     else:
         task_output("Retaining positively selected genes")
-        drivers_method = prepare_coordinates.GeneExclusionsDisabled
+        drivers_method = SOPRANO.pipeline_utils.GeneExclusionsDisabled
     drivers_method.apply(params)
 
     task_output("Building protein complement")
