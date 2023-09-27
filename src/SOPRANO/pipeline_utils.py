@@ -5,6 +5,7 @@ from SOPRANO.objects import AuxiliaryFiles, Parameters
 from SOPRANO.obtain_fasta_regions import (
     _get_non_target_regions,
     _get_target_fasta_regions,
+    _get_trans_regs,
 )
 from SOPRANO.prepare_coordinates import (
     _define_excluded_regions_for_randomization,
@@ -388,3 +389,33 @@ class ObtainFastaRegions2(_PipelineComponent2):
     def _apply(self, params: Parameters):
         _get_target_fasta_regions(params, params.transcripts)
         _get_non_target_regions(params, params.transcripts)
+
+
+class GetTranscriptRegionsForSites(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (params.epitopes_cds_fasta, params.intra_epitopes_cds)
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        GetTranscriptRegionsForSites.check_ready(params)
+        _get_trans_regs(params.epitopes_cds_fasta, params.epitopes_trans_regs)
+        _get_trans_regs(
+            params.intra_epitopes_cds_fasta, params.intra_epitopes_trans_regs
+        )
+
+
+class GetTranscriptRegionsForSites2(_PipelineComponent2):
+    msg = "Compiling list of transcript:regions to estimate number of sites"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(params.epitopes_cds_fasta, params.intra_epitopes_cds)
+
+    def _apply(self, params: Parameters):
+        _get_trans_regs(params.epitopes_cds_fasta, params.epitopes_trans_regs)
+        _get_trans_regs(
+            params.intra_epitopes_cds_fasta, params.intra_epitopes_trans_regs
+        )

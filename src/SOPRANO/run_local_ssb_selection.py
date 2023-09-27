@@ -3,7 +3,7 @@ import pathlib
 import subprocess
 
 import SOPRANO.pipeline_utils
-from SOPRANO import analysis, dnds, intersect, objects, obtain_fasta_regions
+from SOPRANO import analysis, dnds, intersect, objects
 from SOPRANO.pipeline_utils import task_output
 
 
@@ -260,7 +260,7 @@ def main(_namespace=None):
     task_output(
         "Compiling list of transcript:regions to estimate number of sites"
     )
-    obtain_fasta_regions.GetTranscriptRegionsForSites.apply(params)
+    SOPRANO.pipeline_utils.GetTranscriptRegionsForSites.apply(params)
 
     if params.use_ssb192:
         task_output(

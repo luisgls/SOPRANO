@@ -1,7 +1,6 @@
 import pathlib
 
-from SOPRANO.objects import AnalysisPaths, Parameters, TranscriptPaths
-from SOPRANO.pipeline_utils import MissingDataError, _PipelineComponent
+from SOPRANO.objects import AnalysisPaths, TranscriptPaths
 from SOPRANO.sh_utils import subprocess_pipes
 
 
@@ -94,20 +93,3 @@ def _get_trans_regs(cds_fasta: pathlib.Path, output: pathlib.Path):
         ["grep", ":"],
         output_path=output,
     )
-
-
-class GetTranscriptRegionsForSites(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (params.epitopes_cds_fasta, params.intra_epitopes_cds)
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        GetTranscriptRegionsForSites.check_ready(params)
-        _get_trans_regs(params.epitopes_cds_fasta, params.epitopes_trans_regs)
-        _get_trans_regs(
-            params.intra_epitopes_cds_fasta, params.intra_epitopes_trans_regs
-        )
