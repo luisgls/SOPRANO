@@ -209,7 +209,7 @@ class Parameters(AnalysisPaths):
         input_path: pathlib.Path,
         bed_path: pathlib.Path,
         cache_dir: pathlib.Path,
-        target_regions: pathlib.Path,
+        target_regions: pathlib.Path | None,
         use_ssb192: bool,
         use_random: bool,
         exclude_drivers: bool,

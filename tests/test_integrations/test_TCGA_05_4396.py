@@ -1,9 +1,8 @@
 import pathlib
-from argparse import Namespace
 
 import SOPRANO
 from SOPRANO import objects
-from SOPRANO.run_local_ssb_selection import main
+from SOPRANO.pipeline_utils import run_pipeline
 
 SOPRANO_ROOT = pathlib.Path(SOPRANO.__file__).parent
 DATA_DIR = SOPRANO_ROOT.joinpath("data")
@@ -17,21 +16,14 @@ genome_ref = "GRCh37"
 exclude_drivers = True
 release = 110
 
-# TODO: Quick test in cache dir with:
-# Rscript $_WIN_HOME/software/SOPRANO/src/SOPRANO/scripts/
-# calculateKaKsEpiCorrected_CI_intron_V3.R TCGA-05-4396.data.epitopes
-# TCGA-05-4396.epitopes.nans TCGA-05-4396.intra_epitopes.nans
-# TCGA-05-4396.intron.rate
-
 
 def test_pipeline(tmp_path):
     """
-    Test the TCGA-05-4396 end-to-end to validate results.
+    Test the TCGA-05-4396 end-to-end for validation.
 
-    :param tmp_path:
-    :return:
+    :param tmp_path: invoked by pytest fixture - uses /tmp
     """
-    namespace = Namespace(
+    params = objects.Parameters(
         analysis_name=name,
         input_path=input_file,
         bed_path=bed_file,
@@ -41,16 +33,11 @@ def test_pipeline(tmp_path):
         use_random=False,
         exclude_drivers=exclude_drivers,
         seed=-1,
-        transcript=objects.EnsemblTranscripts.transcript_length,
-        protein_transcript=objects.EnsemblTranscripts.protein_transcript_length,
-        transcript_ids=objects.EnsemblTranscripts.transcript_fasta,
-        genome_ref=genome_ref,
-        release=release,
+        transcripts=objects.EnsemblTranscripts,
+        genomes=objects.GRCh37,
     )
 
-    params = objects.Parameters.from_namespace(namespace)
-
-    main(namespace)
+    run_pipeline(params)
 
     # Check filtered transcripts have been built
     assert params.filtered_transcript.exists()

@@ -1,5 +1,6 @@
 import pathlib
 from datetime import datetime
+from typing import List
 
 from SOPRANO.analysis import (
     _build_flag_file,
@@ -83,10 +84,11 @@ class _PipelineComponent:
 
 
 class _PipelineComponent2:
-    msg = ""  # Will be printed to stdout with date/time stamp
+    msg: str | None = None  # Will be printed to stdout with date/time stamp
 
     def apply(self, params: Parameters):
-        task_output(self.msg)
+        if self.msg is not None:
+            task_output(self.msg)
         self.check_ready(params)
         self._apply(params)
 
@@ -1049,3 +1051,56 @@ class ComputeStatistics2(_PipelineComponent2):
 
     def _apply(self, params: Parameters):
         _compute_coverage(params)
+
+
+def run_pipeline(params: Parameters):
+    jobs: List[_PipelineComponent2] = [FilterTranscripts2()]
+
+    if params.use_target_regions:
+        jobs.append(RandomizeWithRegions2())
+    elif params.use_random:
+        jobs.append(RandomizeWithoutRegions2())
+    else:
+        jobs.append(NonRandom2())
+
+    if params.exclude_drivers:
+        jobs.append(GeneExclusions2())
+    else:
+        jobs.append(GeneExclusionsDisabled2())
+
+    jobs.append(BuildProteinComplement2())
+
+    if params.use_ssb192:
+        jobs.append(UseSSB1922())
+    else:
+        jobs.append(NotSSB1922())
+
+    jobs.append(BuildIntraEpitopesCDS2())
+    jobs.append(ObtainFastaRegions2())
+    jobs.append(GetTranscriptRegionsForSites2())
+
+    if params.use_ssb192:
+        jobs.append(ComputeSSB192TheoreticalSubs2())
+        jobs.append(SumPossibleAcrossRegions2())
+        jobs.append(FixSimulated2())
+        jobs.append(ColumnCorrect2())
+        jobs.append(ContextCorrection2())
+        jobs.append(FlagComputations2())
+        jobs.append(TripletCounts2())
+        jobs.append(SiteCorrections2())
+    else:
+        raise KeyError("SSB7 requires implementation")
+
+    jobs.append(IntersectByFrequency2())
+    jobs.append(GetSilentCounts2())
+    jobs.append(GetNonSilentCounts2())
+    jobs.append(GetMissenseCounts2())
+    jobs.append(GetIntronicCounts2())
+    jobs.append(OnOffCounts2())
+    jobs.append(BuildEpitopesDataFile2())
+    jobs.append(CheckTargetMutations2())
+    jobs.append(ComputeIntronRate2())
+    jobs.append(ComputeStatistics2())
+
+    for job in jobs:
+        job.apply(params)

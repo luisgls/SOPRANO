@@ -2,9 +2,8 @@ import argparse
 import pathlib
 import subprocess
 
-import SOPRANO.pipeline_utils
 from SOPRANO import objects
-from SOPRANO.pipeline_utils import task_output
+from SOPRANO.pipeline_utils import run_pipeline
 
 
 def check_path(cli_path: pathlib.Path | None, optional=False):
@@ -214,117 +213,7 @@ def main(_namespace=None):
     cli_args = parse_args() if _namespace is None else _namespace
     startup_output(**cli_args.__dict__)
     params = objects.Parameters.from_namespace(cli_args)
-
-    task_output("Filtering transcripts")
-    SOPRANO.pipeline_utils.FilterTranscripts.apply(params)
-
-    if params.use_target_regions:
-        task_output(
-            f"Randomizing transcripts subject to bed file: "
-            f"{params.target_regions_path.as_posix()}"
-        )
-        randomization_method = SOPRANO.pipeline_utils.RandomizeWithRegions
-    elif params.use_random:
-        task_output("Randomizing transcripts")
-        randomization_method = SOPRANO.pipeline_utils.RandomizeWithoutRegions
-    else:
-        task_output("No randomization selected, sorting input bed file")
-        randomization_method = SOPRANO.pipeline_utils.NonRandom
-    randomization_method.apply(params)
-
-    if params.exclude_drivers:
-        task_output("Excluding positively selected genes")
-        drivers_method = SOPRANO.pipeline_utils.GeneExclusions
-    else:
-        task_output("Retaining positively selected genes")
-        drivers_method = SOPRANO.pipeline_utils.GeneExclusionsDisabled
-    drivers_method.apply(params)
-
-    task_output("Building protein complement")
-    SOPRANO.pipeline_utils.BuildProteinComplement.apply(params)
-
-    if params.use_ssb192:
-        task_output("Preparing CDS coords with SSB192 mutrate")
-        ssb192_method = SOPRANO.pipeline_utils.UseSSB192
-    else:
-        task_output("Preparing CDS coords without SSB192 mutrate")
-        ssb192_method = SOPRANO.pipeline_utils.NotSSB192
-    ssb192_method.apply(params)
-
-    task_output("Building intra epitope CDS file")
-    SOPRANO.pipeline_utils.BuildIntraEpitopesCDS.apply(params)
-
-    task_output("Obtaining fasta regions")
-    SOPRANO.pipeline_utils.ObtainFastaRegions.apply(params)
-
-    task_output(
-        "Compiling list of transcript:regions to estimate number of sites"
-    )
-    SOPRANO.pipeline_utils.GetTranscriptRegionsForSites.apply(params)
-
-    if params.use_ssb192:
-        task_output(
-            "Estimating all theoretically possible 192 substitutions for "
-            "target and non-target regions"
-        )
-        SOPRANO.pipeline_utils.ComputeSSB192TheoreticalSubs.apply(params)
-
-        task_output(
-            "Computing sum over all possible sites in target and non-target "
-            "regions"
-        )
-        SOPRANO.pipeline_utils.SumPossibleAcrossRegions.apply(params)
-
-        task_output(
-            "Processing VEP annotated file to estimated 192 rate parameters"
-        )
-        SOPRANO.pipeline_utils.FixSimulated.apply(params)
-        task_output("Applying column corrections for alternative format")
-        SOPRANO.pipeline_utils.ColumnCorrect.apply(params)
-
-        task_output("Performing context corrections")
-        SOPRANO.pipeline_utils.ContextCorrection.apply(params)
-
-        task_output("Flagging calculations")
-        SOPRANO.pipeline_utils.FlagComputations.apply(params)
-
-        task_output("Computing triplet counts")
-        SOPRANO.pipeline_utils.TripletCounts.apply(params)
-
-        task_output("Applying site corrections")
-        SOPRANO.pipeline_utils.SiteCorrections.apply(params)
-    else:
-        # TODO: See line 243 - 306
-        raise ValueError("Implement SSB7")
-
-    task_output("Intersecting by frequency")
-    SOPRANO.pipeline_utils.IntersectByFrequency.apply(params)
-
-    task_output("Computing silent variant counts")
-    SOPRANO.pipeline_utils.GetSilentCounts.apply(params)
-
-    task_output("Computing nonsilent variant counts")
-    SOPRANO.pipeline_utils.GetNonSilentCounts.apply(params)
-
-    task_output("Computing missense variant counts")
-    SOPRANO.pipeline_utils.GetMissenseCounts.apply(params)
-
-    task_output("Computing intronic variant counts")
-    SOPRANO.pipeline_utils.GetIntronicCounts.apply(params)
-
-    task_output("Computing On/Off region counts")
-    SOPRANO.pipeline_utils.OnOffCounts.apply(params)
-
-    task_output("Building extended data epitope file")
-    SOPRANO.pipeline_utils.BuildEpitopesDataFile.apply(params)
-
-    SOPRANO.pipeline_utils.CheckTargetMutations.apply(params)
-
-    task_output("Computing intron rate")
-    SOPRANO.pipeline_utils.ComputeIntronRate.apply(params)
-
-    task_output("Computing dNdS statistics")
-    SOPRANO.pipeline_utils.ComputeStatistics.apply(params)
+    run_pipeline(params)
 
 
 def parse_genome_args():
