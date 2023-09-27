@@ -123,6 +123,8 @@ if __name__ == "__main__":
     )
     process_name()
 
+    # TODO: Update to bypass namespace - just need run_pipeline(params) now.
+
     st.session_state.namespace = argparse.Namespace(
         analysis_name=st.session_state.job_name,
         input_path=st.session_state.input_path,
