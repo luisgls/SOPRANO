@@ -307,7 +307,7 @@ def main(_namespace=None):
     SOPRANO.pipeline_utils.GetNonSilentCounts.apply(params)
 
     task_output("Computing missense variant counts")
-    intersect.GetMissenseCounts.apply(params)
+    SOPRANO.pipeline_utils.GetMissenseCounts.apply(params)
 
     task_output("Computing intronic variant counts")
     intersect.GetIntronicCounts.apply(params)

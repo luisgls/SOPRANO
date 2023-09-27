@@ -154,12 +154,6 @@ def _get_missense_variant_counts(paths: AnalysisPaths):
     )
 
 
-class GetMissenseCounts(_PipelineComponent):
-    @staticmethod
-    def apply(params: Parameters):
-        _get_missense_variant_counts(params)
-
-
 def _get_intronic_variant_counts(paths: AnalysisPaths):
     """
     Implements:
