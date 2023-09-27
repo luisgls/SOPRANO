@@ -1,13 +1,7 @@
 import pathlib
 import subprocess
 
-from SOPRANO.objects import (
-    AnalysisPaths,
-    AuxiliaryPaths,
-    Parameters,
-    TranscriptPaths,
-)
-from SOPRANO.pipeline_utils import MissingDataError, _PipelineComponent
+from SOPRANO.objects import AnalysisPaths, AuxiliaryPaths, TranscriptPaths
 from SOPRANO.sh_utils import subprocess_pipes
 
 
@@ -404,22 +398,3 @@ def transform_coordinates(paths: AnalysisPaths):
         ["fgrep", "-w", "-f", "-", paths.intra_epitopes_tmp.as_posix()],
         output_path=paths.intra_epitopes_cds,
     )
-
-
-class BuildIntraEpitopesCDS(_PipelineComponent):
-    """Builds the complement to the epitope in cds coords"""
-
-    @staticmethod
-    def check_ready(params: Parameters):
-        for path in (
-            params.epitopes,
-            params.epitopes_cds,
-            params.filtered_transcript,
-        ):
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        BuildIntraEpitopesCDS.check_ready(params)
-        transform_coordinates(params)

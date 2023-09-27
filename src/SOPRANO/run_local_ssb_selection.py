@@ -3,14 +3,7 @@ import pathlib
 import subprocess
 
 import SOPRANO.pipeline_utils
-from SOPRANO import (
-    analysis,
-    dnds,
-    intersect,
-    objects,
-    obtain_fasta_regions,
-    prepare_coordinates,
-)
+from SOPRANO import analysis, dnds, intersect, objects, obtain_fasta_regions
 from SOPRANO.pipeline_utils import task_output
 
 
@@ -259,7 +252,7 @@ def main(_namespace=None):
     ssb192_method.apply(params)
 
     task_output("Building intra epitope CDS file")
-    prepare_coordinates.BuildIntraEpitopesCDS.apply(params)
+    SOPRANO.pipeline_utils.BuildIntraEpitopesCDS.apply(params)
 
     task_output("Obtaining fasta regions")
     obtain_fasta_regions.ObtainFastaRegions.apply(params)

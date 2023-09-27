@@ -13,6 +13,7 @@ from SOPRANO.prepare_coordinates import (
     _randomize_with_target_file,
     _sort_excluded_regions_for_randomization,
     filter_transcript_files,
+    transform_coordinates,
 )
 
 
@@ -315,3 +316,36 @@ class NotSSB1922(_SSB192Selection2):
 
     def _apply(self, params: Parameters):
         _prep_not_ssb192(params)
+
+
+class BuildIntraEpitopesCDS(_PipelineComponent):
+    """Builds the complement to the epitope in cds coords"""
+
+    @staticmethod
+    def check_ready(params: Parameters):
+        for path in (
+            params.epitopes,
+            params.epitopes_cds,
+            params.filtered_transcript,
+        ):
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        BuildIntraEpitopesCDS.check_ready(params)
+        transform_coordinates(params)
+
+
+class BuildIntraEpitopesCDS2(_PipelineComponent2):
+    msg = "Building intra epitope file in CDS coordinates"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(
+            params.epitopes,
+            params.epitopes_cds,
+            params.filtered_transcript,
+        )
+
+    def _apply(self, params: Parameters):
+        transform_coordinates(params)
