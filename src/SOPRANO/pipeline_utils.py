@@ -5,6 +5,7 @@ from SOPRANO.objects import Parameters
 from SOPRANO.prepare_coordinates import (
     _define_excluded_regions_for_randomization,
     _non_randomized,
+    _randomize_with_target_file,
     _sort_excluded_regions_for_randomization,
     filter_transcript_files,
 )
@@ -170,3 +171,23 @@ class RandomizeWithoutRegions2(_Randomize2):
     def apply(self, params: Parameters):
         _define_excluded_regions_for_randomization(params)
         _sort_excluded_regions_for_randomization(params, seed=params.seed)
+
+
+class RandomizeWithRegions(_Randomize):
+    """Randomizes with user input file"""
+
+    @staticmethod
+    def apply(params: Parameters):
+        _Randomize.check_ready(params)
+        _randomize_with_target_file(
+            params, params.transcripts, seed=params.seed
+        )
+
+
+class RandomizeWithRegions2(_Randomize2):
+    msg = "Performing randomization using supplement bed file definitions"
+
+    def apply(self, params: Parameters):
+        _randomize_with_target_file(
+            params, params.transcripts, seed=params.seed
+        )

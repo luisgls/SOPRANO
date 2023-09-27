@@ -230,7 +230,7 @@ def main(_namespace=None):
             f"Randomizing transcripts subject to bed file: "
             f"{params.target_regions_path.as_posix()}"
         )
-        randomization_method = prepare_coordinates.RandomizeWithRegions
+        randomization_method = SOPRANO.pipeline_utils.RandomizeWithRegions
     elif params.use_random:
         task_output("Randomizing transcripts")
         randomization_method = SOPRANO.pipeline_utils.RandomizeWithoutRegions

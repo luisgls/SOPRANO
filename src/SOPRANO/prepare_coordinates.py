@@ -8,11 +8,7 @@ from SOPRANO.objects import (
     Parameters,
     TranscriptPaths,
 )
-from SOPRANO.pipeline_utils import (
-    MissingDataError,
-    _PipelineComponent,
-    _Randomize,
-)
+from SOPRANO.pipeline_utils import MissingDataError, _PipelineComponent
 from SOPRANO.sh_utils import subprocess_pipes
 
 
@@ -242,17 +238,6 @@ def _non_randomized(paths: AnalysisPaths):
     subprocess_pipes.pipe(
         ["sort", "-u", paths.bed_path], output_path=paths.exclusions_shuffled
     )
-
-
-class RandomizeWithRegions(_Randomize):
-    """Randomizes with user input file"""
-
-    @staticmethod
-    def apply(params: Parameters):
-        _Randomize.check_ready(params)
-        _randomize_with_target_file(
-            params, params.transcripts, seed=params.seed
-        )
 
 
 def _exclude_positively_selected_genes_disabled(paths: AnalysisPaths):
