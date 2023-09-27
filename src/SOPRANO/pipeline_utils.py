@@ -3,6 +3,7 @@ from datetime import datetime
 
 from SOPRANO.analysis import (
     _compute_theoretical_subs,
+    _fix_simulated,
     _sum_possible_across_region,
 )
 from SOPRANO.objects import AuxiliaryFiles, Parameters
@@ -506,3 +507,22 @@ class SumPossibleAcrossRegions2(_PipelineComponent2):
             params.intra_epitopes_trans_regs,
             params.intra_epitopes_trans_regs_sum,
         )
+
+
+class FixSimulated(_PipelineComponent):
+    @staticmethod
+    def apply(params: Parameters):
+        FixSimulated.check_ready(params)
+        _fix_simulated(params)
+
+
+class FixSimulated2(_PipelineComponent2):
+    msg = "Processing VEP annotated file to estimated 192 rate parameters"
+    # TODO: Fix msg
+
+    def check_ready(self, params: Parameters):
+        # TODO
+        pass
+
+    def _apply(self, params: Parameters):
+        _fix_simulated(params)

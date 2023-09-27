@@ -76,13 +76,6 @@ def _fix_simulated(paths: AnalysisPaths):
     )
 
 
-class FixSimulated(_PipelineComponent):
-    @staticmethod
-    def apply(params: Parameters):
-        FixSimulated.check_ready(params)
-        _fix_simulated(params)
-
-
 def _col_correct(paths: AnalysisPaths):
     """
     Implements:
