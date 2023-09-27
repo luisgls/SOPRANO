@@ -12,7 +12,10 @@ from SOPRANO.analysis import (
     _initial_triplet_counts,
     _sum_possible_across_region,
 )
-from SOPRANO.intersect import _intersect_by_frequency
+from SOPRANO.intersect import (
+    _get_silent_variant_counts,
+    _intersect_by_frequency,
+)
 from SOPRANO.objects import AuxiliaryFiles, Parameters
 from SOPRANO.obtain_fasta_regions import (
     _get_non_target_regions,
@@ -714,3 +717,16 @@ class IntersectByFrequency2(_PipelineComponent2):
         _intersect_by_frequency(
             params.final_intra_epitope_corrections, params.intra_epitope_nans
         )
+
+
+class GetSilentCounts(_PipelineComponent):
+    @staticmethod
+    def apply(params: Parameters):
+        _get_silent_variant_counts(params)
+
+
+class GetSilentCounts2(_PipelineComponent2):
+    msg = "Computing silent mutation counts"
+
+    def _apply(self, params: Parameters):
+        _get_silent_variant_counts(params)

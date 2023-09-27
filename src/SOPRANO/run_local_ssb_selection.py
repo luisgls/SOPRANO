@@ -301,7 +301,7 @@ def main(_namespace=None):
     SOPRANO.pipeline_utils.IntersectByFrequency.apply(params)
 
     task_output("Computing silent variant counts")
-    intersect.GetSilentCounts.apply(params)
+    SOPRANO.pipeline_utils.GetSilentCounts.apply(params)
 
     task_output("Computing nonsilent variant counts")
     intersect.GetNonSilentCounts.apply(params)
