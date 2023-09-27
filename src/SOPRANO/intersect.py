@@ -34,29 +34,6 @@ def _intersect_by_frequency(
     )
 
 
-class IntersectByFrequency(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.final_epitope_corrections,
-            params.final_intra_epitope_corrections,
-        )
-
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        IntersectByFrequency.check_ready(params)
-        _intersect_by_frequency(
-            params.final_epitope_corrections, params.epitope_nans
-        )
-        _intersect_by_frequency(
-            params.final_intra_epitope_corrections, params.intra_epitope_nans
-        )
-
-
 _VARIANT_TYPES = (
     r"#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|"
     r"non_coding|splice_acceptor_variant|splice_donor_variant|"

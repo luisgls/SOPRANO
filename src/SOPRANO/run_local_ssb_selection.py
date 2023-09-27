@@ -298,7 +298,7 @@ def main(_namespace=None):
         raise ValueError("Implement SSB7")
 
     task_output("Intersecting by frequency")
-    intersect.IntersectByFrequency.apply(params)
+    SOPRANO.pipeline_utils.IntersectByFrequency.apply(params)
 
     task_output("Computing silent variant counts")
     intersect.GetSilentCounts.apply(params)

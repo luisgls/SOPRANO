@@ -12,6 +12,7 @@ from SOPRANO.analysis import (
     _initial_triplet_counts,
     _sum_possible_across_region,
 )
+from SOPRANO.intersect import _intersect_by_frequency
 from SOPRANO.objects import AuxiliaryFiles, Parameters
 from SOPRANO.obtain_fasta_regions import (
     _get_non_target_regions,
@@ -672,3 +673,44 @@ class SiteCorrections2(_PipelineComponent2):
 
     def _apply(self, params: Parameters):
         _correct_from_total_sites(params)
+
+
+class IntersectByFrequency(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (
+            params.final_epitope_corrections,
+            params.final_intra_epitope_corrections,
+        )
+
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        IntersectByFrequency.check_ready(params)
+        _intersect_by_frequency(
+            params.final_epitope_corrections, params.epitope_nans
+        )
+        _intersect_by_frequency(
+            params.final_intra_epitope_corrections, params.intra_epitope_nans
+        )
+
+
+class IntersectByFrequency2(_PipelineComponent2):
+    msg = "Intersecting by frequencies"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(
+            params.final_epitope_corrections,
+            params.final_intra_epitope_corrections,
+        )
+
+    def _apply(self, params: Parameters):
+        _intersect_by_frequency(
+            params.final_epitope_corrections, params.epitope_nans
+        )
+        _intersect_by_frequency(
+            params.final_intra_epitope_corrections, params.intra_epitope_nans
+        )
