@@ -255,7 +255,7 @@ def main(_namespace=None):
     SOPRANO.pipeline_utils.BuildIntraEpitopesCDS.apply(params)
 
     task_output("Obtaining fasta regions")
-    obtain_fasta_regions.ObtainFastaRegions.apply(params)
+    SOPRANO.pipeline_utils.ObtainFastaRegions.apply(params)
 
     task_output(
         "Compiling list of transcript:regions to estimate number of sites"

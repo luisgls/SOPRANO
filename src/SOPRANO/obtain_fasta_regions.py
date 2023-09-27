@@ -69,26 +69,6 @@ def _get_non_target_regions(
     )
 
 
-class ObtainFastaRegions(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.transcripts.transcript_fasta,
-            params.epitopes_cds,
-            params.intra_epitopes_cds,
-        )
-
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        ObtainFastaRegions.check_ready(params)
-        _get_target_fasta_regions(params, params.transcripts)
-        _get_non_target_regions(params, params.transcripts)
-
-
 def _get_trans_regs(cds_fasta: pathlib.Path, output: pathlib.Path):
     """
     Implements:

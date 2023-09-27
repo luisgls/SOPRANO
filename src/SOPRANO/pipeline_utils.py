@@ -2,6 +2,10 @@ import pathlib
 from datetime import datetime
 
 from SOPRANO.objects import AuxiliaryFiles, Parameters
+from SOPRANO.obtain_fasta_regions import (
+    _get_non_target_regions,
+    _get_target_fasta_regions,
+)
 from SOPRANO.prepare_coordinates import (
     _define_excluded_regions_for_randomization,
     _exclude_positively_selected_genes,
@@ -349,3 +353,38 @@ class BuildIntraEpitopesCDS2(_PipelineComponent2):
 
     def _apply(self, params: Parameters):
         transform_coordinates(params)
+
+
+class ObtainFastaRegions(_PipelineComponent):
+    @staticmethod
+    def check_ready(params: Parameters):
+        paths = (
+            params.transcripts.transcript_fasta,
+            params.epitopes_cds,
+            params.intra_epitopes_cds,
+        )
+
+        for path in paths:
+            if not path.exists():
+                raise MissingDataError(path)
+
+    @staticmethod
+    def apply(params: Parameters):
+        ObtainFastaRegions.check_ready(params)
+        _get_target_fasta_regions(params, params.transcripts)
+        _get_non_target_regions(params, params.transcripts)
+
+
+class ObtainFastaRegions2(_PipelineComponent2):
+    msg = "Obtaining fasta regions"
+
+    def check_ready(self, params: Parameters):
+        _check_paths(
+            params.transcripts.transcript_fasta,
+            params.epitopes_cds,
+            params.intra_epitopes_cds,
+        )
+
+    def _apply(self, params: Parameters):
+        _get_target_fasta_regions(params, params.transcripts)
+        _get_non_target_regions(params, params.transcripts)
