@@ -72,27 +72,6 @@ def filter_transcript_files(
     )
 
 
-class FilterTranscripts(_PipelineComponent):
-    """
-    Filter transcript files with respect to input bed file
-    """
-
-    @staticmethod
-    def apply(params: Parameters):
-        FilterTranscripts.check_ready(params)
-        filter_transcript_files(params, params.transcripts)
-
-    @staticmethod
-    def check_ready(params: Parameters):
-        for path in (
-            params.bed_path,
-            params.transcripts.transcript_length,
-            params.transcripts.protein_transcript_length,
-        ):
-            if not path.exists():
-                raise MissingDataError(path)
-
-
 def _define_excluded_regions_for_randomization(paths: AnalysisPaths):
     """
     Implements:

@@ -2,6 +2,7 @@ import argparse
 import pathlib
 import subprocess
 
+import SOPRANO.pipeline_utils
 from SOPRANO import (
     analysis,
     dnds,
@@ -222,7 +223,7 @@ def main(_namespace=None):
     params = objects.Parameters.from_namespace(cli_args)
 
     task_output("Filtering transcripts")
-    prepare_coordinates.FilterTranscripts.apply(params)
+    SOPRANO.pipeline_utils.FilterTranscripts.apply(params)
 
     if params.use_target_regions:
         task_output(

@@ -2,6 +2,7 @@ import pathlib
 from datetime import datetime
 
 from SOPRANO.objects import Parameters
+from SOPRANO.prepare_coordinates import filter_transcript_files
 
 
 def time_output():
@@ -68,5 +69,40 @@ class _PipelineComponent2:
     def _apply(self, params: Parameters):
         pass
 
-    def check_ready(self, *params: Parameters) -> None:
+    def check_ready(self, params: Parameters):
         pass
+
+
+class FilterTranscripts(_PipelineComponent):
+    """
+    Filter transcript files with respect to input bed file
+    """
+
+    @staticmethod
+    def apply(params: Parameters):
+        FilterTranscripts.check_ready(params)
+        filter_transcript_files(params, params.transcripts)
+
+    @staticmethod
+    def check_ready(params: Parameters):
+        for path in (
+            params.bed_path,
+            params.transcripts.transcript_length,
+            params.transcripts.protein_transcript_length,
+        ):
+            if not path.exists():
+                raise MissingDataError(path)
+
+
+class FilterTranscripts2(_PipelineComponent2):
+    msg = "Filtering transcripts"
+
+    def _apply(self, params: Parameters):
+        filter_transcript_files(params, params.transcripts)
+
+    def check_ready(self, params: Parameters):
+        _check_paths(
+            params.bed_path,
+            params.transcripts.transcript_length,
+            params.transcripts.protein_transcript_length,
+        )
