@@ -152,7 +152,7 @@ class NonRandom(_Randomize):
 class NonRandom2(_Randomize2):
     msg = "No randomization selected; selecting unique items from bed file"
 
-    def apply(self, params: Parameters):
+    def _apply(self, params: Parameters):
         _non_randomized(params)
 
 
@@ -169,7 +169,7 @@ class RandomizeWithoutRegions(_Randomize):
 class RandomizeWithoutRegions2(_Randomize2):
     msg = "Performing randomization without supplement bed file definitions"
 
-    def apply(self, params: Parameters):
+    def _apply(self, params: Parameters):
         _define_excluded_regions_for_randomization(params)
         _sort_excluded_regions_for_randomization(params, seed=params.seed)
 
@@ -188,7 +188,7 @@ class RandomizeWithRegions(_Randomize):
 class RandomizeWithRegions2(_Randomize2):
     msg = "Performing randomization using supplement bed file definitions"
 
-    def apply(self, params: Parameters):
+    def _apply(self, params: Parameters):
         _randomize_with_target_file(
             params, params.transcripts, seed=params.seed
         )
@@ -220,5 +220,5 @@ class GeneExclusions(_GeneExclusions):
 class GeneExclusions2(_GeneExclusions2):
     msg = "Excluding positively selected genes"
 
-    def apply(self, params: Parameters):
+    def _apply(self, params: Parameters):
         _exclude_positively_selected_genes(params, AuxiliaryFiles)
