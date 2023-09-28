@@ -3,6 +3,7 @@ import pathlib
 import subprocess
 
 from SOPRANO import objects
+from SOPRANO.misc_utils import Directories
 from SOPRANO.pipeline_utils import run_pipeline
 
 
@@ -244,14 +245,8 @@ def parse_genome_args():
 def download_genome():
     ref, release = parse_genome_args()
     startup_output()
-    soprano_root_dir = pathlib.Path(__file__).parent
-    installers_dir = soprano_root_dir.joinpath("bash_installers")
-    downloader_path = installers_dir.joinpath("download_reference.sh")
-    data_dir = (
-        soprano_root_dir.joinpath("data")
-        .joinpath("homo_sapiens")
-        .joinpath(f"{release}_{ref}")
-    )
+    downloader_path = Directories.installers("download_reference.sh")
+    data_dir = Directories.homo_sapien_genomes(f"{release}_{ref}")
 
     if not data_dir.exists():
         data_dir.mkdir(parents=True)
@@ -268,8 +263,7 @@ def local_st_app():
     """
     Runs streamlit app interface for SOPRANO
     """
-    soprano_src_dir = pathlib.Path(__file__).parent
-    app_path = soprano_src_dir.joinpath("st_app.py")
+    app_path = Directories.src("st_app.py")
     subprocess.run(["streamlit", "run", app_path])
 
 

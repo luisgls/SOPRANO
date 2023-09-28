@@ -1,19 +1,16 @@
-import os
-import pathlib
 import time
 
 import pandas as pd
 import streamlit as st
 
 from SOPRANO import objects, pipeline_utils, st_stdout
+from SOPRANO.misc_utils import Directories
 
 # Cache location
-_DEFAULT_CACHE = pathlib.Path(__file__).parent.parent.parent / "pipeline_cache"
-cache_from_env = os.environ.get("SOPRANO_CACHE", _DEFAULT_CACHE.as_posix())
-_CACHE = pathlib.Path(cache_from_env)
+_CACHE = Directories.cache()
 
 # Find genome options
-_HOMO_SAPIENS_DIR = pathlib.Path(__file__).parent / "data" / "homo_sapiens"
+_HOMO_SAPIENS_DIR = Directories.homo_sapien_genomes()
 
 _GENOME_DIRS = [item for item in _HOMO_SAPIENS_DIR.glob("*") if item.is_dir()]
 
@@ -26,10 +23,10 @@ _GENOME_DICT = {
     name: dir_path for name, dir_path in zip(_GENOME_NAMES, _GENOME_DIRS)
 }
 
-_ANNO_DIR = pathlib.Path(__file__).parent / "examples"
+_ANNO_DIR = Directories.examples()
 _ANNO_OPTIONS = {x.name: x for x in _ANNO_DIR.glob("*.anno*")}
 
-_BED_DIR = pathlib.Path(__file__).parent / "immunopeptidomes" / "human"
+_BED_DIR = Directories.immuno_humans()
 _BED_OPTIONS = {x.name: x for x in _BED_DIR.glob("*.bed")}
 
 

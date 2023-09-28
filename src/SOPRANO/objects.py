@@ -2,6 +2,8 @@ import pathlib
 from argparse import Namespace
 from dataclasses import dataclass
 
+from SOPRANO.misc_utils import Directories
+
 
 def _data_dir():
     return pathlib.Path(__file__).parent.joinpath("data")
@@ -15,11 +17,11 @@ class TranscriptPaths:
 
 
 EnsemblTranscripts = TranscriptPaths(
-    transcript_length=_data_dir().joinpath("ensemble_transcript.length"),
-    protein_transcript_length=_data_dir().joinpath(
+    transcript_length=Directories.data("ensemble_transcript.length"),
+    protein_transcript_length=Directories.data(
         "ensemble_transcript_protein.length"
     ),
-    transcript_fasta=_data_dir().joinpath("ensemble_transcriptID.fasta"),
+    transcript_fasta=Directories.data("ensemble_transcriptID.fasta"),
 )
 
 
@@ -30,21 +32,28 @@ class GenomePaths:
 
 
 def _genome_pars_to_paths(ref, release):
-    data_dir = (
-        _data_dir().joinpath("homo_sapiens").joinpath(f"{release}_{ref}")
-    )
+    """
+    Translates human genome reference and release ids into a tuple of paths
 
+    - genome reference fasta file path
+    - chrom sizes file path
+
+    :param ref: Genome reference ID
+    :param release: Ensembl release ID
+    :return: Tuple of paths: reference fasta file, chrom sizes
+    """
+    data_dir = Directories.homo_sapien_genomes(f"{release}_{ref}")
     genome_path = data_dir.joinpath(f"Homo_sapiens.{ref}.dna.toplevel.fa")
     chroms_path = data_dir.joinpath(f"Homo_sapiens.{ref}.dna.toplevel.chrom")
     return genome_path, chroms_path
 
 
-GRCh37 = GenomePaths(
+GRCh37_110 = GenomePaths(
     sizes=_genome_pars_to_paths("GRCh37", 110)[1],
     fasta=_genome_pars_to_paths("GRCh37", 110)[0],
 )
 
-GRCh38 = GenomePaths(
+GRCh38_110 = GenomePaths(
     sizes=_genome_pars_to_paths("GRCh38", 110)[1],
     fasta=_genome_pars_to_paths("GRCh38", 110)[0],
 )
@@ -57,8 +66,8 @@ class AuxiliaryPaths:
 
 
 AuxiliaryFiles = AuxiliaryPaths(
-    genes_to_exclude=_data_dir().joinpath("genes2exclude.txt"),
-    intron_length=_data_dir().joinpath("transcript_intron_length.bed"),
+    genes_to_exclude=Directories.data("genes2exclude.txt"),
+    intron_length=Directories.data("transcript_intron_length.bed"),
 )
 
 
@@ -243,12 +252,16 @@ class Parameters(AnalysisPaths):
             namespace.transcript_ids,
         )
 
-        if namespace.genome_ref == "GRCh37":
-            genomes = GRCh37
-        elif namespace.genome_ref == "GRCh38":
-            genomes = GRCh38
+        if namespace.genome_ref in ("GRCh37", "GRCh38"):
+            fasta_path, chrom_path = _genome_pars_to_paths(
+                namespace.genome_ref, namespace.genome_rel
+            )
+            genomes = GenomePaths(sizes=chrom_path, fasta=fasta_path)
         else:
-            raise KeyError(f"Unrecognized reference: {namespace.genome_ref}")
+            raise KeyError(
+                f"Unrecognized reference: {namespace.genome_ref}\n"
+                f"Possibly requires implementation."
+            )
 
         return cls(
             namespace.analysis_name,

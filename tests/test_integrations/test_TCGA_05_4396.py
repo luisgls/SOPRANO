@@ -1,24 +1,19 @@
-import pathlib
-
 import pandas as pd
 
-import SOPRANO
 from SOPRANO import objects
+from SOPRANO.misc_utils import Directories
 from SOPRANO.pipeline_utils import run_pipeline
 
-SOPRANO_ROOT = pathlib.Path(SOPRANO.__file__).parent
-DATA_DIR = SOPRANO_ROOT.joinpath("data")
-BIO_DIR = SOPRANO_ROOT.joinpath("immunopeptidomes").joinpath("human")
-EXAMPLES_DIR = SOPRANO_ROOT.joinpath("examples")
-
-input_file = EXAMPLES_DIR.joinpath("TCGA-05-4396-01A-21D-1855-08.annotated")
-bed_file = BIO_DIR.joinpath("TCGA-05-4396.Expressed.IEDBpeps.SB.epitope.bed")
+input_file = Directories.examples("TCGA-05-4396-01A-21D-1855-08.annotated")
+bed_file = Directories.immuno_humans(
+    "TCGA-05-4396.Expressed.IEDBpeps.SB.epitope.bed"
+)
 name = "TCGA-05-4396"
 genome_ref = "GRCh37"
 exclude_drivers = True
 release = 110
 
-expected_path = pathlib.Path(__file__).parent.joinpath("TCGA-05-4396.tsv")
+expected_path = Directories.int_tests("TCGA-05-4396.tsv")
 assert expected_path.exists()
 
 
@@ -39,7 +34,7 @@ def test_pipeline(tmp_path):
         exclude_drivers=exclude_drivers,
         seed=-1,
         transcripts=objects.EnsemblTranscripts,
-        genomes=objects.GRCh37,
+        genomes=objects.GRCh37_110,
     )
 
     run_pipeline(params)

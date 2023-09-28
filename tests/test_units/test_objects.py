@@ -13,7 +13,7 @@ def test_Transcripts():
 
 
 def test_GRCh37():
-    assert objects.GRCh37.sizes.exists()
+    assert objects.GRCh37_110.sizes.exists()
     # assert objects.GRCh37.fasta.exists()
 
 

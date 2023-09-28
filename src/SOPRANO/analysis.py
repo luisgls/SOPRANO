@@ -1,11 +1,8 @@
 import pathlib
 
-from SOPRANO.misc_utils import is_empty
+from SOPRANO.misc_utils import Directories, is_empty
 from SOPRANO.objects import AnalysisPaths, GenomePaths
 from SOPRANO.sh_utils import subprocess_pipes
-
-SOPRANO_ROOT = pathlib.Path(__file__).parent
-SCRIPTS_DIR = SOPRANO_ROOT.joinpath("scripts")
 
 
 def _compute_theoretical_subs(
@@ -25,7 +22,7 @@ def _compute_theoretical_subs(
     :param trans_regs: list of transcript:regions
     """
 
-    perl_path = SCRIPTS_DIR.joinpath("calculate_sites_signaturesLZ_192.pl")
+    perl_path = Directories.scripts("calculate_sites_signaturesLZ_192.pl")
 
     subprocess_pipes.pipe(
         [perl_path.as_posix(), cds_fasta.as_posix(), trans_regs],
@@ -65,7 +62,7 @@ def _fix_simulated(paths: AnalysisPaths):
     :param paths:
     """
 
-    perl_script = SCRIPTS_DIR.joinpath("fixsimulated.pl")
+    perl_script = Directories.scripts("fixsimulated.pl")
 
     subprocess_pipes.pipe(
         ["perl", perl_script, paths.input_path], output_path=paths.sim_fixed
@@ -271,7 +268,7 @@ def _correct_from_total_sites(paths: AnalysisPaths):
     :param paths:
     """
 
-    perl_script = SCRIPTS_DIR.joinpath("correct_update_epitope_sitesV3.pl")
+    perl_script = Directories.scripts("correct_update_epitope_sitesV3.pl")
 
     subprocess_pipes.pipe(
         [
