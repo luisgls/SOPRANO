@@ -3,7 +3,7 @@ import pathlib
 import pytest
 from _test_utils import tab_line
 
-from SOPRANO.objects import AnalysisPaths, AuxiliaryPaths, TranscriptPaths
+from SOPRANO.core.objects import AnalysisPaths, AuxiliaryPaths, TranscriptPaths
 
 # Snippet from TCGA-05-4396-01A-21D-1855-08.annotated
 mock_input_content = [

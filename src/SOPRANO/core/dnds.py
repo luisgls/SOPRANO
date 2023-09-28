@@ -1,18 +1,9 @@
 import numpy as np
 import pandas as pd
 
-from SOPRANO.objects import (
-    AnalysisPaths,
-    AuxiliaryFiles,
-    AuxiliaryPaths,
-    Parameters,
-)
-from SOPRANO.pipeline_utils import (
-    MissingDataError,
-    _PipelineComponent,
-    is_empty,
-)
-from SOPRANO.sh_utils import subprocess_pipes
+from SOPRANO.core.objects import AnalysisPaths, AuxiliaryPaths
+from SOPRANO.utils.misc_utils import is_empty
+from SOPRANO.utils.sh_utils import pipe
 
 
 def _intersect_introns(paths: AnalysisPaths, aux_files: AuxiliaryPaths):
@@ -28,8 +19,7 @@ def _intersect_introns(paths: AnalysisPaths, aux_files: AuxiliaryPaths):
     :param paths:
     :return:
     """
-
-    subprocess_pipes.pipe(
+    pipe(
         [
             "intersectBed",
             "-a",
@@ -50,37 +40,6 @@ def _intersect_introns(paths: AnalysisPaths, aux_files: AuxiliaryPaths):
         ["awk", r'{print $4"\t"$8/($6+1)"\t"$8"\t"$6}'],
         output_path=paths.intron_rate,
     )
-
-
-class ComputeIntronRate(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        if not params.variants_intronic.exists():
-            raise MissingDataError(params.variants_intronic)
-
-    @staticmethod
-    def apply(params: Parameters):
-        _intersect_introns(params, AuxiliaryFiles)
-
-
-class ComputeStatistics(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.data_epitopes,
-            params.epitope_nans,
-            params.intra_epitope_nans,
-            params.intron_rate,
-        )
-
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        ComputeStatistics.check_ready(params)
-        _compute_coverage(params)
 
 
 def _preprocess_dfs(paths: AnalysisPaths):

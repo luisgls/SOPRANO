@@ -1,10 +1,6 @@
 import pathlib
 
-from SOPRANO import objects
-
-
-def test__data_dir():
-    assert objects._data_dir().exists()
+from SOPRANO.core import objects
 
 
 def test_Transcripts():
@@ -13,7 +9,7 @@ def test_Transcripts():
 
 
 def test_GRCh37():
-    assert objects.GRCh37.sizes.exists()
+    assert objects.GRCh37_110.sizes.exists()
     # assert objects.GRCh37.fasta.exists()
 
 
