@@ -4,7 +4,7 @@
 PROJECT_ROOT="$( cd -- "$(dirname -- "$0")" >/dev/null 2>&1 || exit ; pwd -P )"
 
 # Installation helpers dir
-INSTALLERS_DIR_PATH="src/SOPRANO/bash_installers"
+SHELL_UTILS_DIR="src/SOPRANO/shell_utils"
 
 # Data directory
 DATA_DIR_PATH="src/SOPRANO/data"
@@ -24,5 +24,5 @@ fi
 _PIP_CMD="pip install -e .[$DEPS]"
 
 # Configure conda environment and install repository
-source "$INSTALLERS_DIR_PATH/.setup_env.sh"
-source "$INSTALLERS_DIR_PATH/.setup_data.sh"
+source "$SHELL_UTILS_DIR/.setup_env.sh"
+source "$SHELL_UTILS_DIR/.setup_data.sh"

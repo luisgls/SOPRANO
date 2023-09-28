@@ -1,7 +1,7 @@
 import os
 import pathlib
 
-_SOPRANO_SRC = pathlib.Path(__file__).parent
+_SOPRANO_SRC = pathlib.Path(__file__).parent.parent
 _SOPRANO_SCRIPTS = _SOPRANO_SRC / "scripts"
 _SOPRANO_DATA = _SOPRANO_SRC / "data"
 _SOPRANO_HOMO_SAPIENS = _SOPRANO_DATA / "homo_sapiens"
@@ -14,7 +14,7 @@ _SOPRANO_TESTS = _SOPRANO_REPO / "tests"
 _SOPRANO_UNIT_TESTS = _SOPRANO_TESTS / "test_units"
 _SOPRANO_INT_TESTS = _SOPRANO_TESTS / "test_integrations"
 _SOPRANO_CFG_TESTS = _SOPRANO_TESTS / "test_configuration"
-_SOPRANO_INSTALLERS = _SOPRANO_SRC / "bash_installers"
+_SOPRANO_INSTALLERS = _SOPRANO_SRC / "shell_utils"
 
 _STD_SYS_VEP = pathlib.Path.home() / ".vep"
 
@@ -98,3 +98,19 @@ class MissingDataError(Exception):
 
 class SOPRANOError(Exception):
     pass
+
+
+def _check_paths(*dependent_paths: pathlib.Path):
+    for path in dependent_paths:
+        if not path.exists():
+            raise MissingDataError(path)
+
+
+def check_cli_path(cli_path: pathlib.Path | None, optional=False):
+    if cli_path is None:
+        if not optional:
+            raise FileNotFoundError(
+                "Input path is not optional and path is None!"
+            )
+    elif not cli_path.exists():
+        raise FileNotFoundError(f"CLI input path does not exist: {cli_path}")

@@ -1,8 +1,8 @@
 import pandas as pd
 
-from SOPRANO import objects
-from SOPRANO.misc_utils import Directories
-from SOPRANO.pipeline_utils import run_pipeline
+from SOPRANO.core import objects
+from SOPRANO.pipeline import run_pipeline
+from SOPRANO.utils.misc_utils import Directories
 
 input_file = Directories.examples("TCGA-05-4396-01A-21D-1855-08.annotated")
 bed_file = Directories.immuno_humans(

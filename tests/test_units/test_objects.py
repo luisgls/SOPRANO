@@ -1,10 +1,6 @@
 import pathlib
 
-from SOPRANO import objects
-
-
-def test__data_dir():
-    assert objects._data_dir().exists()
+from SOPRANO.core import objects
 
 
 def test_Transcripts():

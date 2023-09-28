@@ -1,8 +1,8 @@
 import pathlib
 
-from SOPRANO.misc_utils import SOPRANOError, is_empty
-from SOPRANO.objects import AnalysisPaths
-from SOPRANO.sh_utils import subprocess_pipes
+from SOPRANO.core.objects import AnalysisPaths
+from SOPRANO.utils.misc_utils import SOPRANOError, is_empty
+from SOPRANO.utils.sh_utils import pipe
 
 
 def _intersect_by_frequency(
@@ -19,7 +19,7 @@ def _intersect_by_frequency(
     :param nans_output: path to output for detected nans
     """
 
-    subprocess_pipes.pipe(
+    pipe(
         [
             "awk",
             r'{NA+=$4}{NS+=$6}END{print NA"\t"NS}',
@@ -65,7 +65,7 @@ def _get_silent_variant_counts(paths: AnalysisPaths):
     :param paths:
     """
 
-    subprocess_pipes.pipe(
+    pipe(
         [
             "egrep",
             "-v",
@@ -99,7 +99,7 @@ def _get_nonsilent_variant_counts(paths: AnalysisPaths):
     :param paths:
     """
 
-    subprocess_pipes.pipe(
+    pipe(
         [
             "egrep",
             "-v",
@@ -134,7 +134,7 @@ def _get_missense_variant_counts(paths: AnalysisPaths):
     :param paths:
     :return:
     """
-    subprocess_pipes.pipe(
+    pipe(
         [
             "egrep",
             "-v",
@@ -167,7 +167,7 @@ def _get_intronic_variant_counts(paths: AnalysisPaths):
     :return:
     """
 
-    subprocess_pipes.pipe(
+    pipe(
         ["grep", "-v", r"^#", paths.input_path.as_posix()],
         ["grep", "-w", "intron_variant"],
         ["grep", "-v", "splice"],
@@ -181,7 +181,7 @@ def _count_mutations(variant_counts: pathlib.Path, output_path: pathlib.Path):
     if is_empty(variant_counts):
         counts = "0"
     else:
-        counts = subprocess_pipes.pipe(
+        counts = pipe(
             ["wc", "-l", variant_counts.as_posix()],
             ["awk", r"{print $1+1}"],
             output_path=output_path,
@@ -203,7 +203,7 @@ def _count_intersected_mutations(
     if is_empty(variant_counts):
         counts = "0"
     else:
-        counts = subprocess_pipes.pipe(
+        counts = pipe(
             [
                 "intersectBed",
                 "-b",
@@ -221,7 +221,7 @@ def _count_intersected_mutations(
 
 
 def get_counts(in_out_counts: pathlib.Path):
-    return int(subprocess_pipes.pipe(["cat", in_out_counts.as_posix()]))
+    return int(pipe(["cat", in_out_counts.as_posix()]))
 
 
 def _update_epitopes_data_file(
@@ -266,7 +266,7 @@ def _update_epitopes_data_file(
             col_idx = "10"
             awk_str = r'{print $0"\tintra_' + _label + '_variant"}'
 
-        subprocess_pipes.pipe(
+        pipe(
             [
                 "intersectBed",
                 "-b",

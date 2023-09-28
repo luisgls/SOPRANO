@@ -3,13 +3,13 @@ import time
 import pandas as pd
 import streamlit as st
 
-from SOPRANO import objects, pipeline_utils, st_stdout
-from SOPRANO.misc_utils import Directories
+from SOPRANO.core import objects
+from SOPRANO.pipeline import run_pipeline
+from SOPRANO.utils.app_utils import st_capture
+from SOPRANO.utils.misc_utils import Directories
 
-# Cache location
 _CACHE = Directories.cache()
 
-# Find genome options
 _HOMO_SAPIENS_DIR = Directories.homo_sapien_genomes()
 
 _GENOME_DIRS = [item for item in _HOMO_SAPIENS_DIR.glob("*") if item.is_dir()]
@@ -148,13 +148,13 @@ if __name__ == "__main__":
 
     st.session_state.job_complete = False
 
-    def run_pipeline():
+    def run_pipeline_in_app():
         st.session_state.cache_dir.mkdir(exist_ok=True)
 
         t_start = time.time()
         output = st.empty()
-        with st_stdout.st_capture(output.code):
-            pipeline_utils.run_pipeline(st.session_state.params)
+        with st_capture(output.code):
+            run_pipeline(st.session_state.params)
             # run_local_ssb_selection.main(st.session_state.namespace)
         t_end = time.time()
 
@@ -173,4 +173,4 @@ if __name__ == "__main__":
         st.text(f"dN/dS file: {st.session_state.params.results_path}")
 
     if st.button("Run Pipeline"):
-        run_pipeline()
+        run_pipeline_in_app()

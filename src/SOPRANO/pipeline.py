@@ -1,8 +1,6 @@
-import pathlib
-from datetime import datetime
 from typing import List
 
-from SOPRANO.analysis import (
+from SOPRANO.core.analysis import (
     _build_flag_file,
     _check_triplet_counts,
     _col_correct,
@@ -13,8 +11,8 @@ from SOPRANO.analysis import (
     _initial_triplet_counts,
     _sum_possible_across_region,
 )
-from SOPRANO.dnds import _compute_coverage, _intersect_introns
-from SOPRANO.intersect import (
+from SOPRANO.core.dnds import _compute_coverage, _intersect_introns
+from SOPRANO.core.intersect import (
     _check_target_mutations,
     _count_intersected_mutations,
     _count_mutations,
@@ -25,14 +23,13 @@ from SOPRANO.intersect import (
     _intersect_by_frequency,
     _update_epitopes_data_file,
 )
-from SOPRANO.misc_utils import MissingDataError
-from SOPRANO.objects import AuxiliaryFiles, Parameters
-from SOPRANO.obtain_fasta_regions import (
+from SOPRANO.core.objects import AuxiliaryFiles, Parameters
+from SOPRANO.core.obtain_fasta_regions import (
     _get_non_target_regions,
     _get_target_fasta_regions,
     _get_trans_regs,
 )
-from SOPRANO.prepare_coordinates import (
+from SOPRANO.core.prepare_coordinates import (
     _define_excluded_regions_for_randomization,
     _exclude_positively_selected_genes,
     _exclude_positively_selected_genes_disabled,
@@ -45,21 +42,8 @@ from SOPRANO.prepare_coordinates import (
     filter_transcript_files,
     transform_coordinates,
 )
-
-
-def time_output():
-    now = datetime.now()
-    return now.strftime("%d/%m/%Y %H:%M:%S")
-
-
-def task_output(msg):
-    print(f"[{time_output()}] {msg}")
-
-
-def _check_paths(*dependent_paths: pathlib.Path):
-    for path in dependent_paths:
-        if not path.exists():
-            raise MissingDataError(path)
+from SOPRANO.utils.misc_utils import _check_paths
+from SOPRANO.utils.print_utils import task_output
 
 
 class _PipelineComponent:

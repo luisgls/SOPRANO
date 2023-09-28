@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 
-from SOPRANO.misc_utils import is_empty
-from SOPRANO.objects import AnalysisPaths, AuxiliaryPaths
-from SOPRANO.sh_utils import subprocess_pipes
+from SOPRANO.core.objects import AnalysisPaths, AuxiliaryPaths
+from SOPRANO.utils.misc_utils import is_empty
+from SOPRANO.utils.sh_utils import pipe
 
 
 def _intersect_introns(paths: AnalysisPaths, aux_files: AuxiliaryPaths):
@@ -19,8 +19,7 @@ def _intersect_introns(paths: AnalysisPaths, aux_files: AuxiliaryPaths):
     :param paths:
     :return:
     """
-
-    subprocess_pipes.pipe(
+    pipe(
         [
             "intersectBed",
             "-a",

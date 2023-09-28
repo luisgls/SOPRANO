@@ -1,8 +1,8 @@
 import pathlib
 
-from SOPRANO.misc_utils import Directories, is_empty
-from SOPRANO.objects import AnalysisPaths, GenomePaths
-from SOPRANO.sh_utils import subprocess_pipes
+from SOPRANO.core.objects import AnalysisPaths, GenomePaths
+from SOPRANO.utils.misc_utils import Directories, is_empty
+from SOPRANO.utils.sh_utils import pipe
 
 
 def _compute_theoretical_subs(
@@ -24,7 +24,7 @@ def _compute_theoretical_subs(
 
     perl_path = Directories.scripts("calculate_sites_signaturesLZ_192.pl")
 
-    subprocess_pipes.pipe(
+    pipe(
         [perl_path.as_posix(), cds_fasta.as_posix(), trans_regs],
         output_path=trans_regs,
         overwrite=True,
@@ -44,7 +44,7 @@ def _sum_possible_across_region(
     :param sum_trans_regs: output path for summation
     """
 
-    subprocess_pipes.pipe(
+    pipe(
         ["awk", '{print "test_"$2"_"$3"\t0\t1\t"$0}', trans_regs.as_posix()],
         ["sortBed", "-i", "stdin"],
         ["mergeBed", "-i", "stdin", "-c", "7,8", "-o", "sum,sum"],
@@ -64,9 +64,7 @@ def _fix_simulated(paths: AnalysisPaths):
 
     perl_script = Directories.scripts("fixsimulated.pl")
 
-    subprocess_pipes.pipe(
-        ["perl", perl_script, paths.input_path], output_path=paths.sim_fixed
-    )
+    pipe(["perl", perl_script, paths.input_path], output_path=paths.sim_fixed)
 
 
 def _col_correct(paths: AnalysisPaths):
@@ -83,7 +81,7 @@ def _col_correct(paths: AnalysisPaths):
 
     # NOTE: Removed -F"\t" component - seems unneeded, and breaks the
     # subprocess pipe
-    subprocess_pipes.pipe(
+    pipe(
         ["cut", "-f1,5,7,11,12", paths.sim_fixed.as_posix()],
         ["grep", "-v", "#"],
         ["sed", "s/_/\t/1"],
@@ -107,7 +105,7 @@ def _context_correction(paths: AnalysisPaths, genomes: GenomePaths):
     :return:
     """
 
-    subprocess_pipes.pipe(
+    pipe(
         [
             "bedtools",
             "slop",
@@ -147,7 +145,7 @@ def _build_flag_file(paths: AnalysisPaths):
 
     # Note: We had erroneous behaviour using the chain of "-F" via sub pipes
     # so implement alternatively:
-    subprocess_pipes.pipe(
+    pipe(
         [
             "paste",
             paths.col_corrected.as_posix(),
@@ -175,7 +173,7 @@ def _initial_triplet_counts(paths: AnalysisPaths):
     :param paths:
     """
 
-    subprocess_pipes.pipe(
+    pipe(
         [
             "paste",
             paths.col_corrected.as_posix(),
@@ -228,15 +226,13 @@ def _check_triplet_counts(paths: AnalysisPaths):
     if is_empty(paths.triplet_counts):
         raise SOPRANOError(f"Triplet counts are empty: {paths.triplet_counts}")
 
-    mutations = subprocess_pipes.pipe(
+    mutations = pipe(
         ["wc", "-l", paths.flagged.as_posix()], ["awk", "{ print $1 }"]
     )
-    back = subprocess_pipes.pipe(
+    back = pipe(
         ["wc", "-l", paths.triplet_counts.as_posix()], ["awk", "{ print $1 }"]
     )
-    fails = subprocess_pipes.pipe(
-        ["grep", "-c", "FAIL", paths.flagged.as_posix()]
-    )
+    fails = pipe(["grep", "-c", "FAIL", paths.flagged.as_posix()])
 
     print(
         f"Rate parameter file {paths.triplet_counts.as_posix()} has {back} "
@@ -270,7 +266,7 @@ def _correct_from_total_sites(paths: AnalysisPaths):
 
     perl_script = Directories.scripts("correct_update_epitope_sitesV3.pl")
 
-    subprocess_pipes.pipe(
+    pipe(
         [
             "perl",
             perl_script.as_posix(),
@@ -280,7 +276,7 @@ def _correct_from_total_sites(paths: AnalysisPaths):
         output_path=paths.final_epitope_corrections,
     )
 
-    subprocess_pipes.pipe(
+    pipe(
         [
             "perl",
             perl_script.as_posix(),

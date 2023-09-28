@@ -2,7 +2,7 @@ import pathlib
 
 import pytest
 
-from SOPRANO.objects import AnalysisPaths
+from SOPRANO.core.objects import AnalysisPaths
 
 
 @pytest.fixture

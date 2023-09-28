@@ -2,7 +2,7 @@ import pytest
 from _step2_fixtures import mock_bed_content, tab_line
 from _test_utils import check_expected_content
 
-import SOPRANO.prepare_coordinates as prep_coords
+import SOPRANO.core.prepare_coordinates as prep_coords
 
 
 @pytest.mark.dependency(name="_filter_transcript_file")
