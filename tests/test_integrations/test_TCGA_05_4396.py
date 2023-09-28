@@ -1,5 +1,7 @@
 import pathlib
 
+import pandas as pd
+
 import SOPRANO
 from SOPRANO import objects
 from SOPRANO.pipeline_utils import run_pipeline
@@ -15,6 +17,9 @@ name = "TCGA-05-4396"
 genome_ref = "GRCh37"
 exclude_drivers = True
 release = 110
+
+expected_path = pathlib.Path(__file__).parent.joinpath("TCGA-05-4396.tsv")
+assert expected_path.exists()
 
 
 def test_pipeline(tmp_path):
@@ -114,6 +119,12 @@ def test_pipeline(tmp_path):
 
     # Check results file exists!
     assert params.results_path.exists()
+
+    computed_tsv = pd.read_csv(params.results_path, sep="\t")
+    expected_tsv = pd.read_csv(expected_path, sep="\t")
+
+    assert computed_tsv.equals(expected_tsv), (computed_tsv, expected_tsv)
+
     # coverage ON_dnds ON_lowci ON_highci ON_muts OFF_dnds OFF_lowci OFF_highci OFF_muts Pval ON_na ON_NA ON_ns ON_NS OFF_na OFF_NA OFF_ns OFF_NS                                                 # noqa: E501
     # ExonicOnly 0.170545315483698 0.0312367028034305 0.931140579583117 6 0.890687718057257 0.510646130660438 1.5535705238312 63 0.330510882590904 2 1974270 4 673405 46 19525700 17 6427220      # noqa: E501
     # ExonicIntronic 0.170545315483698 0.0312367028034305 0.931140579583117 6 0.890687718057257 0.510646130660438 1.5535705238312 63 0.330510882590904 2 1974270 4 673405 46 19525700 17 6427220  # noqa: E501
