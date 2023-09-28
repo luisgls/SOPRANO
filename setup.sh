@@ -24,5 +24,5 @@ fi
 _PIP_CMD="pip install -e .[$DEPS]"
 
 # Configure conda environment and install repository
-source "$SHELL_UTILS_DIR/.setup_env.sh"
-source "$SHELL_UTILS_DIR/.setup_data.sh"
+source "$SHELL_UTILS_DIR/setup_env.sh"
+source "$SHELL_UTILS_DIR/setup_data.sh"
