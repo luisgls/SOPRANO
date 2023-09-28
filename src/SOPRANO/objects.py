@@ -31,7 +31,7 @@ class GenomePaths:
     fasta: pathlib.Path
 
 
-def _genome_pars_to_paths(ref, release):
+def genome_pars_to_paths(ref, release):
     """
     Translates human genome reference and release ids into a tuple of paths
 
@@ -49,13 +49,13 @@ def _genome_pars_to_paths(ref, release):
 
 
 GRCh37_110 = GenomePaths(
-    sizes=_genome_pars_to_paths("GRCh37", 110)[1],
-    fasta=_genome_pars_to_paths("GRCh37", 110)[0],
+    sizes=genome_pars_to_paths("GRCh37", 110)[1],
+    fasta=genome_pars_to_paths("GRCh37", 110)[0],
 )
 
 GRCh38_110 = GenomePaths(
-    sizes=_genome_pars_to_paths("GRCh38", 110)[1],
-    fasta=_genome_pars_to_paths("GRCh38", 110)[0],
+    sizes=genome_pars_to_paths("GRCh38", 110)[1],
+    fasta=genome_pars_to_paths("GRCh38", 110)[0],
 )
 
 
@@ -253,7 +253,7 @@ class Parameters(AnalysisPaths):
         )
 
         if namespace.genome_ref in ("GRCh37", "GRCh38"):
-            fasta_path, chrom_path = _genome_pars_to_paths(
+            fasta_path, chrom_path = genome_pars_to_paths(
                 namespace.genome_ref, namespace.genome_rel
             )
             genomes = GenomePaths(sizes=chrom_path, fasta=fasta_path)

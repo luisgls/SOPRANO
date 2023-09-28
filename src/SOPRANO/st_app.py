@@ -14,6 +14,16 @@ _HOMO_SAPIENS_DIR = Directories.homo_sapien_genomes()
 
 _GENOME_DIRS = [item for item in _HOMO_SAPIENS_DIR.glob("*") if item.is_dir()]
 
+# Remove unviable options (i.e. no toplevel fa and chrom files)
+for item in _GENOME_DIRS[::-1]:
+    toplevel_path = item.glob("*dna*toplevel*.fa")
+    chrom_path = item.glob("*dna*toplevel*.chrom")
+
+    if len(list(toplevel_path)) == len(list(chrom_path)) == 1:
+        pass
+    else:
+        _GENOME_DIRS.remove(item)
+
 _GENOME_NAMES = [
     "{} - Ensembl release {}".format(*x.name.split("_")[::-1])
     for x in _GENOME_DIRS
@@ -40,7 +50,7 @@ if __name__ == "__main__":
 
         ref_id, rel_id = genome_selection.split(" - Ensembl release ")
 
-        genomes_path, chroms_path = objects._genome_pars_to_paths(
+        genomes_path, chroms_path = objects.genome_pars_to_paths(
             ref_id, rel_id
         )
 
