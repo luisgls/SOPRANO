@@ -1,4 +1,3 @@
-import argparse
 import os
 import pathlib
 import time
@@ -6,7 +5,7 @@ import time
 import pandas as pd
 import streamlit as st
 
-from SOPRANO import objects, run_local_ssb_selection, st_stdout
+from SOPRANO import objects, pipeline_utils, st_stdout
 
 # Cache location
 _DEFAULT_CACHE = pathlib.Path(__file__).parent.parent.parent / "pipeline_cache"
@@ -37,19 +36,22 @@ _BED_OPTIONS = {x.name: x for x in _BED_DIR.glob("*.bed")}
 if __name__ == "__main__":
     # Init app
     st.title("SOPRANO")
+    st.caption("Selection On PRotein ANnotated regiOns")
 
     def process_genome_selection():
         genome_selection = st.session_state.genome_selection
+
         ref_id, rel_id = genome_selection.split(" - Ensembl release ")
-        toplevel_path = (
-            _GENOME_DICT[genome_selection]
-            / f"Homo_sapiens.{ref_id}.dna.toplevel.fa"
+
+        genomes_path, chroms_path = objects._genome_pars_to_paths(
+            ref_id, rel_id
         )
 
-        st.session_state.ref_id = ref_id
-        st.session_state.rel_id = rel_id
-        st.session_state.toplevel_path = toplevel_path
-        st.text(f"Selected: {st.session_state.toplevel_path}")
+        st.session_state.ref_genome = objects.GenomePaths(
+            sizes=chroms_path, fasta=genomes_path
+        )
+
+        st.text(f"Selected: {st.session_state.ref_genome.fasta}")
 
     # Derived genome definitions
     st.selectbox(
@@ -123,9 +125,7 @@ if __name__ == "__main__":
     )
     process_name()
 
-    # TODO: Update to bypass namespace - just need run_pipeline(params) now.
-
-    st.session_state.namespace = argparse.Namespace(
+    st.session_state.params = objects.Parameters(
         analysis_name=st.session_state.job_name,
         input_path=st.session_state.input_path,
         bed_path=st.session_state.bed_path,
@@ -135,15 +135,8 @@ if __name__ == "__main__":
         use_random=st.session_state.use_random,
         exclude_drivers=st.session_state.exclude_drivers,
         seed=st.session_state.random_seed,
-        transcript=objects.EnsemblTranscripts.transcript_length,
-        protein_transcript=objects.EnsemblTranscripts.protein_transcript_length,
-        transcript_ids=objects.EnsemblTranscripts.transcript_fasta,
-        genome_ref=st.session_state.ref_id,
-        release=st.session_state.rel_id,
-    )
-
-    st.session_state.params = objects.Parameters.from_namespace(
-        st.session_state.namespace
+        transcripts=objects.EnsemblTranscripts,
+        genomes=st.session_state.ref_genome,
     )
 
     st.session_state.job_complete = False
@@ -154,7 +147,8 @@ if __name__ == "__main__":
         t_start = time.time()
         output = st.empty()
         with st_stdout.st_capture(output.code):
-            run_local_ssb_selection.main(st.session_state.namespace)
+            pipeline_utils.run_pipeline(st.session_state.params)
+            # run_local_ssb_selection.main(st.session_state.namespace)
         t_end = time.time()
 
         st.session_state.compute_time_str = (
