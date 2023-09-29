@@ -68,12 +68,6 @@ class AuxiliaryPaths:
         )
 
 
-AuxiliaryFiles = AuxiliaryPaths(
-    genes_to_exclude=Directories.data("genes2exclude.txt"),
-    intron_length=Directories.data("transcript_intron_length.bed"),
-)
-
-
 def cache_path_builder(tmpdir: pathlib.Path, name: str, *extensions: str):
     file_name = f"{name}"
 

@@ -23,7 +23,7 @@ from SOPRANO.core.intersect import (
     _intersect_by_frequency,
     _update_epitopes_data_file,
 )
-from SOPRANO.core.objects import AuxiliaryFiles, Parameters
+from SOPRANO.core.objects import AuxiliaryPaths, Parameters
 from SOPRANO.core.obtain_fasta_regions import (
     _get_non_target_regions,
     _get_target_fasta_regions,
@@ -44,6 +44,8 @@ from SOPRANO.core.prepare_coordinates import (
 )
 from SOPRANO.utils.misc_utils import _check_paths
 from SOPRANO.utils.print_utils import task_output
+
+AuxiliaryFiles = AuxiliaryPaths.defaults()
 
 
 class _PipelineComponent:
