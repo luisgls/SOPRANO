@@ -137,7 +137,7 @@ if __name__ == "__main__":
         input_path=st.session_state.input_path,
         bed_path=st.session_state.bed_path,
         cache_dir=st.session_state.cache_dir,
-        target_regions=None,  # TODO: Fix
+        random_regions=None,  # TODO: Fix
         use_ssb192=st.session_state.use_ssb192,
         use_random=st.session_state.use_random,
         exclude_drivers=st.session_state.exclude_drivers,

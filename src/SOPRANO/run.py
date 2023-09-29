@@ -21,7 +21,7 @@ def run_cli(_namespace=None):
 
 def run_app():
     app_path = Directories.src("app.py")
-    subprocess.run(["streamlit", "run", app_path])
+    subprocess.run(["streamlit", "run", app_path.as_posix()])
 
 
 def link_vep_cache():

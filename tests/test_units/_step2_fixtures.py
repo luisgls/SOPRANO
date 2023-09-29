@@ -131,7 +131,7 @@ mock_transcript_id_content = [
 ]
 
 # Fictitious target regions for randomization
-mock_target_regions = [tab_line("ENST00000000233", 500, 1000)]
+mock_random_regions = [tab_line("ENST00000000233", 500, 1000)]
 
 # Used to build mock aux files
 mock_genes2exclude = [tab_line("ENST00000001008")]
@@ -149,7 +149,7 @@ def step_2_defs(tmp_path):
 
     anno_path = inputs_dir.joinpath("input.anno")
     bed_path = inputs_dir.joinpath("input.bed")
-    targets_path = inputs_dir.joinpath("targets.bed")
+    random_path = inputs_dir.joinpath("random.bed")
     genes2exclude_path = inputs_dir.joinpath("genes2exclude.txt")
 
     trans_path = transcripts_dir.joinpath("transcript_length.txt")
@@ -159,7 +159,7 @@ def step_2_defs(tmp_path):
     trans_ids_path = transcripts_dir.joinpath("ensemble_transcriptID.fasta")
 
     paths = AnalysisPaths(
-        "test_data", anno_path, bed_path, tmpdir, target_regions=targets_path
+        "test_data", anno_path, bed_path, tmpdir, random_regions=random_path
     )
     transcripts = TranscriptPaths(trans_path, trans_prot_path, trans_ids_path)
 
@@ -173,7 +173,7 @@ def step_2_defs(tmp_path):
             trans_path,
             trans_prot_path,
             trans_ids_path,
-            targets_path,
+            random_path,
             genes2exclude_path,
         ),
         (
@@ -182,7 +182,7 @@ def step_2_defs(tmp_path):
             mock_transcript_content,
             mock_protein_transcript_content,
             mock_transcript_id_content,
-            mock_target_regions,
+            mock_random_regions,
             mock_genes2exclude,
         ),
     ):

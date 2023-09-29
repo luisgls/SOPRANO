@@ -88,9 +88,9 @@ def parse_args():
     analysis_params_group = parser.add_argument_group()
 
     analysis_params_group.add_argument(
-        "--target_regions",
+        "--random_regions",
         "-t",
-        dest="target_regions",
+        dest="random_regions",  # TODO: Update to random_regions
         type=pathlib.Path,
         help="Provide a bed file with regions to randomize.",
     )
@@ -110,12 +110,11 @@ def parse_args():
         "similar to the target.",
     )
 
-    # TODO: This is true by default in the original implementation
     analysis_params_group.add_argument(
-        "--exclude_drivers",
-        dest="exclude_drivers",
+        "--keep_drivers",
+        dest="keep_drivers",
         action="store_true",
-        help="If flag is used, driver geners will be excluded from the "
+        help="If flag is used, driver genes will be excluded from the "
         "calculation.",
     )
 
@@ -186,7 +185,7 @@ def parse_args():
     check_cli_path(args.input_path)
     check_cli_path(args.bed_path)
     check_cli_path(args.cache_dir)
-    check_cli_path(args.target_regions, optional=True)
+    check_cli_path(args.random_regions, optional=True)
     check_cli_path(args.transcript)
     check_cli_path(args.protein_transcript)
     check_cli_path(args.transcript_ids)

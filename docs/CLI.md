@@ -1,8 +1,10 @@
-### [Option 1] Command line interface
+# Command line interface
 
-SOPRANO can be run from the command line via:
+SOPRANO can be run from the command line, following the syntax:
 
-``` RUN_SOPRANO <arguments> ```
+```{shell}
+soprano-run <arguments>
+```
 
 **Required arguments**
 
@@ -10,7 +12,7 @@ Definitions should follow the short (`-s`) or long (`--long`) argument flags.
 
 - `-n | --name`
 
-    The name of the pipeline run.
+    The name of the SOPRANO pipeline run.
 
 - `-o | --output`
 
@@ -30,10 +32,10 @@ Definitions should follow the short (`-s`) or long (`--long`) argument flags.
 
 Definitions should follow the short (`-s`) or long (`--long`) argument flags.
 
-- `-t | --target_regions`
+- `-t | --random_regions`
 
     The path to the bed file that defines regions for randomization.
-    Defaults to None - implying 
+    Defaults to None, implying arbitrary randomization.
 
 - `-s | --seed`
 
@@ -59,13 +61,14 @@ line with no subsequent argument. They alter the runtime behaviour of SOPRANO.
 
 - `--use_random`
 
-    Run SOPRANO with randomization methods.
+    Run SOPRANO with randomization. Note that if `random_regions` are passed,
+    to the CLI, this overrides the selection to `use_random` to `True`.
 
 - `--use_ssb192`
 
-    Run SOPRANO using SSB192 substitutions, otherwise will use SSB7.
+    Run SOPRANO using SSB192 substitutions, otherwise defaults SSB7.
 
-- `--exclude_drivers`
+- `--keep_drivers`
 
-    Run SOPRANO with driver genes excluded. See drivers at 
-    `/src/SOPRANO/data/genes2exclude.txt`.
+    Run SOPRANO with driver genes included. Otherwise, 
+    [driver genes](../src/SOPRANO/data/genes2exclude.txt) are excluded.

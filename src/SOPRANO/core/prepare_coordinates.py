@@ -173,11 +173,11 @@ def _randomize_with_target_file(
     :return:
     """
 
-    if paths.target_regions_path is None:
+    if paths.random_regions_path is None:
         raise ValueError("Method only valid if target regions is not none!")
 
     pipe(
-        ["cut", "-f1", paths.target_regions_path.as_posix()],
+        ["cut", "-f1", paths.random_regions_path.as_posix()],
         ["sort", "-u"],
         [
             "fgrep",
@@ -192,7 +192,7 @@ def _randomize_with_target_file(
     )
 
     pipe(
-        ["cut", "-f1", paths.target_regions_path.as_posix()],
+        ["cut", "-f1", paths.random_regions_path.as_posix()],
         ["sort", "-u"],
         ["fgrep", "-w", "-f", "-", transcripts.transcript_length.as_posix()],
         output_path=paths.filtered_transcript,
@@ -208,7 +208,7 @@ def _randomize_with_target_file(
         "-g",
         paths.filtered_protein_transcript.as_posix(),
         "-incl",
-        paths.target_regions_path.as_posix(),
+        paths.random_regions_path.as_posix(),
         "-noOverlapping",
     ]
 

@@ -28,7 +28,7 @@ def test_pipeline(tmp_path):
         input_path=input_file,
         bed_path=bed_file,
         cache_dir=tmp_path,
-        target_regions=None,
+        random_regions=None,
         use_ssb192=True,
         use_random=False,
         exclude_drivers=exclude_drivers,
