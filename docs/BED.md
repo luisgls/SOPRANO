@@ -1,9 +1,15 @@
-## Input Immunopeptidome files
+# Input immunopeptidome files
 
-This data corresponds to the SOPRANO CLI argument `-b | --bed_file`
+This data corresponds to the SOPRANO CLI argument `-b | --bed_file`. Via the 
+app, this appears under "Select a BED protein file".
 
-- A bed file containing the transcript name (ensembl transcript identifier), 
-  the start and end of the peptide that binds the MHC complex
+### File contents
 
-- Example immunopeptidome files can be found under the immunopeptidome
-  directory.
+The immunopeptidome file is a BED file containing the transcript name 
+(i.e., Ensembl transcript identifier) followed by the start and end of the 
+peptide that binds the MHC complex
+
+### Examples
+
+Example immunopeptidome files can be found under the 
+[immunopeptidome directory](../src/SOPRANO/immunopeptidomes).
