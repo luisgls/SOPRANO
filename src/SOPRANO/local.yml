@@ -6,10 +6,9 @@ dependencies:
   - perl
   - ensembl-vep=110.1
   - bedtools=2.31.0
-  - python==3.11
-  - pip
   - ca-certificates
   - openssl
-  - pandas
   - samtools
   - coreutils # [osx]
+  - python==3.11
+  - pip

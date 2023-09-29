@@ -1,15 +1,8 @@
 import pathlib
 
-from SOPRANO.objects import AnalysisPaths, GenomePaths, Parameters
-from SOPRANO.pipeline_utils import (
-    MissingDataError,
-    _PipelineComponent,
-    is_empty,
-)
-from SOPRANO.sh_utils import subprocess_pipes
-
-SOPRANO_ROOT = pathlib.Path(__file__).parent
-SCRIPTS_DIR = SOPRANO_ROOT.joinpath("scripts")
+from SOPRANO.core.objects import AnalysisPaths, GenomePaths
+from SOPRANO.utils.path_utils import Directories, is_empty
+from SOPRANO.utils.sh_utils import pipe
 
 
 def _compute_theoretical_subs(
@@ -29,38 +22,13 @@ def _compute_theoretical_subs(
     :param trans_regs: list of transcript:regions
     """
 
-    perl_path = SCRIPTS_DIR.joinpath("calculate_sites_signaturesLZ_192.pl")
+    perl_path = Directories.scripts("calculate_sites_signaturesLZ_192.pl")
 
-    subprocess_pipes.pipe(
+    pipe(
         [perl_path.as_posix(), cds_fasta.as_posix(), trans_regs],
         output_path=trans_regs,
         overwrite=True,
     )
-
-
-class ComputeSSB192TheoreticalSubs(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.epitopes_cds_fasta,
-            params.intra_epitopes_cds_fasta,
-            params.epitopes_trans_regs,
-            params.intra_epitopes_trans_regs,
-        )
-
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        ComputeSSB192TheoreticalSubs.check_ready(params)
-        _compute_theoretical_subs(
-            params.epitopes_cds_fasta, params.epitopes_trans_regs
-        )
-        _compute_theoretical_subs(
-            params.intra_epitopes_cds_fasta, params.intra_epitopes_trans_regs
-        )
 
 
 def _sum_possible_across_region(
@@ -76,33 +44,13 @@ def _sum_possible_across_region(
     :param sum_trans_regs: output path for summation
     """
 
-    subprocess_pipes.pipe(
+    pipe(
         ["awk", '{print "test_"$2"_"$3"\t0\t1\t"$0}', trans_regs.as_posix()],
         ["sortBed", "-i", "stdin"],
         ["mergeBed", "-i", "stdin", "-c", "7,8", "-o", "sum,sum"],
         ["cut", "-f1,4,5"],
         output_path=sum_trans_regs,
     )
-
-
-class SumPossibleAcrossRegions(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (params.epitopes_trans_regs, params.intra_epitopes_trans_regs)
-        for p in paths:
-            if not p.exists():
-                raise MissingDataError(p)
-
-    @staticmethod
-    def apply(params: Parameters):
-        SumPossibleAcrossRegions.check_ready(params)
-        _sum_possible_across_region(
-            params.epitopes_trans_regs, params.epitopes_trans_regs_sum
-        )
-        _sum_possible_across_region(
-            params.intra_epitopes_trans_regs,
-            params.intra_epitopes_trans_regs_sum,
-        )
 
 
 def _fix_simulated(paths: AnalysisPaths):
@@ -114,18 +62,9 @@ def _fix_simulated(paths: AnalysisPaths):
     :param paths:
     """
 
-    perl_script = SCRIPTS_DIR.joinpath("fixsimulated.pl")
+    perl_script = Directories.scripts("fixsimulated.pl")
 
-    subprocess_pipes.pipe(
-        ["perl", perl_script, paths.input_path], output_path=paths.sim_fixed
-    )
-
-
-class FixSimulated(_PipelineComponent):
-    @staticmethod
-    def apply(params: Parameters):
-        FixSimulated.check_ready(params)
-        _fix_simulated(params)
+    pipe(["perl", perl_script, paths.input_path], output_path=paths.sim_fixed)
 
 
 def _col_correct(paths: AnalysisPaths):
@@ -142,7 +81,7 @@ def _col_correct(paths: AnalysisPaths):
 
     # NOTE: Removed -F"\t" component - seems unneeded, and breaks the
     # subprocess pipe
-    subprocess_pipes.pipe(
+    pipe(
         ["cut", "-f1,5,7,11,12", paths.sim_fixed.as_posix()],
         ["grep", "-v", "#"],
         ["sed", "s/_/\t/1"],
@@ -153,18 +92,6 @@ def _col_correct(paths: AnalysisPaths):
         ],
         output_path=paths.col_corrected,
     )
-
-
-class ColumnCorrect(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        if not params.sim_fixed.exists():
-            raise MissingDataError(params.sim_fixed)
-
-    @staticmethod
-    def apply(params: Parameters):
-        ColumnCorrect.check_ready(params)
-        _col_correct(params)
 
 
 def _context_correction(paths: AnalysisPaths, genomes: GenomePaths):
@@ -178,7 +105,7 @@ def _context_correction(paths: AnalysisPaths, genomes: GenomePaths):
     :return:
     """
 
-    subprocess_pipes.pipe(
+    pipe(
         [
             "bedtools",
             "slop",
@@ -204,25 +131,6 @@ def _context_correction(paths: AnalysisPaths, genomes: GenomePaths):
     )
 
 
-class ContextCorrection(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.col_corrected,
-            params.genomes.fasta,
-            params.genomes.sizes,
-        )
-
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        ContextCorrection.check_ready(params)
-        _context_correction(params, params.genomes)
-
-
 def _build_flag_file(paths: AnalysisPaths):
     """
     Implements:
@@ -237,7 +145,7 @@ def _build_flag_file(paths: AnalysisPaths):
 
     # Note: We had erroneous behaviour using the chain of "-F" via sub pipes
     # so implement alternatively:
-    subprocess_pipes.pipe(
+    pipe(
         [
             "paste",
             paths.col_corrected.as_posix(),
@@ -254,20 +162,6 @@ def _build_flag_file(paths: AnalysisPaths):
     )
 
 
-class FlagComputations(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (params.col_corrected, params.contextualised)
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        FlagComputations.check_ready(params)
-        _build_flag_file(params)
-
-
 def _initial_triplet_counts(paths: AnalysisPaths):
     r"""
     Implements:
@@ -279,7 +173,7 @@ def _initial_triplet_counts(paths: AnalysisPaths):
     :param paths:
     """
 
-    subprocess_pipes.pipe(
+    pipe(
         [
             "paste",
             paths.col_corrected.as_posix(),
@@ -297,20 +191,6 @@ def _initial_triplet_counts(paths: AnalysisPaths):
         ["sed", "-e", r"s/\t[A-Z]\//_/g"],
         output_path=paths.triplet_counts,
     )
-
-
-class TripletCounts(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (params.col_corrected, params.contextualised, params.flagged)
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        TripletCounts.check_ready(params)
-        _initial_triplet_counts(params)
 
 
 class SOPRANOError(Exception):
@@ -346,15 +226,13 @@ def _check_triplet_counts(paths: AnalysisPaths):
     if is_empty(paths.triplet_counts):
         raise SOPRANOError(f"Triplet counts are empty: {paths.triplet_counts}")
 
-    mutations = subprocess_pipes.pipe(
+    mutations = pipe(
         ["wc", "-l", paths.flagged.as_posix()], ["awk", "{ print $1 }"]
     )
-    back = subprocess_pipes.pipe(
+    back = pipe(
         ["wc", "-l", paths.triplet_counts.as_posix()], ["awk", "{ print $1 }"]
     )
-    fails = subprocess_pipes.pipe(
-        ["grep", "-c", "FAIL", paths.flagged.as_posix()]
-    )
+    fails = pipe(["grep", "-c", "FAIL", paths.flagged.as_posix()])
 
     print(
         f"Rate parameter file {paths.triplet_counts.as_posix()} has {back} "
@@ -386,9 +264,9 @@ def _correct_from_total_sites(paths: AnalysisPaths):
     :param paths:
     """
 
-    perl_script = SCRIPTS_DIR.joinpath("correct_update_epitope_sitesV3.pl")
+    perl_script = Directories.scripts("correct_update_epitope_sitesV3.pl")
 
-    subprocess_pipes.pipe(
+    pipe(
         [
             "perl",
             perl_script.as_posix(),
@@ -398,7 +276,7 @@ def _correct_from_total_sites(paths: AnalysisPaths):
         output_path=paths.final_epitope_corrections,
     )
 
-    subprocess_pipes.pipe(
+    pipe(
         [
             "perl",
             perl_script.as_posix(),
@@ -407,24 +285,3 @@ def _correct_from_total_sites(paths: AnalysisPaths):
         ],
         output_path=paths.final_intra_epitope_corrections,
     )
-
-
-class SiteCorrections(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.epitopes_trans_regs_sum,
-            params.intra_epitopes_trans_regs_sum,
-            params.triplet_counts,
-        )
-
-        for p in paths:
-            if not p.exists():
-                raise MissingDataError(p)
-
-        _check_triplet_counts(params)
-
-    @staticmethod
-    def apply(params: Parameters):
-        SiteCorrections.check_ready(params)
-        _correct_from_total_sites(params)

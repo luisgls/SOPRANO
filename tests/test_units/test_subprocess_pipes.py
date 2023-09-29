@@ -4,7 +4,7 @@ import tempfile
 
 import pytest
 
-from SOPRANO.sh_utils import subprocess_pipes as sbp
+from SOPRANO.utils import sh_utils as sbp
 
 
 def test_process_output_to_string():

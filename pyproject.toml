@@ -16,6 +16,9 @@ maintainers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
+    "pandas",
+    "numpy",
+    "streamlit == 1.27.0"
 ]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -49,11 +52,13 @@ ci = [
 [project.urls]
 Homepage = "https://github.com/instituteofcancerresearch/SOPRANO"
 "Bug Tracker" = "https://github.com/instituteofcancerresearch/SOPRANO/issues"
-Discussions = "https://github.com/bkmarzouk/symflation/discussions"
+Discussions = "https://github.com/instituteofcancerresearch/SOPRANO/discussions"
 
 [project.scripts]
-RUN_SOPRANO = "SOPRANO.run_local_ssb_selection:main"
-GET_GENOMES = "SOPRANO.run_local_ssb_selection:download_genome"
+soprano-run = "SOPRANO.run:run_cli"
+soprano-app = "SOPRANO.run:run_app"
+soprano-get-genome = "SOPRANO.run:download_genome"
+soprano-link-vep = "SOPRANO.run:link_vep_cache"
 
 [tool.hatch]
 version.source = "vcs"

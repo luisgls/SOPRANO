@@ -1,7 +1,7 @@
 import pytest
 from _test_utils import tab_line
 
-from SOPRANO.objects import AnalysisPaths, TranscriptPaths
+from SOPRANO.core.objects import AnalysisPaths, TranscriptPaths
 
 mock_tcga_epitopes_content = [
     tab_line("ENST00000000233", 115, 124),

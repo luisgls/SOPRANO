@@ -1,13 +1,8 @@
 import pathlib
 
-from SOPRANO.objects import AnalysisPaths, Parameters
-from SOPRANO.pipeline_utils import (
-    MissingDataError,
-    SOPRANOError,
-    _PipelineComponent,
-    is_empty,
-)
-from SOPRANO.sh_utils import subprocess_pipes
+from SOPRANO.core.objects import AnalysisPaths, SOPRANOError
+from SOPRANO.utils.path_utils import is_empty
+from SOPRANO.utils.sh_utils import pipe
 
 
 def _intersect_by_frequency(
@@ -24,7 +19,7 @@ def _intersect_by_frequency(
     :param nans_output: path to output for detected nans
     """
 
-    subprocess_pipes.pipe(
+    pipe(
         [
             "awk",
             r'{NA+=$4}{NS+=$6}END{print NA"\t"NS}',
@@ -32,29 +27,6 @@ def _intersect_by_frequency(
         ],
         output_path=nans_output,
     )
-
-
-class IntersectByFrequency(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.final_epitope_corrections,
-            params.final_intra_epitope_corrections,
-        )
-
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        IntersectByFrequency.check_ready(params)
-        _intersect_by_frequency(
-            params.final_epitope_corrections, params.epitope_nans
-        )
-        _intersect_by_frequency(
-            params.final_intra_epitope_corrections, params.intra_epitope_nans
-        )
 
 
 _VARIANT_TYPES = (
@@ -93,7 +65,7 @@ def _get_silent_variant_counts(paths: AnalysisPaths):
     :param paths:
     """
 
-    subprocess_pipes.pipe(
+    pipe(
         [
             "egrep",
             "-v",
@@ -105,12 +77,6 @@ def _get_silent_variant_counts(paths: AnalysisPaths):
         *_FMT_COMMANDS,
         output_path=paths.variants_silent,
     )
-
-
-class GetSilentCounts(_PipelineComponent):
-    @staticmethod
-    def apply(params: Parameters):
-        _get_silent_variant_counts(params)
 
 
 def _get_nonsilent_variant_counts(paths: AnalysisPaths):
@@ -133,7 +99,7 @@ def _get_nonsilent_variant_counts(paths: AnalysisPaths):
     :param paths:
     """
 
-    subprocess_pipes.pipe(
+    pipe(
         [
             "egrep",
             "-v",
@@ -145,12 +111,6 @@ def _get_nonsilent_variant_counts(paths: AnalysisPaths):
         *_FMT_COMMANDS,
         output_path=paths.variants_nonsilent,
     )
-
-
-class GetNonSilentCounts(_PipelineComponent):
-    @staticmethod
-    def apply(params: Parameters):
-        _get_nonsilent_variant_counts(params)
 
 
 def _get_missense_variant_counts(paths: AnalysisPaths):
@@ -174,7 +134,7 @@ def _get_missense_variant_counts(paths: AnalysisPaths):
     :param paths:
     :return:
     """
-    subprocess_pipes.pipe(
+    pipe(
         [
             "egrep",
             "-v",
@@ -187,12 +147,6 @@ def _get_missense_variant_counts(paths: AnalysisPaths):
         *_FMT_COMMANDS,
         output_path=paths.variants_missense,
     )
-
-
-class GetMissenseCounts(_PipelineComponent):
-    @staticmethod
-    def apply(params: Parameters):
-        _get_missense_variant_counts(params)
 
 
 def _get_intronic_variant_counts(paths: AnalysisPaths):
@@ -213,7 +167,7 @@ def _get_intronic_variant_counts(paths: AnalysisPaths):
     :return:
     """
 
-    subprocess_pipes.pipe(
+    pipe(
         ["grep", "-v", r"^#", paths.input_path.as_posix()],
         ["grep", "-w", "intron_variant"],
         ["grep", "-v", "splice"],
@@ -223,17 +177,11 @@ def _get_intronic_variant_counts(paths: AnalysisPaths):
     )
 
 
-class GetIntronicCounts(_PipelineComponent):
-    @staticmethod
-    def apply(params: Parameters):
-        _get_intronic_variant_counts(params)
-
-
 def _count_mutations(variant_counts: pathlib.Path, output_path: pathlib.Path):
     if is_empty(variant_counts):
         counts = "0"
     else:
-        counts = subprocess_pipes.pipe(
+        counts = pipe(
             ["wc", "-l", variant_counts.as_posix()],
             ["awk", r"{print $1+1}"],
             output_path=output_path,
@@ -255,7 +203,7 @@ def _count_intersected_mutations(
     if is_empty(variant_counts):
         counts = "0"
     else:
-        counts = subprocess_pipes.pipe(
+        counts = pipe(
             [
                 "intersectBed",
                 "-b",
@@ -272,73 +220,8 @@ def _count_intersected_mutations(
     return counts
 
 
-class OnOffCounts(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.variants_silent,
-            params.variants_nonsilent,
-            params.variants_missense,
-            params.variants_intronic,
-            params.epitopes,
-            params.intra_epitopes_prot,
-        )
-
-        for p in paths:
-            if not p.exists():
-                raise MissingDataError(p)
-
-    @staticmethod
-    def apply(params: Parameters):
-        raw_silent = _count_mutations(
-            params.variants_silent, params.raw_silent_count
-        )
-        raw_nonsilent = _count_mutations(
-            params.variants_nonsilent, params.raw_nonsilent_count
-        )
-        raw_missense = _count_mutations(
-            params.variants_missense, params.raw_missense_count
-        )
-        in_silent = _count_intersected_mutations(
-            params.variants_silent, params.epitopes, params.in_silent_count
-        )
-        in_nonsilent = _count_intersected_mutations(
-            params.variants_nonsilent,
-            params.epitopes,
-            params.in_nonsilent_count,
-        )
-        in_missense = _count_intersected_mutations(
-            params.variants_missense, params.epitopes, params.in_missense_count
-        )
-        out_silent = _count_intersected_mutations(
-            params.variants_silent,
-            params.intra_epitopes_prot,
-            params.out_silent_count,
-        )
-        out_nonsilent = _count_intersected_mutations(
-            params.variants_nonsilent,
-            params.intra_epitopes_prot,
-            params.out_nonsilent_count,
-        )
-        out_missense = _count_intersected_mutations(
-            params.variants_missense,
-            params.intra_epitopes_prot,
-            params.out_missense_count,
-        )
-
-        def _print(region, silent, nonsilent, missense):
-            print(f"{region}:")
-            print("{0:.<30}".format("Silent") + silent)
-            print("{0:.<30}".format("Non-silent") + nonsilent)
-            print("{0:.<30}".format("Missense") + missense)
-
-        _print("Global region", raw_silent, raw_nonsilent, raw_missense)
-        _print("(ON) Target region", in_silent, in_nonsilent, in_missense)
-        _print("(OFF) Target region", out_silent, out_nonsilent, out_missense)
-
-
 def get_counts(in_out_counts: pathlib.Path):
-    return int(subprocess_pipes.pipe(["cat", in_out_counts.as_posix()]))
+    return int(pipe(["cat", in_out_counts.as_posix()]))
 
 
 def _update_epitopes_data_file(
@@ -383,7 +266,7 @@ def _update_epitopes_data_file(
             col_idx = "10"
             awk_str = r'{print $0"\tintra_' + _label + '_variant"}'
 
-        subprocess_pipes.pipe(
+        pipe(
             [
                 "intersectBed",
                 "-b",
@@ -412,45 +295,6 @@ def _update_epitopes_data_file(
         )
 
 
-class BuildEpitopesDataFile(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.variants_silent,
-            params.variants_nonsilent,
-            params.in_silent_count,
-            params.in_nonsilent_count,
-            params.out_silent_count,
-            params.out_nonsilent_count,
-        )
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        BuildEpitopesDataFile.check_ready(params)
-
-        variants = (params.variants_silent, params.variants_nonsilent)
-        in_counts = (params.in_silent_count, params.in_nonsilent_count)
-        out_counts = (params.out_silent_count, params.out_nonsilent_count)
-        labs = ("synonymous", "missense")
-
-        for variant_count, in_out_count, use_epi, lab in zip(
-            variants * 2,
-            in_counts + out_counts,
-            (True, True, False, False),
-            labs * 2,
-        ):
-            _update_epitopes_data_file(
-                variant_count,
-                in_out_count,
-                params,
-                _use_epitope=use_epi,
-                _label=lab,
-            )
-
-
 def _check_target_mutations(paths: AnalysisPaths):
     in_silent_count = get_counts(paths.in_silent_count)
     in_nonsilent_count = get_counts(paths.in_nonsilent_count)
@@ -461,22 +305,3 @@ def _check_target_mutations(paths: AnalysisPaths):
             f"No mutations found in target region for input file "
             f"{paths.input_path}"
         )
-
-
-class CheckTargetMutations(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.in_silent_count,
-            params.in_nonsilent_count,
-            params.in_missense_count,
-        )
-
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        CheckTargetMutations.check_ready(params)
-        _check_target_mutations(params)

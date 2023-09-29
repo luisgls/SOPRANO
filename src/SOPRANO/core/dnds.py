@@ -1,18 +1,9 @@
 import numpy as np
 import pandas as pd
 
-from SOPRANO.objects import (
-    AnalysisPaths,
-    AuxiliaryFiles,
-    AuxiliaryPaths,
-    Parameters,
-)
-from SOPRANO.pipeline_utils import (
-    MissingDataError,
-    _PipelineComponent,
-    is_empty,
-)
-from SOPRANO.sh_utils import subprocess_pipes
+from SOPRANO.core.objects import AnalysisPaths, AuxiliaryPaths
+from SOPRANO.utils.path_utils import is_empty
+from SOPRANO.utils.sh_utils import pipe
 
 
 def _intersect_introns(paths: AnalysisPaths, aux_files: AuxiliaryPaths):
@@ -28,8 +19,7 @@ def _intersect_introns(paths: AnalysisPaths, aux_files: AuxiliaryPaths):
     :param paths:
     :return:
     """
-
-    subprocess_pipes.pipe(
+    pipe(
         [
             "intersectBed",
             "-a",
@@ -50,47 +40,6 @@ def _intersect_introns(paths: AnalysisPaths, aux_files: AuxiliaryPaths):
         ["awk", r'{print $4"\t"$8/($6+1)"\t"$8"\t"$6}'],
         output_path=paths.intron_rate,
     )
-
-
-class ComputeIntronRate(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        if not params.variants_intronic.exists():
-            raise MissingDataError(params.variants_intronic)
-
-    @staticmethod
-    def apply(params: Parameters):
-        _intersect_introns(params, AuxiliaryFiles)
-
-
-class ComputeStatistics(_PipelineComponent):
-    @staticmethod
-    def check_ready(params: Parameters):
-        paths = (
-            params.data_epitopes,
-            params.epitope_nans,
-            params.intra_epitope_nans,
-            params.intron_rate,
-        )
-
-        for path in paths:
-            if not path.exists():
-                raise MissingDataError(path)
-
-    @staticmethod
-    def apply(params: Parameters):
-        ComputeStatistics.check_ready(params)
-        _compute_coverage(params)
-
-
-# TODO: Discuss - this looks like a potential bug
-#       in the R implementation...
-#       df3<-merge(df2,df.intron,by.x="EnsembleID",by.y="EnsemblID", all.x = T)
-#       Effectively, this removes the intron values from the calculation.
-#       Probably want all.y=T where y is df.intron
-#       The above flag mimics this behaviour.
-
-_DISCARD_INTRON = True
 
 
 def _preprocess_dfs(paths: AnalysisPaths):
@@ -135,12 +84,8 @@ def _preprocess_dfs(paths: AnalysisPaths):
 
         # Merge mutations with intron df
         merged_df = spread_mutations_df.merge(
-            intron_df, how="outer", on="EnsemblID"
+            intron_df, how="left", on="EnsemblID"
         ).fillna(0)
-
-        if _DISCARD_INTRON:
-            merged_df["mutsintron"] *= 0
-            merged_df["intronlength"] *= 0
 
     return merged_df, sites_extra_df, sites_intra_df
 
@@ -250,11 +195,13 @@ def _compute_kaks_intron(variables: pd.Series):
 
 
 def _katz_confidence_interval(n_mis, n_syn, sites_1, sites_2, prefix):
-    # TODO: Find out why +1 in sites:
-    # Is this to avoid divergence in case of 0?
-    # If so, maybe consider max(1, sites_x)
-    p1 = n_mis / (sites_1 + 1)
-    p2 = n_syn / (sites_2 + 1)
+    # Usually sites number is >> 1, but it is possible to have 0 value.
+    # Therefore, take max(sites, 1) to avoid divergence in ratios
+    sites_1 = max([sites_1, 1])
+    sites_2 = max([sites_2, 1])
+
+    p1 = n_mis / sites_1
+    p2 = n_syn / sites_2
 
     global_dnds = p1 / p2
 
@@ -427,4 +374,4 @@ def _compute_coverage(paths: AnalysisPaths):
 
     print(f"Exporting results to {paths.results_path}:")
     print(results_df)
-    results_df.to_csv(paths.results_path, sep="\t")
+    results_df.to_csv(paths.results_path, sep="\t", index=False)
