@@ -22,15 +22,6 @@ class TranscriptPaths:
         )
 
 
-EnsemblTranscripts = TranscriptPaths(
-    transcript_length=Directories.data("ensemble_transcript.length"),
-    protein_transcript_length=Directories.data(
-        "ensemble_transcript_protein.length"
-    ),
-    transcript_fasta=Directories.data("ensemble_transcriptID.fasta"),
-)
-
-
 def genome_pars_to_paths(ref, release):
     """
     Translates human genome reference and release ids into a tuple of paths

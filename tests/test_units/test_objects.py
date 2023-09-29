@@ -4,8 +4,11 @@ from SOPRANO.core import objects
 
 
 def test_Transcripts():
-    assert objects.EnsemblTranscripts.transcript_length.exists()
-    assert objects.EnsemblTranscripts.protein_transcript_length.exists()
+    defaults = objects.TranscriptPaths.defaults()
+
+    assert defaults.transcript_length.exists()
+    assert defaults.protein_transcript_length.exists()
+    assert defaults.transcript_fasta.exists()
 
 
 def test_GRCh37():

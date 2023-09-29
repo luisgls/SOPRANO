@@ -142,7 +142,7 @@ if __name__ == "__main__":
         use_random=st.session_state.use_random,
         exclude_drivers=st.session_state.exclude_drivers,
         seed=st.session_state.random_seed,
-        transcripts=objects.EnsemblTranscripts,
+        transcripts=objects.TranscriptPaths.defaults(),
         genomes=st.session_state.ref_genome,
     )
 

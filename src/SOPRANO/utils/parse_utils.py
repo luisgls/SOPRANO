@@ -136,7 +136,7 @@ def parse_args():
         "-t",
         dest="transcript",
         help="Provide path to transcript file",
-        default=objects.EnsemblTranscripts.transcript_length,
+        default=objects.TranscriptPaths.defaults().transcript_length,
         type=pathlib.Path,
     )
 
@@ -145,7 +145,7 @@ def parse_args():
         "-p",
         dest="protein_transcript",
         help="Provide path to protein transcript file",
-        default=objects.EnsemblTranscripts.protein_transcript_length,
+        default=objects.TranscriptPaths.defaults().protein_transcript_length,
         type=pathlib.Path,
     )
 
@@ -154,7 +154,7 @@ def parse_args():
         "-f",
         dest="transcript_ids",
         help="Provide path to the ensembl transcript IDs fasta file",
-        default=objects.EnsemblTranscripts.transcript_fasta,
+        default=objects.TranscriptPaths.defaults().transcript_fasta,
         type=pathlib.Path,
     )
 

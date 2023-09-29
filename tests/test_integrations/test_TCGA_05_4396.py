@@ -33,7 +33,7 @@ def test_pipeline(tmp_path):
         use_random=False,
         exclude_drivers=exclude_drivers,
         seed=-1,
-        transcripts=objects.EnsemblTranscripts,
+        transcripts=objects.TranscriptPaths.defaults(),
         genomes=objects.GRCh37_110,
     )
 
