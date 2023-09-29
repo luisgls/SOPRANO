@@ -114,8 +114,8 @@ def parse_args():
         "--keep_drivers",
         dest="keep_drivers",
         action="store_true",
-        help="If flag is used, driver genes will be excluded from the "
-        "calculation.",
+        help="If flag is used, driver genes in src/data/genes2exclude.txt will"
+        " be retained in the calculation.",
     )
 
     analysis_params_group.add_argument(
