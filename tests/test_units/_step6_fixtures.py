@@ -3,11 +3,12 @@ import pathlib
 import pytest
 
 from SOPRANO.core.objects import AnalysisPaths
+from SOPRANO.utils.path_utils import Directories
 
 
 @pytest.fixture
 def tcga_05_4396_ssb192_cfg():
-    data_dir = pathlib.Path(__file__).parent.joinpath("dnds_data")
+    data_dir = Directories.unit_tests("dnds_data")
     data_epitopes_path = data_dir.joinpath("TCGA-05-4396.data.epitopes")
     epi_nans_path = data_dir.joinpath("TCGA-05-4396.epitopes.nans")
     intra_nans_path = data_dir.joinpath("TCGA-05-4396.intra_epitopes.nans")
