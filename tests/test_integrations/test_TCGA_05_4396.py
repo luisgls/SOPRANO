@@ -34,7 +34,7 @@ def test_pipeline(tmp_path):
         exclude_drivers=exclude_drivers,
         seed=-1,
         transcripts=objects.TranscriptPaths.defaults(),
-        genomes=objects.GRCh37_110,
+        genomes=objects.GenomePaths.GRCh37(),
     )
 
     run_pipeline(params)

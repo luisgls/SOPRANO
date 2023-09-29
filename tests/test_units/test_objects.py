@@ -12,8 +12,11 @@ def test_Transcripts():
 
 
 def test_GRCh37():
-    assert objects.GRCh37_110.sizes.exists()
-    # assert objects.GRCh37.fasta.exists()
+    assert objects.GenomePaths.GRCh37().sizes.exists()
+
+
+def test_GRCh38():
+    assert objects.GenomePaths.GRCh38().sizes.exists()
 
 
 def test_cache_path_builder():

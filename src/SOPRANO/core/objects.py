@@ -55,17 +55,6 @@ class GenomePaths:
         return cls(sizes=sizes, fasta=fasta)
 
 
-GRCh37_110 = GenomePaths(
-    sizes=genome_pars_to_paths("GRCh37", 110)[1],
-    fasta=genome_pars_to_paths("GRCh37", 110)[0],
-)
-
-GRCh38_110 = GenomePaths(
-    sizes=genome_pars_to_paths("GRCh38", 110)[1],
-    fasta=genome_pars_to_paths("GRCh38", 110)[0],
-)
-
-
 @dataclass(frozen=True)
 class AuxiliaryPaths:
     genes_to_exclude: pathlib.Path
