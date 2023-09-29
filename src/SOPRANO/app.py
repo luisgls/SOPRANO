@@ -3,11 +3,11 @@ import time
 import pandas as pd
 import streamlit as st
 
-import SOPRANO.utils.misc_utils
+import SOPRANO.utils.path_utils
 from SOPRANO.core import objects
 from SOPRANO.pipeline import run_pipeline
 from SOPRANO.utils.app_utils import st_capture
-from SOPRANO.utils.misc_utils import Directories
+from SOPRANO.utils.path_utils import Directories
 
 _CACHE = Directories.cache()
 

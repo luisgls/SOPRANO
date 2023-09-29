@@ -2,8 +2,8 @@ import subprocess
 
 from SOPRANO.core import objects
 from SOPRANO.pipeline import run_pipeline
-from SOPRANO.utils.misc_utils import Directories
 from SOPRANO.utils.parse_utils import parse_args, parse_genome_args
+from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.print_utils import startup_output
 from SOPRANO.utils.vep_utils import (
     _get_src_dst_link_pairs,

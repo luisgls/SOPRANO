@@ -2,7 +2,7 @@ import argparse
 import pathlib
 
 from SOPRANO.core import objects
-from SOPRANO.utils.misc_utils import check_cli_path
+from SOPRANO.utils.path_utils import check_cli_path
 
 
 def parse_genome_args():

@@ -42,7 +42,7 @@ from SOPRANO.core.prepare_coordinates import (
     filter_transcript_files,
     transform_coordinates,
 )
-from SOPRANO.utils.misc_utils import _check_paths
+from SOPRANO.utils.path_utils import _check_paths
 from SOPRANO.utils.print_utils import task_output
 
 AuxiliaryFiles = AuxiliaryPaths.defaults()

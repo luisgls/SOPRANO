@@ -3,7 +3,7 @@ import pathlib
 from typing import List, Tuple
 
 from SOPRANO.utils import sh_utils
-from SOPRANO.utils.misc_utils import Directories
+from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.sh_utils import pipe
 
 

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from SOPRANO.core.objects import AnalysisPaths, AuxiliaryPaths
-from SOPRANO.utils.misc_utils import is_empty
+from SOPRANO.utils.path_utils import is_empty
 from SOPRANO.utils.sh_utils import pipe
 
 

@@ -2,7 +2,7 @@ import pathlib
 from argparse import Namespace
 from dataclasses import dataclass
 
-from SOPRANO.utils.misc_utils import Directories, genome_pars_to_paths
+from SOPRANO.utils.path_utils import Directories, genome_pars_to_paths
 
 
 @dataclass(frozen=True)
