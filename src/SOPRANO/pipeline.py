@@ -496,7 +496,7 @@ class ComputeStatistics(_PipelineComponent):
 def run_pipeline(params: Parameters):
     jobs: List[_PipelineComponent] = [FilterTranscripts()]
 
-    if params.use_target_regions:
+    if params.use_random_regions:
         jobs.append(RandomizeWithRegions())
     elif params.use_random:
         jobs.append(RandomizeWithoutRegions())

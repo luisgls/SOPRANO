@@ -83,12 +83,12 @@ class AnalysisPaths:
         input_path: pathlib.Path,
         bed_path: pathlib.Path,
         cache_dir: pathlib.Path,
-        target_regions: pathlib.Path | None = None,
+        random_regions: pathlib.Path | None = None,
     ):
         self.analysis_name = analysis_name
         self.input_path = input_path
         self.bed_path = bed_path
-        self.target_regions_path = target_regions
+        self.random_regions_path = random_regions
         self.cache_dir = cache_dir
 
         # Transcripts
@@ -200,7 +200,7 @@ _NAMESPACE_KEYS = (
     "transcript_ids",
     "use_ssb192",
     "use_random",
-    "exclude_drivers",
+    "keep_drivers",
     "seed",
     "genome_ref",
     "release",
@@ -214,7 +214,7 @@ class Parameters(AnalysisPaths):
         input_path: pathlib.Path,
         bed_path: pathlib.Path,
         cache_dir: pathlib.Path,
-        target_regions: pathlib.Path | None,
+        random_regions: pathlib.Path | None,
         use_ssb192: bool,
         use_random: bool,
         exclude_drivers: bool,
@@ -223,13 +223,13 @@ class Parameters(AnalysisPaths):
         genomes: GenomePaths,
     ):
         super().__init__(
-            analysis_name, input_path, bed_path, cache_dir, target_regions
+            analysis_name, input_path, bed_path, cache_dir, random_regions
         )
 
         self.transcripts = transcripts
         self.genomes = genomes
         self.use_ssb192 = use_ssb192
-        self.use_target_regions = target_regions is not None
+        self.use_random_regions = random_regions is not None
         self.use_random = use_random
         self.exclude_drivers = exclude_drivers
         self.seed = None if seed < 0 else seed
@@ -260,15 +260,15 @@ class Parameters(AnalysisPaths):
             )
 
         return cls(
-            namespace.analysis_name,
-            namespace.input_path,
-            namespace.bed_path,
-            namespace.cache_dir,
-            namespace.target_regions,
-            namespace.use_ssb192,
-            namespace.use_random,
-            namespace.exclude_drivers,
-            namespace.seed,
-            transcripts,
-            genomes,
+            analysis_name=namespace.analysis_name,
+            input_path=namespace.input_path,
+            bed_path=namespace.bed_path,
+            cache_dir=namespace.cache_dir,
+            random_regions=namespace.random_regions,
+            use_ssb192=namespace.use_ssb192,
+            use_random=namespace.use_random,
+            exclude_drivers=not namespace.keep_drivers,
+            seed=namespace.seed,
+            transcripts=transcripts,
+            genomes=genomes,
         )
