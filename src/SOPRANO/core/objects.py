@@ -51,15 +51,6 @@ class AuxiliaryPaths:
         )
 
 
-def cache_path_builder(tmpdir: pathlib.Path, name: str, *extensions: str):
-    file_name = f"{name}"
-
-    if len(extensions) > 0:
-        file_name += "." + ".".join([*extensions])
-
-    return tmpdir.joinpath(file_name)
-
-
 class AnalysisPaths:
     def __init__(
         self,
@@ -168,9 +159,12 @@ class AnalysisPaths:
         self.results_path = self._cached_path("results.tsv")
 
     def _cached_path(self, *extensions):
-        return cache_path_builder(
-            self.cache_dir, self.analysis_name, *extensions
-        )
+        file_name = f"{self.analysis_name}"
+
+        if len(extensions) > 0:
+            file_name += "." + ".".join([*extensions])
+
+        return self.cache_dir.joinpath(file_name)
 
 
 _NAMESPACE_KEYS = (
