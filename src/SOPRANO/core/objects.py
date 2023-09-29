@@ -2,7 +2,7 @@ import pathlib
 from argparse import Namespace
 from dataclasses import dataclass
 
-from SOPRANO.utils.misc_utils import Directories
+from SOPRANO.utils.misc_utils import Directories, genome_pars_to_paths
 
 
 @dataclass(frozen=True)
@@ -20,23 +20,6 @@ class TranscriptPaths:
             ),
             transcript_fasta=Directories.data("ensemble_transcriptID.fasta"),
         )
-
-
-def genome_pars_to_paths(ref, release):
-    """
-    Translates human genome reference and release ids into a tuple of paths
-
-    - genome reference fasta file path
-    - chrom sizes file path
-
-    :param ref: Genome reference ID
-    :param release: Ensembl release ID
-    :return: Tuple of paths: reference fasta file, chrom sizes
-    """
-    data_dir = Directories.homo_sapien_genomes(f"{release}_{ref}")
-    genome_path = data_dir.joinpath(f"Homo_sapiens.{ref}.dna.toplevel.fa")
-    chroms_path = data_dir.joinpath(f"Homo_sapiens.{ref}.dna.toplevel.chrom")
-    return genome_path, chroms_path
 
 
 @dataclass(frozen=True)
@@ -273,3 +256,7 @@ class Parameters(AnalysisPaths):
             transcripts=transcripts,
             genomes=genomes,
         )
+
+
+class SOPRANOError(Exception):
+    pass

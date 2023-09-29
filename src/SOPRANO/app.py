@@ -3,6 +3,7 @@ import time
 import pandas as pd
 import streamlit as st
 
+import SOPRANO.utils.misc_utils
 from SOPRANO.core import objects
 from SOPRANO.pipeline import run_pipeline
 from SOPRANO.utils.app_utils import st_capture
@@ -50,9 +51,10 @@ if __name__ == "__main__":
 
         ref_id, rel_id = genome_selection.split(" - Ensembl release ")
 
-        genomes_path, chroms_path = objects.genome_pars_to_paths(
-            ref_id, rel_id
-        )
+        (
+            genomes_path,
+            chroms_path,
+        ) = SOPRANO.utils.misc_utils.genome_pars_to_paths(ref_id, rel_id)
 
         st.session_state.ref_genome = objects.GenomePaths(
             sizes=chroms_path, fasta=genomes_path

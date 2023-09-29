@@ -92,18 +92,10 @@ def is_empty(path: pathlib.Path) -> bool:
     return path.stat().st_size == 0
 
 
-class MissingDataError(Exception):
-    pass
-
-
-class SOPRANOError(Exception):
-    pass
-
-
 def _check_paths(*dependent_paths: pathlib.Path):
     for path in dependent_paths:
         if not path.exists():
-            raise MissingDataError(path)
+            raise FileNotFoundError(path)
 
 
 def check_cli_path(cli_path: pathlib.Path | None, optional=False):
@@ -114,3 +106,20 @@ def check_cli_path(cli_path: pathlib.Path | None, optional=False):
             )
     elif not cli_path.exists():
         raise FileNotFoundError(f"CLI input path does not exist: {cli_path}")
+
+
+def genome_pars_to_paths(ref, release):
+    """
+    Translates human genome reference and release ids into a tuple of paths
+
+    - genome reference fasta file path
+    - chrom sizes file path
+
+    :param ref: Genome reference ID
+    :param release: Ensembl release ID
+    :return: Tuple of paths: reference fasta file, chrom sizes
+    """
+    data_dir = Directories.homo_sapien_genomes(f"{release}_{ref}")
+    genome_path = data_dir.joinpath(f"Homo_sapiens.{ref}.dna.toplevel.fa")
+    chroms_path = data_dir.joinpath(f"Homo_sapiens.{ref}.dna.toplevel.chrom")
+    return genome_path, chroms_path
