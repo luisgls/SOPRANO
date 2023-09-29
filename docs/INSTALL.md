@@ -1,18 +1,36 @@
-## Installation
+# Installation
 
-SOPRANO currently requires Mac or Linux OS. All dependencies (including 
-bioinformatics tools such as VEP and bedtools) are built within a conda 
-environment for coherent reproducibility. The suite of SOPRANO tools is 
-assembled as a Python package, which is installed into the wider conda 
+SOPRANO requires Mac or Linux OS. All dependencies (including
+bioinformatics tools such as VEP and bedtools) are built within a conda
+environment for coherent reproducibility. The suite of SOPRANO tools is
+assembled as a Python package, which is installed into the encompassing conda
 environment.
 
-To install the environment and SOPRANO code, users are therefore required 
-to have a conda (or mamba) installation available. From the repository root
-users should run 
+To install the environment and SOPRANO code, users are therefore required
+to have conda (or mamba) available on their system.
 
-```. setup.sh```
+**From the repository root, run the command**
 
-which will construct and activate the `soprano-dev` environment. After the 
-first installation, users can activate the pre-built environment with
+```shell
+. setup.sh
+```
 
-``` conda activate soprano-dev ```
+This will automatically construct and activate the `soprano-dev` environment.
+After the installation, users can activate the pre-built environment with
+
+```shell
+conda activate soprano-dev
+```
+
+### Developer notes
+
+If wish to contribute to the development of SOPRANO, run the
+setup script with the additional argument
+
+```shell
+. setup.sh dev
+```
+
+This will install additional packages (such as black, ruff, isort and pytest).
+From the repository root, calling `pre-commit install` will prepare a number of
+hooks that will enforce code style consistent with the wider repository.
