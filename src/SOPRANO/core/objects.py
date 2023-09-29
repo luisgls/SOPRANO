@@ -11,6 +11,16 @@ class TranscriptPaths:
     protein_transcript_length: pathlib.Path
     transcript_fasta: pathlib.Path
 
+    @classmethod
+    def defaults(cls):
+        return cls(
+            transcript_length=Directories.data("ensemble_transcript.length"),
+            protein_transcript_length=Directories.data(
+                "ensemble_transcript_protein.length"
+            ),
+            transcript_fasta=Directories.data("ensemble_transcriptID.fasta"),
+        )
+
 
 EnsemblTranscripts = TranscriptPaths(
     transcript_length=Directories.data("ensemble_transcript.length"),
@@ -19,12 +29,6 @@ EnsemblTranscripts = TranscriptPaths(
     ),
     transcript_fasta=Directories.data("ensemble_transcriptID.fasta"),
 )
-
-
-@dataclass(frozen=True)
-class GenomePaths:
-    sizes: pathlib.Path
-    fasta: pathlib.Path
 
 
 def genome_pars_to_paths(ref, release):
@@ -44,6 +48,22 @@ def genome_pars_to_paths(ref, release):
     return genome_path, chroms_path
 
 
+@dataclass(frozen=True)
+class GenomePaths:
+    sizes: pathlib.Path
+    fasta: pathlib.Path
+
+    @classmethod
+    def GRCh37(cls, release=110):
+        fasta, sizes = genome_pars_to_paths("GRCh37", release)
+        return cls(sizes=sizes, fasta=fasta)
+
+    @classmethod
+    def GRCh38(cls, release=110):
+        fasta, sizes = genome_pars_to_paths("GRCh38", release)
+        return cls(sizes=sizes, fasta=fasta)
+
+
 GRCh37_110 = GenomePaths(
     sizes=genome_pars_to_paths("GRCh37", 110)[1],
     fasta=genome_pars_to_paths("GRCh37", 110)[0],
@@ -59,6 +79,13 @@ GRCh38_110 = GenomePaths(
 class AuxiliaryPaths:
     genes_to_exclude: pathlib.Path
     intron_length: pathlib.Path
+
+    @classmethod
+    def defaults(cls):
+        return cls(
+            genes_to_exclude=Directories.data("genes2exclude.txt"),
+            intron_length=Directories.data("transcript_intron_length.bed"),
+        )
 
 
 AuxiliaryFiles = AuxiliaryPaths(
