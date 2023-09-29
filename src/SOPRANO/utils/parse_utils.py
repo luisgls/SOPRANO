@@ -89,7 +89,7 @@ def parse_args():
 
     analysis_params_group.add_argument(
         "--random_regions",
-        "-t",
+        "-m",
         dest="random_regions",  # TODO: Update to random_regions
         type=pathlib.Path,
         help="Provide a bed file with regions to randomize.",
@@ -133,6 +133,7 @@ def parse_args():
 
     transcript_args.add_argument(
         "--transcript",
+        "-t",
         dest="transcript",
         help="Provide path to transcript file",
         default=objects.EnsemblTranscripts.transcript_length,
@@ -141,6 +142,7 @@ def parse_args():
 
     transcript_args.add_argument(
         "--protein_transcript",
+        "-p",
         dest="protein_transcript",
         help="Provide path to protein transcript file",
         default=objects.EnsemblTranscripts.protein_transcript_length,
@@ -149,6 +151,7 @@ def parse_args():
 
     transcript_args.add_argument(
         "--fasta",
+        "-f",
         dest="transcript_ids",
         help="Provide path to the ensembl transcript IDs fasta file",
         default=objects.EnsemblTranscripts.transcript_fasta,
