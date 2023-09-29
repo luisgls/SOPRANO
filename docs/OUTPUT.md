@@ -1,12 +1,17 @@
-## Output file
+# Output dN/dS file
 
-The output of SOPRANO is a table report, with headers
+The output of SOPRANO is a TSV file in the following format:
 
-```{bash}
-coverage ON_dnds ON_lowci ON_highci ON_muts OFF_dnds OFF_lowci OFF_highci OFF_muts P-val ON_na ON_NA ON_ns ON_NS OFF_na OFF_NA OFF_ns OFF_NS
-```
+| coverage    | ON_dnds | ON_lowci | ON_highci | ON_muts | OFF_dnds | OFF_lowci | OFF_highci | OFF_muts | Pvalue | ON_na | ON_NA | ON_ns | ON_NS | OFF_na | OFF_NA | OFF_ns | OFF_NS |
+|-------------| ------- | -------- | --------- | ------- | -------- | --------- | ---------- | -------- |--------| ----- | ----- | ----- | ----- | ------ | ------ | ------ | ------ |
+| Exonic_Only |
+| Exonic_Intronic |
 
-- ```coverage``` Two options: ExonicOnly and ExonicIntronic. The latest should be used if there are intronic mutations in the mutation file. The algorithm uses intronic mutations to improve the background counts of silent mutations.
+Only first row (`Exonic_Only`) of the table data will be generated if there are 
+no intronic mutations. The SOPRANO algorithm uses intronic mutations to improve
+the background counts of silent mutations.
+
+### Contents descriptions
 
 - ```ON_dnds``` dN/dS of the target region provided in the bed file
 
