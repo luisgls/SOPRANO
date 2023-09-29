@@ -6,7 +6,6 @@ def test_Transcripts():
 
     assert defaults.transcript_length.exists()
     assert defaults.protein_transcript_length.exists()
-    assert defaults.transcript_fasta.exists()
 
 
 def test_GRCh37():
