@@ -4,38 +4,28 @@ from SOPRANO.core import objects
 from SOPRANO.pipeline import run_pipeline
 from SOPRANO.utils.path_utils import Directories
 
+# Common definitions for test file
 input_file = Directories.examples("TCGA-05-4396-01A-21D-1855-08.annotated")
 bed_file = Directories.immuno_humans(
     "TCGA-05-4396.Expressed.IEDBpeps.SB.epitope.bed"
 )
 name = "TCGA-05-4396"
-genome_ref = "GRCh37"
 exclude_drivers = True
 release = 110
 
-expected_path = Directories.int_tests("TCGA-05-4396.tsv")
-assert expected_path.exists()
+# Differentiate SSB192 and SSB7 test cases
+expected_tsv_ssb192_path = Directories.int_tests("TCGA-05-4396_SSB192.tsv")
+expected_tsv_ssb7_path = Directories.int_tests("TCGA-05-4396_SSB7.tsv")
 
 
-def test_pipeline(tmp_path):
+def _run_and_assert(params):
     """
-    Test the TCGA-05-4396 end-to-end for validation.
+    Run the pipeline and check all core files are generated
 
-    :param tmp_path: invoked by pytest fixture - uses /tmp
+    :param params: parameters instasnce
     """
-    params = objects.Parameters(
-        analysis_name=name,
-        input_path=input_file,
-        bed_path=bed_file,
-        cache_dir=tmp_path,
-        random_regions=None,
-        use_ssb192=True,
-        use_random=False,
-        exclude_drivers=exclude_drivers,
-        seed=-1,
-        transcripts=objects.TranscriptPaths.defaults(),
-        genomes=objects.GenomePaths.GRCh37(),
-    )
+
+    # TODO: Turn into fixture
 
     run_pipeline(params)
 
@@ -115,11 +105,57 @@ def test_pipeline(tmp_path):
     # Check results file exists!
     assert params.results_path.exists()
 
+
+def test_pipeline_ssb192(tmp_path):
+    """
+    Test the TCGA-05-4396 end-to-end for validation using SSB192
+
+    :param tmp_path: invoked by pytest fixture - uses /tmp
+    """
+    params = objects.Parameters(
+        analysis_name=name,
+        input_path=input_file,
+        bed_path=bed_file,
+        cache_dir=tmp_path,
+        random_regions=None,
+        use_ssb192=True,
+        use_random=False,
+        exclude_drivers=exclude_drivers,
+        seed=-1,
+        transcripts=objects.TranscriptPaths.defaults(),
+        genomes=objects.GenomePaths.GRCh37(),
+    )
+    _run_and_assert(params)
+
     computed_tsv = pd.read_csv(params.results_path, sep="\t")
-    expected_tsv = pd.read_csv(expected_path, sep="\t")
+    expected_tsv = pd.read_csv(expected_tsv_ssb192_path, sep="\t")
 
     assert computed_tsv.equals(expected_tsv), (computed_tsv, expected_tsv)
 
-    # coverage ON_dnds ON_lowci ON_highci ON_muts OFF_dnds OFF_lowci OFF_highci OFF_muts Pval ON_na ON_NA ON_ns ON_NS OFF_na OFF_NA OFF_ns OFF_NS                                                 # noqa: E501
-    # ExonicOnly 0.170545315483698 0.0312367028034305 0.931140579583117 6 0.890687718057257 0.510646130660438 1.5535705238312 63 0.330510882590904 2 1974270 4 673405 46 19525700 17 6427220      # noqa: E501
-    # ExonicIntronic 0.170545315483698 0.0312367028034305 0.931140579583117 6 0.890687718057257 0.510646130660438 1.5535705238312 63 0.330510882590904 2 1974270 4 673405 46 19525700 17 6427220  # noqa: E501
+
+def test_pipeline_ssb7(tmp_path):
+    """
+    Test the TCGA-05-4396 end-to-end for validation using SSB7
+
+    :param tmp_path: invoked by pytest fixture - uses /tmp
+    """
+    params = objects.Parameters(
+        analysis_name=name,
+        input_path=input_file,
+        bed_path=bed_file,
+        cache_dir=tmp_path,
+        random_regions=None,
+        use_ssb192=False,
+        use_random=False,
+        exclude_drivers=exclude_drivers,
+        seed=-1,
+        transcripts=objects.TranscriptPaths.defaults(),
+        genomes=objects.GenomePaths.GRCh37(),
+    )
+
+    _run_and_assert(params)
+
+    computed_tsv = pd.read_csv(params.results_path, sep="\t")
+    expected_tsv = pd.read_csv(expected_tsv_ssb7_path, sep="\t")
+
+    assert computed_tsv.equals(expected_tsv), (computed_tsv, expected_tsv)
