@@ -1,6 +1,6 @@
 import pandas as pd
 
-import SOPRANO.core.dnds
+import SOPRANO.core.dnds as dnds
 
 
 def test__preprocess_dfs(tcga_05_4396_ssb192_cfg):
@@ -11,7 +11,7 @@ def test__preprocess_dfs(tcga_05_4396_ssb192_cfg):
         sites_intra_path,
     ) = tcga_05_4396_ssb192_cfg
 
-    merged, sites_extra, sites_intra = SOPRANO.core.dnds._preprocess_dfs(paths)
+    merged, sites_extra, sites_intra = dnds._preprocess_dfs(paths)
 
     assert merged.head().equals(pd.read_csv(merged_path, delimiter="\t"))
     assert sites_extra.head().equals(
@@ -53,7 +53,7 @@ def test__compute_mutation_counts():
         ],
     )
 
-    computed_series = SOPRANO.core.dnds._compute_mutation_counts(mock_df)
+    computed_series = dnds._compute_mutation_counts(mock_df)
 
     assert computed_series.equals(expected_series)
 
@@ -67,9 +67,7 @@ def test__define_variables():
         {"m_1": 1, "m_2": 2, "x_1": 3, "x_2": 4, "y_1": 5, "y_2": 6}
     )
 
-    computed_series = SOPRANO.core.dnds._define_variables(
-        mock_series, mock_df_1, mock_df_2
-    )
+    computed_series = dnds._define_variables(mock_series, mock_df_1, mock_df_2)
 
     assert computed_series.equals(expected_series)
 
@@ -86,10 +84,7 @@ def test__rescale_intron_by_synonymous():
     )
 
     expected_value = 1.0
-    assert (
-        SOPRANO.core.dnds._rescale_intron_by_synonymous(mock_vars)
-        == expected_value
-    )
+    assert dnds._rescale_intron_by_synonymous(mock_vars) == expected_value
 
 
 def test__compute_kaks_intra_extra():
@@ -106,8 +101,8 @@ def test__compute_kaks_intra_extra():
         }
     )
 
-    assert SOPRANO.core.dnds._compute_kaks_extra(mock_vars) == 1
-    assert SOPRANO.core.dnds._compute_kaks_intra(mock_vars) == 4
+    assert dnds._compute_kaks_extra(mock_vars) == 1
+    assert dnds._compute_kaks_intra(mock_vars) == 4
 
 
 def test__compute_kaks_intron():
@@ -125,7 +120,7 @@ def test__compute_kaks_intron():
         }
     )
 
-    assert SOPRANO.core.dnds._compute_kaks_intron(mock_vars) == 1.0
+    assert dnds._compute_kaks_intron(mock_vars) == 1.0
 
 
 def test__compute_conf_interval():
