@@ -54,7 +54,7 @@ if __name__ == "__main__":
         (
             genomes_path,
             chroms_path,
-        ) = SOPRANO.utils.misc_utils.genome_pars_to_paths(ref_id, rel_id)
+        ) = SOPRANO.utils.path_utils.genome_pars_to_paths(ref_id, rel_id)
 
         st.session_state.ref_genome = objects.GenomePaths(
             sizes=chroms_path, fasta=genomes_path
