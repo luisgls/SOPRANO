@@ -269,7 +269,7 @@ def test__prep_not_ssb192(step_2_defs):
         + tab_line(*start_stop_235)
     )
 
-    prep_coords._prep_not_ssb192(paths)
+    prep_coords._prep_ssb7(paths)
 
     def _map(start_stop: tuple):
         chrom, start, stop = start_stop
