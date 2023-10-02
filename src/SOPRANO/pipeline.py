@@ -4,7 +4,7 @@ from SOPRANO.core.analysis import (
     _build_flag_file,
     _check_triplet_counts,
     _col_correct,
-    _compute_theoretical_subs,
+    _compute_theoretical_subs_192,
     _context_correction,
     _correct_from_total_sites,
     _fix_simulated,
@@ -216,10 +216,10 @@ class ComputeSSB192TheoreticalSubs(_PipelineComponent):
         )
 
     def _apply(self, params: Parameters):
-        _compute_theoretical_subs(
+        _compute_theoretical_subs_192(
             params.epitopes_cds_fasta, params.epitopes_trans_regs
         )
-        _compute_theoretical_subs(
+        _compute_theoretical_subs_192(
             params.intra_epitopes_cds_fasta, params.intra_epitopes_trans_regs
         )
 

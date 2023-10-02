@@ -5,7 +5,7 @@ from SOPRANO.utils.path_utils import Directories, is_empty
 from SOPRANO.utils.sh_utils import pipe
 
 
-def _compute_theoretical_subs(
+def _compute_theoretical_subs_192(
     cds_fasta: pathlib.Path, trans_regs: pathlib.Path
 ):
     """
@@ -23,6 +23,32 @@ def _compute_theoretical_subs(
     """
 
     perl_path = Directories.scripts("calculate_sites_signaturesLZ_192.pl")
+
+    pipe(
+        [perl_path.as_posix(), cds_fasta.as_posix(), trans_regs],
+        output_path=trans_regs,
+        overwrite=True,
+    )
+
+
+def _compute_theoretical_subs_7(
+    cds_fasta: pathlib.Path, trans_regs: pathlib.Path
+):
+    """
+
+    Implement
+
+    $BASEDIR/scripts/calculate_sites_signaturesLZ_192.pl
+        $TMP/$NAME.epitopes_cds.fasta $TMP/$NAME.listA > $TMP/$NAME.listA.sites
+
+    Estimates all theoretical possible 192 subsitutions in target and
+    non-target regions
+
+    :param cds_fasta: path to epitopes_cds of intra_epitopes_cds fasta file
+    :param trans_regs: list of transcript:regions
+    """
+
+    perl_path = Directories.scripts("calculate_sites_signaturesLZ.pl")
 
     pipe(
         [perl_path.as_posix(), cds_fasta.as_posix(), trans_regs],
@@ -195,6 +221,45 @@ def _initial_triplet_counts(paths: AnalysisPaths):
 
 class SOPRANOError(Exception):
     pass
+
+
+def _transform_192_to_7(paths: AnalysisPaths):
+    """
+    Implements:
+
+    perl $BASEDIR/scripts/transform192to7.pl $NAME.finalVEP.triplets.counts
+        $BASEDIR/data/final_translate_SSB192toSSB7 |
+            awk -F "\t" '{OFS="\t"}{print $3,1,2,$2}' | sortBed -i stdin |
+                mergeBed -i stdin -c 4 -o sum |
+                    awk '{OFS="\t"}{print "Estimated",$1,$4}' |
+                        sed 's/_/\//g' > tmp_to_7
+
+    cp $NAME.finalVEP.triplets.counts $NAME.finalVEP.triplets192.counts
+    mv tmp_to_7 $NAME.finalVEP.triplets.counts
+
+    :param paths:
+    """
+
+    perl_path = Directories.scripts("transform192to7.pl")
+    translation_data_path = Directories.data("final_translate_SSB192toSSB7")
+
+    assert perl_path.exists()
+    assert translation_data_path.exists()
+
+    pipe(
+        [
+            "perl",
+            perl_path.as_posix(),
+            paths.triplet_counts.as_posix(),
+            translation_data_path.as_posix(),
+        ],
+        ["awk", "-F", r'"\t"', r'{OFS="\t"}{print $3,1,2,$2}'],
+        ["sortBed", "-i", "stdin"],
+        ["mergeBed", "-i", "stdin", "-c", "4", "-o", "sum"],
+        ["awk", r'{OFS="\t"}{print "Estimated",$1,$4}'],
+        ["sed", r"'s/_/\//g'"],
+        output_path=paths.triplet_counts,
+    )
 
 
 def _check_triplet_counts(paths: AnalysisPaths):
