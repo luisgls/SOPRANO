@@ -7,10 +7,10 @@
 BASEDIR=/mnt/c/Users/kmarzouk/software/SOPRANO/src/SOPRANO
 SUPA=$BASEDIR/data 
 TRANS=$BASEDIR/data/ensemble_transcriptID.fasta
-TMP=$BASEDIR/tmp
-__DATA=/mnt/c/Users/kmarzouk/software/SOPRANO/src/SOPRANO/data
+TMP=/home/kareem/SOPRANO_CACHE_TMP/tmp # $BASEDIR/tmp
+__DATA=/mnt/c/Users/kmarzouk/software/SOPRANO/src/SOPRANO/data/homo_sapiens/110_GRCh37
 FASTA=$__DATA/Homo_sapiens.GRCh37.dna.toplevel.fa
-GENOME=$__DATA/chrom_GRCh37.sizes
+GENOME=$__DATA/Homo_sapiens.GRCh37.dna.toplevel.chrom
 
 
 ###Check arguments before running
