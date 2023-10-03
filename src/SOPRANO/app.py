@@ -8,6 +8,7 @@ from SOPRANO.core import objects
 from SOPRANO.pipeline import run_pipeline
 from SOPRANO.utils.app_utils import (
     get_annotated_input_options,
+    get_coordinate_options,
     get_human_genome_options,
     get_immunopeptidome_options,
     st_capture,
@@ -17,6 +18,7 @@ from SOPRANO.utils.path_utils import Directories
 genome_options = get_human_genome_options()
 annotated_input_options = get_annotated_input_options()
 immunopeptidome_options = get_immunopeptidome_options()
+coordinate_options = get_coordinate_options()
 
 
 def process_genome_selection():
@@ -58,6 +60,12 @@ def process_job_name_selection():
     job_name = st.session_state.job_name
     st.session_state.cache_dir = Directories.cache(job_name)
     st.text(f"Cache location: {st.session_state.cache_dir}")
+
+
+def process_randomization_region():
+    region_selection = st.session_state.random_regions
+    st.session_state.random_regions_path = coordinate_options[region_selection]
+    st.text(f"Selected: {st.session_state.random_regions_path}")
 
 
 def run_pipeline_in_app():
@@ -134,9 +142,15 @@ if __name__ == "__main__":
             value="min",
             key="random_seed",
         )
-        # TODO: Option for randomization regions
+        st.selectbox(
+            "Select a BED file defining the regions to randomize over:",
+            coordinate_options.keys(),
+            key="random_regions",
+        )
+        process_randomization_region()
     else:
         st.session_state.random_seed = -1
+        st.session_state.random_regions_path = None
 
     # Pipeline job name & cache
     st.text_input(
@@ -149,7 +163,7 @@ if __name__ == "__main__":
         input_path=st.session_state.input_path,
         bed_path=st.session_state.bed_path,
         cache_dir=st.session_state.cache_dir,
-        random_regions=None,  # TODO: Fix
+        random_regions=st.session_state.random_regions_path,
         use_ssb192=st.session_state.use_ssb192,
         use_random=st.session_state.use_random,
         exclude_drivers=st.session_state.exclude_drivers,

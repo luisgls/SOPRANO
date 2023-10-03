@@ -73,3 +73,10 @@ def get_immunopeptidome_options():
         for x in directory.glob("*.bed"):
             options_dict[x.name] = x
     return options_dict
+
+
+def get_coordinate_options():
+    options_dict = {None: None}
+    for x in Directories.app_coordinate_files().glob("*.bed"):
+        options_dict[x.name] = x
+    return options_dict
