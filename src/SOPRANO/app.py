@@ -2,6 +2,7 @@ import time
 
 import pandas as pd
 import streamlit as st
+from streamlit.delta_generator import DeltaGenerator
 
 import SOPRANO.utils.path_utils
 from SOPRANO.core import objects
@@ -93,13 +94,8 @@ def run_pipeline_in_app():
     st.text(f"dN/dS file: {st.session_state.params.results_path}")
 
 
-if __name__ == "__main__":
-    gui_tab, vep_tab, genome_tab, annotate_tab, info_tab = st.tabs(
-        ["GUI", "Link VEP", "Download Genomes", "Annotator", "Information"]
-    )
-
-    with gui_tab:
-        # Init app
+def with_tab_pipeline(tab: DeltaGenerator):
+    with tab:
         st.title("SOPRANO")
         st.caption("Selection On PRotein ANnotated regiOns")
 
@@ -181,3 +177,51 @@ if __name__ == "__main__":
 
         if st.button("Run Pipeline"):
             run_pipeline_in_app()
+
+
+def with_tab_vep(tab: DeltaGenerator):
+    with tab:
+        st.title("Link VEP")
+        st.text("Description of what is going on...")
+        if st.button("Link", disabled=True):
+            pass  # TODO
+
+
+def with_tab_genomes(tab: DeltaGenerator):
+    with tab:
+        st.title("Download Reference Genomes")
+        st.text("Description of what is going on...")
+        if st.button("Download", disabled=True):
+            pass  # TODO
+
+
+def with_tab_annotator(tab: DeltaGenerator):
+    with tab:
+        st.title("Annotate VCF File")
+        st.text("Description of what is going on...")
+        if st.button("Annotate", disabled=True):
+            pass  # TODO
+
+
+def with_tab_info(tab: DeltaGenerator):
+    with tab:
+        st.title("Information")
+        st.text("Description of what is going on...")
+
+
+if __name__ == "__main__":
+    pipeline_tab, vep_tab, genome_tab, annotate_tab, info_tab = st.tabs(
+        [
+            "Pipeline",
+            "Link VEP",
+            "Download Genomes",
+            "Annotator",
+            "Information",
+        ]
+    )
+
+    with_tab_pipeline(pipeline_tab)
+    with_tab_vep(vep_tab)
+    with_tab_genomes(genome_tab)
+    with_tab_annotator(annotate_tab)
+    with_tab_info(info_tab)
