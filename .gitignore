@@ -75,3 +75,9 @@ src/SOPRANO/data/homo_sapiens/**/Homo_sapiens.GRCh*.fa.gz
 
 # App output files
 pipeline_cache/
+
+# User defined app sources
+app_sources/
+!app_sources/annotated_inputs/.gitkeep
+!app_sources/coordinate_files/.gitkeep
+!app_sources/immunopeptidomes/.gitkeep
