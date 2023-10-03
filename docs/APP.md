@@ -35,6 +35,32 @@ export SOPRANO_CACHE=/path/to/my/soprano/cache
 soprano-app
 ```
 
+### Data sources
+
+By default, the application will serve options for the annotated mutation
+and human immunopeptidome files shipped with SOPRANO. Additional files
+can be detected by the application by their placement in the `./app_sources`
+folders:
+
+- `./app_sources/annotated_inputs`
+    
+    VEP annotated mutation files placed in this directory will be detected,
+    so long as they have the extension pattern `*anno*`. E.g., `mutations.anno`
+    or `mutations.annotated`.
+
+
+- `./app_sources/immunopeptidomes`
+
+    User defined immunopeptidomes BED files placed in this directory will be 
+    detected, so long as they have the extension `.bed`. E.g., `immuno.bed`.
+
+
+- `./app_sources/coordinate_files`
+
+    User defined BED files that can be used for randomization will be detected,
+    so long as they have the extension `.bed`. E.g., `randoms.bed`.
+
+
 ### Development status
 
 This app is actively being developed (September 2023). The configuration is 
@@ -42,8 +68,7 @@ subject to change, and additional features are soon to be integrated.
 
 _Planned features:_
 
-- Generalization of species. Currently only homo sapiens are supported.
-- Selection of randomization regions. Currently only available via CLI.
+- Generalization of species. Currently only Homo Sapiens are supported.
 - Selection of transcript files. Currently only available via CLI.
 - Interface for linking VEP cache files.
 - Interface for downloading genome references.
