@@ -63,12 +63,14 @@ class Directories:
     @staticmethod
     def cache(sub_path_item="") -> pathlib.Path:
         if "SOPRANO_CACHE" in os.environ.keys():
-            return pathlib.Path(os.environ["SOPRANO_CACHE"])
+            active_cache = pathlib.Path(os.environ["SOPRANO_CACHE"])
+        else:
+            if not _SOPRANO_DEFAULT_CACHE.exists():
+                _SOPRANO_DEFAULT_CACHE.mkdir()
 
-        if not _SOPRANO_DEFAULT_CACHE.exists():
-            _SOPRANO_DEFAULT_CACHE.joinpath(sub_path_item).mkdir()
+            active_cache = _SOPRANO_DEFAULT_CACHE
 
-        return _SOPRANO_DEFAULT_CACHE.joinpath(sub_path_item)
+        return active_cache.joinpath(sub_path_item)
 
     @staticmethod
     def tests(sub_path_item="") -> pathlib.Path:
