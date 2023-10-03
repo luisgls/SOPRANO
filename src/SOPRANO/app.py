@@ -19,26 +19,76 @@ annotated_input_options = get_annotated_input_options()
 immunopeptidome_options = get_immunopeptidome_options()
 
 
+def process_genome_selection():
+    genome_selection = st.session_state.genome_selection
+
+    ref_id, rel_id = genome_selection.split(" - Ensembl release ")
+
+    (
+        genomes_path,
+        chroms_path,
+    ) = SOPRANO.utils.path_utils.genome_pars_to_paths(ref_id, rel_id)
+
+    st.session_state.ref_genome = objects.GenomePaths(
+        sizes=chroms_path, fasta=genomes_path
+    )
+
+    st.text(f"Selected: {st.session_state.ref_genome.fasta}")
+
+
+def process_annotated_input_selection():
+    input_selection = st.session_state.input_selection
+    st.session_state.input_path = annotated_input_options[input_selection]
+    st.text(f"Selected: {st.session_state.input_path}")
+
+
+def process_immunopeptidome_selection():
+    bed_selection = st.session_state.bed_selection
+    st.session_state.bed_path = immunopeptidome_options[bed_selection]
+    st.text(f"Selected: {st.session_state.bed_path}")
+
+
+def process_substitution_selection():
+    subs_selection = st.session_state.subs_selection
+    st.session_state.use_ssb192 = subs_selection == 192
+    st.text(f"Using SSB192: {st.session_state.use_ssb192}")
+
+
+def process_job_name_selection():
+    job_name = st.session_state.job_name
+    st.session_state.cache_dir = Directories.cache(job_name)
+    st.text(f"Cache location: {st.session_state.cache_dir}")
+
+
+def run_pipeline_in_app():
+    st.session_state.cache_dir.mkdir(exist_ok=True)
+
+    t_start = time.time()
+    output = st.empty()
+    with st_capture(output.code):
+        run_pipeline(st.session_state.params)
+        # run_local_ssb_selection.main(st.session_state.namespace)
+    t_end = time.time()
+
+    st.session_state.compute_time_str = (
+        f"Pipeline run in {int(t_end - t_start)} seconds"
+    )
+
+    st.session_state.data_frame = pd.read_csv(
+        st.session_state.params.results_path, sep="\t"
+    )
+
+    st.session_state.job_complete = True
+
+    st.text(st.session_state.compute_time_str)
+    st.dataframe(st.session_state.data_frame, hide_index=True)
+    st.text(f"dN/dS file: {st.session_state.params.results_path}")
+
+
 if __name__ == "__main__":
     # Init app
     st.title("SOPRANO")
     st.caption("Selection On PRotein ANnotated regiOns")
-
-    def process_genome_selection():
-        genome_selection = st.session_state.genome_selection
-
-        ref_id, rel_id = genome_selection.split(" - Ensembl release ")
-
-        (
-            genomes_path,
-            chroms_path,
-        ) = SOPRANO.utils.path_utils.genome_pars_to_paths(ref_id, rel_id)
-
-        st.session_state.ref_genome = objects.GenomePaths(
-            sizes=chroms_path, fasta=genomes_path
-        )
-
-        st.text(f"Selected: {st.session_state.ref_genome.fasta}")
 
     # Derived genome definitions
     st.selectbox(
@@ -48,23 +98,13 @@ if __name__ == "__main__":
     )
     process_genome_selection()
 
-    def process_annotation():
-        input_selection = st.session_state.input_selection
-        st.session_state.input_path = annotated_input_options[input_selection]
-        st.text(f"Selected: {st.session_state.input_path}")
-
     # VEP annotated file
     st.selectbox(
         "Select a VEP annotated file:",
         annotated_input_options.keys(),
         key="input_selection",
     )
-    process_annotation()
-
-    def process_bed():
-        bed_selection = st.session_state.bed_selection
-        st.session_state.bed_path = immunopeptidome_options[bed_selection]
-        st.text(f"Selected: {st.session_state.bed_path}")
+    process_annotated_input_selection()
 
     # BED protein transcript file
     st.selectbox(
@@ -72,18 +112,13 @@ if __name__ == "__main__":
         immunopeptidome_options.keys(),
         key="bed_selection",
     )
-    process_bed()
-
-    def process_subs():
-        subs_selection = st.session_state.subs_selection
-        st.session_state.use_ssb192 = subs_selection == 192
-        st.text(f"Using SSB192: {st.session_state.use_ssb192}")
+    process_immunopeptidome_selection()
 
     # Substitution method
     st.selectbox(
         "Select a substitution method:", (192, 7), key="subs_selection"
     )
-    process_subs()
+    process_substitution_selection()
 
     # Exclude driver genes
     st.checkbox("Exclude driver genes:", value=True, key="exclude_drivers")
@@ -103,16 +138,11 @@ if __name__ == "__main__":
     else:
         st.session_state.random_seed = -1
 
-    def process_name():
-        job_name = st.session_state.job_name
-        st.session_state.cache_dir = Directories.cache(job_name)
-        st.text(f"Cache location: {st.session_state.cache_dir}")
-
     # Pipeline job name & cache
     st.text_input(
         "Define a name for the output of your analysis:", key="job_name"
     )
-    process_name()
+    process_job_name_selection()
 
     st.session_state.params = objects.Parameters(
         analysis_name=st.session_state.job_name,
@@ -129,30 +159,6 @@ if __name__ == "__main__":
     )
 
     st.session_state.job_complete = False
-
-    def run_pipeline_in_app():
-        st.session_state.cache_dir.mkdir(exist_ok=True)
-
-        t_start = time.time()
-        output = st.empty()
-        with st_capture(output.code):
-            run_pipeline(st.session_state.params)
-            # run_local_ssb_selection.main(st.session_state.namespace)
-        t_end = time.time()
-
-        st.session_state.compute_time_str = (
-            f"Pipeline run in {int(t_end - t_start)} seconds"
-        )
-
-        st.session_state.data_frame = pd.read_csv(
-            st.session_state.params.results_path, sep="\t"
-        )
-
-        st.session_state.job_complete = True
-
-        st.text(st.session_state.compute_time_str)
-        st.dataframe(st.session_state.data_frame, hide_index=True)
-        st.text(f"dN/dS file: {st.session_state.params.results_path}")
 
     if st.button("Run Pipeline"):
         run_pipeline_in_app()
