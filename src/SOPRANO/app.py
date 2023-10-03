@@ -94,85 +94,90 @@ def run_pipeline_in_app():
 
 
 if __name__ == "__main__":
-    # Init app
-    st.title("SOPRANO")
-    st.caption("Selection On PRotein ANnotated regiOns")
-
-    # Derived genome definitions
-    st.selectbox(
-        "Select a reference genome:",
-        genome_options.keys(),
-        key="genome_selection",
+    gui_tab, vep_tab, genome_tab, annotate_tab, info_tab = st.tabs(
+        ["GUI", "Link VEP", "Download Genomes", "Annotator", "Information"]
     )
-    process_genome_selection()
 
-    # VEP annotated file
-    st.selectbox(
-        "Select a VEP annotated file:",
-        annotated_input_options.keys(),
-        key="input_selection",
-    )
-    process_annotated_input_selection()
+    with gui_tab:
+        # Init app
+        st.title("SOPRANO")
+        st.caption("Selection On PRotein ANnotated regiOns")
 
-    # BED protein transcript file
-    st.selectbox(
-        "Select a BED protein file:",
-        immunopeptidome_options.keys(),
-        key="bed_selection",
-    )
-    process_immunopeptidome_selection()
-
-    # Substitution method
-    st.selectbox(
-        "Select a substitution method:", (192, 7), key="subs_selection"
-    )
-    process_substitution_selection()
-
-    # Exclude driver genes
-    st.checkbox("Exclude driver genes:", value=True, key="exclude_drivers")
-
-    # Use randomization
-    st.checkbox("Use randomization:", value=False, key="use_random")
-
-    if st.session_state.use_random:
-        # Select random seed
-        st.number_input(
-            "Select random seed for randomization:",
-            min_value=-1,
-            value="min",
-            key="random_seed",
-        )
+        # Derived genome definitions
         st.selectbox(
-            "Select a BED file defining the regions to randomize over:",
-            coordinate_options.keys(),
-            key="random_regions",
+            "Select a reference genome:",
+            genome_options.keys(),
+            key="genome_selection",
         )
-        process_randomization_region()
-    else:
-        st.session_state.random_seed = -1
-        st.session_state.random_regions_path = None
+        process_genome_selection()
 
-    # Pipeline job name & cache
-    st.text_input(
-        "Define a name for the output of your analysis:", key="job_name"
-    )
-    process_job_name_selection()
+        # VEP annotated file
+        st.selectbox(
+            "Select a VEP annotated file:",
+            annotated_input_options.keys(),
+            key="input_selection",
+        )
+        process_annotated_input_selection()
 
-    st.session_state.params = objects.Parameters(
-        analysis_name=st.session_state.job_name,
-        input_path=st.session_state.input_path,
-        bed_path=st.session_state.bed_path,
-        cache_dir=st.session_state.cache_dir,
-        random_regions=st.session_state.random_regions_path,
-        use_ssb192=st.session_state.use_ssb192,
-        use_random=st.session_state.use_random,
-        exclude_drivers=st.session_state.exclude_drivers,
-        seed=st.session_state.random_seed,
-        transcripts=objects.TranscriptPaths.defaults(),
-        genomes=st.session_state.ref_genome,
-    )
+        # BED protein transcript file
+        st.selectbox(
+            "Select a BED protein file:",
+            immunopeptidome_options.keys(),
+            key="bed_selection",
+        )
+        process_immunopeptidome_selection()
 
-    st.session_state.job_complete = False
+        # Substitution method
+        st.selectbox(
+            "Select a substitution method:", (192, 7), key="subs_selection"
+        )
+        process_substitution_selection()
 
-    if st.button("Run Pipeline"):
-        run_pipeline_in_app()
+        # Exclude driver genes
+        st.checkbox("Exclude driver genes:", value=True, key="exclude_drivers")
+
+        # Use randomization
+        st.checkbox("Use randomization:", value=False, key="use_random")
+
+        if st.session_state.use_random:
+            # Select random seed
+            st.number_input(
+                "Select random seed for randomization:",
+                min_value=-1,
+                value="min",
+                key="random_seed",
+            )
+            st.selectbox(
+                "Select a BED file defining the regions to randomize over:",
+                coordinate_options.keys(),
+                key="random_regions",
+            )
+            process_randomization_region()
+        else:
+            st.session_state.random_seed = -1
+            st.session_state.random_regions_path = None
+
+        # Pipeline job name & cache
+        st.text_input(
+            "Define a name for the output of your analysis:", key="job_name"
+        )
+        process_job_name_selection()
+
+        st.session_state.params = objects.Parameters(
+            analysis_name=st.session_state.job_name,
+            input_path=st.session_state.input_path,
+            bed_path=st.session_state.bed_path,
+            cache_dir=st.session_state.cache_dir,
+            random_regions=st.session_state.random_regions_path,
+            use_ssb192=st.session_state.use_ssb192,
+            use_random=st.session_state.use_random,
+            exclude_drivers=st.session_state.exclude_drivers,
+            seed=st.session_state.random_seed,
+            transcripts=objects.TranscriptPaths.defaults(),
+            genomes=st.session_state.ref_genome,
+        )
+
+        st.session_state.job_complete = False
+
+        if st.button("Run Pipeline"):
+            run_pipeline_in_app()
