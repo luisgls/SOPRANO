@@ -84,6 +84,10 @@ def process_vep_cache_selection():
     st.text(f"Selected: {st.session_state.vep_cache_dir.as_posix()}")
 
 
+def process_vcf_selection():
+    pass  # TODO
+
+
 def run_pipeline_in_app():
     st.session_state.cache_dir.mkdir(exist_ok=True)
 
@@ -263,7 +267,11 @@ def with_tab_genomes(tab: DeltaGenerator):
 def with_tab_annotator(tab: DeltaGenerator):
     with tab:
         st.title("Annotate VCF File")
-        st.text("Description of what is going on...")
+        st.caption(
+            "Upload a VCF file to annotate for use in the SOPRANO pipeline."
+        )
+        st.file_uploader("Select a VCF file:", key="vcf_selection")
+        process_vcf_selection()
         if st.button("Annotate", disabled=True):
             pass  # TODO
 
@@ -271,7 +279,7 @@ def with_tab_annotator(tab: DeltaGenerator):
 def with_tab_info(tab: DeltaGenerator):
     with tab:
         st.title("Information")
-        st.text("Description of what is going on...")
+        st.caption("Description of what is going on...")
 
 
 if __name__ == "__main__":
