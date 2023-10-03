@@ -9,15 +9,14 @@ from SOPRANO.pipeline import run_pipeline
 from SOPRANO.utils.app_utils import (
     get_annotated_input_options,
     get_human_genome_options,
+    get_immunopeptidome_options,
     st_capture,
 )
 from SOPRANO.utils.path_utils import Directories
 
 genome_options = get_human_genome_options()
 annotated_input_options = get_annotated_input_options()
-
-_BED_DIR = Directories.immunopeptidomes_humans()
-_BED_OPTIONS = {x.name: x for x in _BED_DIR.glob("*.bed")}
+immunopeptidome_options = get_immunopeptidome_options()
 
 
 if __name__ == "__main__":
@@ -64,12 +63,14 @@ if __name__ == "__main__":
 
     def process_bed():
         bed_selection = st.session_state.bed_selection
-        st.session_state.bed_path = _BED_OPTIONS[bed_selection]
+        st.session_state.bed_path = immunopeptidome_options[bed_selection]
         st.text(f"Selected: {st.session_state.bed_path}")
 
     # BED protein transcript file
     st.selectbox(
-        "Select a BED protein file:", _BED_OPTIONS.keys(), key="bed_selection"
+        "Select a BED protein file:",
+        immunopeptidome_options.keys(),
+        key="bed_selection",
     )
     process_bed()
 

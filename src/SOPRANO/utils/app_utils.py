@@ -62,3 +62,14 @@ def get_annotated_input_options():
         for x in directory.glob("*.anno*"):
             options_dict[x.name] = x
     return options_dict
+
+
+def get_immunopeptidome_options():
+    options_dict = {}
+    for directory in (
+        Directories.immunopeptidomes_humans(),
+        Directories.app_immunopeptidomes(),
+    ):
+        for x in directory.glob("*.bed"):
+            options_dict[x.name] = x
+    return options_dict
