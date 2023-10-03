@@ -6,33 +6,10 @@ import streamlit as st
 import SOPRANO.utils.path_utils
 from SOPRANO.core import objects
 from SOPRANO.pipeline import run_pipeline
-from SOPRANO.utils.app_utils import st_capture
+from SOPRANO.utils.app_utils import get_human_genome_options, st_capture
 from SOPRANO.utils.path_utils import Directories
 
-_CACHE = Directories.cache()
-
-_HOMO_SAPIENS_DIR = Directories.homo_sapien_genomes()
-
-_GENOME_DIRS = [item for item in _HOMO_SAPIENS_DIR.glob("*") if item.is_dir()]
-
-# Remove unviable options (i.e. no toplevel fa and chrom files)
-for item in _GENOME_DIRS[::-1]:
-    toplevel_path = item.glob("*dna*toplevel*.fa")
-    chrom_path = item.glob("*dna*toplevel*.chrom")
-
-    if len(list(toplevel_path)) == len(list(chrom_path)) == 1:
-        pass
-    else:
-        _GENOME_DIRS.remove(item)
-
-_GENOME_NAMES = [
-    "{} - Ensembl release {}".format(*x.name.split("_")[::-1])
-    for x in _GENOME_DIRS
-]
-
-_GENOME_DICT = {
-    name: dir_path for name, dir_path in zip(_GENOME_NAMES, _GENOME_DIRS)
-}
+genome_options = get_human_genome_options()
 
 _ANNO_DIR = Directories.examples()
 _ANNO_OPTIONS = {x.name: x for x in _ANNO_DIR.glob("*.anno*")}
@@ -65,7 +42,7 @@ if __name__ == "__main__":
     # Derived genome definitions
     st.selectbox(
         "Select a reference genome:",
-        _GENOME_DICT.keys(),
+        genome_options.keys(),
         key="genome_selection",
     )
     process_genome_selection()
@@ -125,7 +102,7 @@ if __name__ == "__main__":
 
     def process_name():
         job_name = st.session_state.job_name
-        st.session_state.cache_dir = _CACHE / job_name
+        st.session_state.cache_dir = Directories.cache(job_name)
         st.text(f"Cache location: {st.session_state.cache_dir}")
 
     # Pipeline job name & cache
