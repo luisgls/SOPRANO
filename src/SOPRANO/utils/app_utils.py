@@ -1,6 +1,8 @@
 from contextlib import contextmanager, redirect_stdout
 from io import StringIO
 
+from SOPRANO.utils.path_utils import Directories
+
 
 @contextmanager
 def st_capture(output_func):
@@ -20,3 +22,61 @@ def st_capture(output_func):
 
         stdout.write = new_write
         yield
+
+
+def get_human_genome_options():
+    homo_sapiens_dir = Directories.genomes_homo_sapiens()
+
+    genome_dirs = [
+        item for item in homo_sapiens_dir.glob("*") if item.is_dir()
+    ]
+
+    # Remove unviable options (i.e. no toplevel fa and chrom files)
+    for item in genome_dirs[::-1]:
+        toplevel_path = item.glob("*dna*toplevel*.fa")
+        chrom_path = item.glob("*dna*toplevel*.chrom")
+
+        if len(list(toplevel_path)) == len(list(chrom_path)) == 1:
+            pass
+        else:
+            genome_dirs.remove(item)
+
+    genome_ids = [
+        "{} - Ensembl release {}".format(*x.name.split("_")[::-1])
+        for x in genome_dirs
+    ]
+
+    options_dict = {
+        name: dir_path for name, dir_path in zip(genome_ids, genome_dirs)
+    }
+
+    return options_dict
+
+
+def get_annotated_input_options():
+    options_dict = {}
+    for directory in (
+        Directories.examples(),
+        Directories.app_annotated_inputs(),
+    ):
+        for x in directory.glob("*.anno*"):
+            options_dict[x.name] = x
+    return options_dict
+
+
+def get_immunopeptidome_options():
+    options_dict = {}
+    for directory in (
+        Directories.immunopeptidomes_humans(),
+        Directories.app_immunopeptidomes(),
+    ):
+        for x in directory.glob("*.bed"):
+            options_dict[x.name] = x
+    return options_dict
+
+
+def get_coordinate_options():
+    options_dict = {None: None}
+    for x in Directories.app_coordinate_files().glob("*.bed"):
+        options_dict[x.name] = x
+    return options_dict

@@ -6,7 +6,7 @@ from SOPRANO.utils.path_utils import Directories
 
 # Common definitions for test file
 input_file = Directories.examples("TCGA-05-4396-01A-21D-1855-08.annotated")
-bed_file = Directories.immuno_humans(
+bed_file = Directories.immunopeptidomes_humans(
     "TCGA-05-4396.Expressed.IEDBpeps.SB.epitope.bed"
 )
 name = "TCGA-05-4396"
