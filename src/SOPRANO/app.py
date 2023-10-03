@@ -6,13 +6,15 @@ import streamlit as st
 import SOPRANO.utils.path_utils
 from SOPRANO.core import objects
 from SOPRANO.pipeline import run_pipeline
-from SOPRANO.utils.app_utils import get_human_genome_options, st_capture
+from SOPRANO.utils.app_utils import (
+    get_annotated_input_options,
+    get_human_genome_options,
+    st_capture,
+)
 from SOPRANO.utils.path_utils import Directories
 
 genome_options = get_human_genome_options()
-
-_ANNO_DIR = Directories.examples()
-_ANNO_OPTIONS = {x.name: x for x in _ANNO_DIR.glob("*.anno*")}
+annotated_input_options = get_annotated_input_options()
 
 _BED_DIR = Directories.immunopeptidomes_humans()
 _BED_OPTIONS = {x.name: x for x in _BED_DIR.glob("*.bed")}
@@ -49,13 +51,13 @@ if __name__ == "__main__":
 
     def process_annotation():
         input_selection = st.session_state.input_selection
-        st.session_state.input_path = _ANNO_OPTIONS[input_selection]
+        st.session_state.input_path = annotated_input_options[input_selection]
         st.text(f"Selected: {st.session_state.input_path}")
 
     # VEP annotated file
     st.selectbox(
         "Select a VEP annotated file:",
-        _ANNO_OPTIONS.keys(),
+        annotated_input_options.keys(),
         key="input_selection",
     )
     process_annotation()

@@ -51,3 +51,14 @@ def get_human_genome_options():
     }
 
     return options_dict
+
+
+def get_annotated_input_options():
+    options_dict = {}
+    for directory in (
+        Directories.examples(),
+        Directories.app_annotated_inputs(),
+    ):
+        for x in directory.glob("*.anno*"):
+            options_dict[x.name] = x
+    return options_dict
