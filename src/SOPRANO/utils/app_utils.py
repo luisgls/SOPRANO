@@ -25,7 +25,7 @@ def st_capture(output_func):
 
 
 def get_human_genome_options():
-    homo_sapiens_dir = Directories.homo_sapien_genomes()
+    homo_sapiens_dir = Directories.genomes_homo_sapiens()
 
     genome_dirs = [
         item for item in homo_sapiens_dir.glob("*") if item.is_dir()

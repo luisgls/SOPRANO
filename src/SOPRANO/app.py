@@ -14,7 +14,7 @@ genome_options = get_human_genome_options()
 _ANNO_DIR = Directories.examples()
 _ANNO_OPTIONS = {x.name: x for x in _ANNO_DIR.glob("*.anno*")}
 
-_BED_DIR = Directories.immuno_humans()
+_BED_DIR = Directories.immunopeptidomes_humans()
 _BED_OPTIONS = {x.name: x for x in _BED_DIR.glob("*.bed")}
 
 

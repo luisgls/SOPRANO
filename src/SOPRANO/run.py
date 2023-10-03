@@ -34,7 +34,7 @@ def download_genome():
     ref, release = parse_genome_args()
     startup_output()
     downloader_path = Directories.installers("download_homo_sapiens.sh")
-    data_dir = Directories.homo_sapien_genomes(f"{release}_{ref}")
+    data_dir = Directories.genomes_homo_sapiens(f"{release}_{ref}")
 
     if not data_dir.exists():
         data_dir.mkdir(parents=True)

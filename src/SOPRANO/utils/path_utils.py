@@ -1,6 +1,7 @@
 import os
 import pathlib
 
+# Common dirs from source root src/SOPRANO
 _SOPRANO_SRC = pathlib.Path(__file__).parent.parent
 _SOPRANO_SCRIPTS = _SOPRANO_SRC / "scripts"
 _SOPRANO_DATA = _SOPRANO_SRC / "data"
@@ -8,14 +9,25 @@ _SOPRANO_HOMO_SAPIENS = _SOPRANO_DATA / "homo_sapiens"
 _SOPRANO_IMMUNO = _SOPRANO_SRC / "immunopeptidomes"
 _SOPRANO_IMMUNO_HUMANS = _SOPRANO_IMMUNO / "human"
 _SOPRANO_EXAMPLES = _SOPRANO_SRC / "examples"
+_SOPRANO_INSTALLERS = _SOPRANO_SRC / "shell_utils"
+
+# Common dirs from repository root
 _SOPRANO_REPO = _SOPRANO_SRC.parent.parent
 _SOPRANO_DEFAULT_CACHE = _SOPRANO_REPO / "pipeline_cache"
+
+# Test dirs
 _SOPRANO_TESTS = _SOPRANO_REPO / "tests"
 _SOPRANO_UNIT_TESTS = _SOPRANO_TESTS / "test_units"
 _SOPRANO_INT_TESTS = _SOPRANO_TESTS / "test_integrations"
 _SOPRANO_CFG_TESTS = _SOPRANO_TESTS / "test_configuration"
-_SOPRANO_INSTALLERS = _SOPRANO_SRC / "shell_utils"
 
+# Common dirs from app sources
+_SOPRANO_APP_SOURCES = _SOPRANO_REPO / "app_sources"
+_SOPRANO_APP_ANNOTATED_INPUTS = _SOPRANO_APP_SOURCES / "annotated_inputs"
+_SOPRANO_APP_IMMUNO = _SOPRANO_APP_SOURCES / "immunopeptidomes"
+_SOPRANO_APP_COORDS = _SOPRANO_APP_SOURCES / "coordinate_files"
+
+# Other system paths
 _STD_SYS_VEP = pathlib.Path.home() / ".vep"
 
 
@@ -33,7 +45,7 @@ class Directories:
         return _SOPRANO_DATA.joinpath(sub_path_item)
 
     @staticmethod
-    def homo_sapien_genomes(sub_path_item="") -> pathlib.Path:
+    def genomes_homo_sapiens(sub_path_item="") -> pathlib.Path:
         return _SOPRANO_HOMO_SAPIENS.joinpath(sub_path_item)
 
     @staticmethod
@@ -41,7 +53,7 @@ class Directories:
         return _SOPRANO_IMMUNO.joinpath(sub_path_item)
 
     @staticmethod
-    def immuno_humans(sub_path_item="") -> pathlib.Path:
+    def immunopeptidomes_humans(sub_path_item="") -> pathlib.Path:
         return _SOPRANO_IMMUNO_HUMANS.joinpath(sub_path_item)
 
     @staticmethod
@@ -82,6 +94,22 @@ class Directories:
     def std_sys_vep(sub_path_item="") -> pathlib.Path:
         return _STD_SYS_VEP.joinpath(sub_path_item)
 
+    @staticmethod
+    def app_sources(sub_path_item="") -> pathlib.Path:
+        return _SOPRANO_APP_SOURCES.joinpath(sub_path_item)
+
+    @staticmethod
+    def app_annotated_inputs(sub_path_item="") -> pathlib.Path:
+        return _SOPRANO_APP_ANNOTATED_INPUTS.joinpath(sub_path_item)
+
+    @staticmethod
+    def app_coordinate_files(sub_path_item="") -> pathlib.Path:
+        return _SOPRANO_APP_COORDS.joinpath(sub_path_item)
+
+    @staticmethod
+    def app_immunopeptidomes(sub_path_item="") -> pathlib.Path:
+        return _SOPRANO_APP_IMMUNO.joinpath(sub_path_item)
+
 
 def is_empty(path: pathlib.Path) -> bool:
     """
@@ -119,7 +147,7 @@ def genome_pars_to_paths(ref, release):
     :param release: Ensembl release ID
     :return: Tuple of paths: reference fasta file, chrom sizes
     """
-    data_dir = Directories.homo_sapien_genomes(f"{release}_{ref}")
+    data_dir = Directories.genomes_homo_sapiens(f"{release}_{ref}")
     genome_path = data_dir.joinpath(f"Homo_sapiens.{ref}.dna.toplevel.fa")
     chroms_path = data_dir.joinpath(f"Homo_sapiens.{ref}.dna.toplevel.chrom")
     return genome_path, chroms_path
