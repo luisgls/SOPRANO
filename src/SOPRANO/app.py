@@ -1,3 +1,4 @@
+import pathlib
 import time
 
 import pandas as pd
@@ -15,6 +16,10 @@ from SOPRANO.utils.app_utils import (
     st_capture,
 )
 from SOPRANO.utils.path_utils import Directories
+from SOPRANO.utils.vep_utils import (
+    _get_src_dst_link_pairs,
+    _link_src_dst_pairs,
+)
 
 genome_options = get_human_genome_options()
 annotated_input_options = get_annotated_input_options()
@@ -67,6 +72,16 @@ def process_randomization_region():
     region_selection = st.session_state.random_regions
     st.session_state.random_regions_path = coordinate_options[region_selection]
     st.text(f"Selected: {st.session_state.random_regions_path}")
+
+
+def process_vep_cache_selection():
+    vep_cache_selection = st.session_state.vep_cache
+    if isinstance(vep_cache_selection, str):
+        st.session_state.vep_cache_dir = pathlib.Path(vep_cache_selection)
+    else:
+        st.session_state.vep_cache_dir = vep_cache_selection
+
+    st.text(f"Selected: {st.session_state.vep_cache_dir.as_posix()}")
 
 
 def run_pipeline_in_app():
@@ -182,9 +197,25 @@ def with_tab_pipeline(tab: DeltaGenerator):
 def with_tab_vep(tab: DeltaGenerator):
     with tab:
         st.title("Link VEP")
-        st.text("Description of what is going on...")
-        if st.button("Link", disabled=True):
-            pass  # TODO
+        st.caption(
+            f"Symbolically link files in your VEP cache to the SOPRANO data "
+            f"folder: {Directories.data()}"
+        )
+
+        default_location = Directories.std_sys_vep()
+
+        st.text_input(
+            "VEP cache location:", key="vep_cache", value=default_location
+        )
+        process_vep_cache_selection()
+
+        if st.button("Link", disabled=False):
+            output = st.empty()
+            with st_capture(output.code):
+                src_dst_links = _get_src_dst_link_pairs(
+                    st.session_state.vep_cache_dir
+                )
+                _link_src_dst_pairs(src_dst_links, _skip_user_input=True)
 
 
 def with_tab_genomes(tab: DeltaGenerator):
@@ -210,6 +241,7 @@ def with_tab_info(tab: DeltaGenerator):
 
 
 if __name__ == "__main__":
+    st.set_page_config(layout="wide")
     pipeline_tab, vep_tab, genome_tab, annotate_tab, info_tab = st.tabs(
         [
             "Pipeline",
