@@ -1,5 +1,6 @@
 from SOPRANO.utils.app_utils import (
     get_annotated_input_options,
+    get_coordinate_options,
     get_immunopeptidome_options,
 )
 from SOPRANO.utils.path_utils import Directories
@@ -17,6 +18,7 @@ def _check_detected(dir_method, options_method, ext):
     options = options_method()
 
     assert tmp_name in options.keys()
+    assert options[tmp_name] == tmp_path
     assert other_name not in options.keys()
 
     tmp_path.unlink(missing_ok=False)
@@ -32,4 +34,10 @@ def test_get_annotated_input_options():
 def test_get_immunopeptidome_options():
     _check_detected(
         Directories.app_immunopeptidomes, get_immunopeptidome_options, "bed"
+    )
+
+
+def test_get_coordinate_options():
+    _check_detected(
+        Directories.app_coordinate_files, get_coordinate_options, "bed"
     )
