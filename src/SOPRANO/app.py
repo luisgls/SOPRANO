@@ -221,9 +221,43 @@ def with_tab_vep(tab: DeltaGenerator):
 def with_tab_genomes(tab: DeltaGenerator):
     with tab:
         st.title("Download Reference Genomes")
-        st.text("Description of what is going on...")
+        st.caption("Currently supporting Homo Sapien genome references.")
+
+        st.selectbox(
+            "Select a genome reference:",
+            options=("GRCh38", "GRCh37"),
+            key="download_genome_ref",
+        )
+        st.text(f"Selected: {st.session_state.download_genome_ref}")
+
+        st.number_input(
+            "Define the Ensembl release:",
+            min_value=76,
+            key="download_genome_rel",
+        )
+
+        msg = f"Selected: {st.session_state.download_genome_rel}"
+        if st.session_state.download_genome_rel > 110:
+            msg += " [Warning Oct 1 2023: Latest Ensembl release is 110]"
+        st.text(msg)
+
         if st.button("Download", disabled=True):
-            pass  # TODO
+            # TODO: Probably easiest to rewrite the download via the
+            #       the requests library. Getting a bit convoluted with
+            #       shell. See comment below
+            pass
+
+
+# def download_file(url):
+#     response = requests.get(url)
+#     if "content-disposition" in response.headers:
+#         content_disposition = response.headers["content-disposition"]
+#         filename = content_disposition.split("filename=")[1]
+#     else:
+#         filename = url.split("/")[-1]
+#     with open(filename, mode="wb") as file:
+#         file.write(response.content)
+#     print(f"Downloaded file {filename}")
 
 
 def with_tab_annotator(tab: DeltaGenerator):
