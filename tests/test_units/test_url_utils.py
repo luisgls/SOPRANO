@@ -182,3 +182,81 @@ def test_build_ensembl_urls():
     }
 
     assert expected_dict == url_utils.build_ensembl_urls(species, reference)
+
+
+def test__dest_directory(foo_bar_reference):
+    x: url_utils._GatherReferences = foo_bar_reference
+    release = 100
+    posix_path = x._dest_directory(release).as_posix()
+
+    assert posix_path.split("/")[-2] == x.species
+    assert posix_path.split("/")[-1] == f"{release}_{x.reference}"
+
+
+def test__dest_fa_gz(foo_bar_reference):
+    x: url_utils._GatherReferences = foo_bar_reference
+    release = 100
+
+    assert (
+        x._dest_fa_gz(release, _toplevel=True).name
+        == x.toplevel_url.split("/")[-1]
+    )
+    assert (
+        x._dest_fa_gz(release, _toplevel=False).name
+        == x.primary_assembly_url.split("/")[-1]
+    )
+
+
+def test__dest_fa(foo_bar_reference):
+    x: url_utils._GatherReferences = foo_bar_reference
+    release = 100
+
+    assert x._dest_fa(release, _toplevel=True).name == x.toplevel_url.split(
+        "/"
+    )[-1].rstrip(".gz")
+    assert x._dest_fa(
+        release, _toplevel=False
+    ).name == x.primary_assembly_url.split("/")[-1].rstrip(".gz")
+
+
+def test__dest_chrom(foo_bar_reference):
+    x: url_utils._GatherReferences = foo_bar_reference
+    release = 100
+
+    assert x.dest_chrom(release, _toplevel=True).name == x.toplevel_url.split(
+        "/"
+    )[-1].replace(".fa.gz", ".chrom")
+
+
+def test_toplevel_fa_gz_path(foo_bar_reference):
+    x: url_utils._GatherReferences = foo_bar_reference
+    release = 100
+
+    assert x.toplevel_fa_gz_path(release) == x._dest_fa_gz(
+        release, _toplevel=True
+    )
+
+
+def test_toplevel_fa_path(foo_bar_reference):
+    x: url_utils._GatherReferences = foo_bar_reference
+    release = 100
+
+    assert x.toplevel_fa_path(release) == x._dest_fa(release, _toplevel=True)
+
+
+def test_primary_assembly_fa_gz_path(foo_bar_reference):
+    x: url_utils._GatherReferences = foo_bar_reference
+    release = 100
+
+    assert x.primary_assembly_fa_gz_path(release) == x._dest_fa_gz(
+        release, _toplevel=False
+    )
+
+
+def test_primary_assembly_fa_path(foo_bar_reference):
+    x: url_utils._GatherReferences = foo_bar_reference
+    release = 100
+
+    assert x.primary_assembly_fa_path(release) == x._dest_fa(
+        release, _toplevel=False
+    )

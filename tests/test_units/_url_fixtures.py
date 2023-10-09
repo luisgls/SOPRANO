@@ -2,7 +2,10 @@ import pickle as pk
 
 import pytest
 
-from SOPRANO.utils.url_utils import _SOPRANO_ENSEMBL_RELEASES
+from SOPRANO.utils.url_utils import (
+    _SOPRANO_ENSEMBL_RELEASES,
+    _GatherReferences,
+)
 
 
 @pytest.fixture
@@ -17,3 +20,17 @@ def backup_releases_cache():
     )
     _SOPRANO_ENSEMBL_RELEASES.rename(backup_releases_path)
     return backup_releases_path
+
+
+@pytest.fixture
+def foo_bar_reference():
+    x = _GatherReferences()
+    species = "foo"
+    reference = "bar"
+    x.species = species
+    x.reference = reference
+    x.toplevel_url = "soprano.com/{RELEASE}/foo/bar/toplevel.fa.gz"
+    x.primary_assembly_url = (
+        "soprano.com/{RELEASE}/foo/bar/primary_assembly.fa.gz"
+    )
+    return x

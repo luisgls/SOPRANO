@@ -1,4 +1,5 @@
 import pathlib
+import pickle as pk
 from pathlib import Path
 
 import requests
@@ -6,8 +7,14 @@ import requests
 from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.print_utils import task_output
 
+_SOPRANO_ENSEMBL_RELEASES = Directories.data("ensembl.releases")
+
 
 class DownloadError(Exception):
+    pass
+
+
+class BadResponse(Exception):
     pass
 
 
@@ -45,22 +52,125 @@ def compute_chrom_sizes(path: pathlib.Path):
     pass  # TODO
 
 
-def find_latest_release(partial_url: str):
-    pass  # TODO
+def get_dna_url(species: str):
+    return (
+        "https://ftp.ensembl.org/pub/release-{RELEASE}"
+        + f"/fasta/{species}/dna"
+    )
+
+
+def check_ensembl_dna_url(dna_url: str, release: int):
+    dna_url = dna_url.format(RELEASE=release)
+    response = requests.get(dna_url)
+    if response.status_code != 200:
+        raise BadResponse(
+            f"Response for {dna_url} = {response.status_code}\n"
+            f"It is likely that "
+            f"there is no ensembl release {release} for the target genome "
+            f"reference."
+        )
+
+
+def check_ensembl_toplevel_url(toplevel_url: str, release: int):
+    toplevel_url = toplevel_url.format(RELEASE=release)
+    response = requests.head(toplevel_url)
+    if response.status_code != 200:
+        raise BadResponse(
+            f"Response for {toplevel_url} = {response.status_code}\nIt is "
+            f"likely that there is no ensembl release {release} for the "
+            f"target genome reference."
+        )
+
+
+def get_cached_release_dict():
+    try:
+        with open(_SOPRANO_ENSEMBL_RELEASES, "rb") as f:
+            release_dict = pk.load(f)
+    except FileNotFoundError:
+        release_dict = {}
+
+    return release_dict
+
+
+def get_cached_release_value(dna_url: str):
+    release_dict = get_cached_release_dict()
+    return release_dict.get(dna_url, [-1, -1])
+
+
+def _cache_release_data(toplevel_url: str, release: int, _earliest: bool):
+    cache_index = 0 if _earliest else 1
+    cached_release_dict = get_cached_release_dict()
+    releases_list = cached_release_dict.get(toplevel_url, [-1, -1])
+
+    if releases_list[cache_index] < release:
+        releases_list[cache_index] = release
+
+    cached_release_dict[toplevel_url] = releases_list
+
+    _SOPRANO_ENSEMBL_RELEASES.unlink(missing_ok=True)
+    with open(_SOPRANO_ENSEMBL_RELEASES, "wb") as f:
+        pk.dump(cached_release_dict, f)
+
+
+def cache_earliest_release(toplevel_url: str, release: int):
+    _cache_release_data(toplevel_url, release, True)
+
+
+def cache_latest_release(toplevel_url: str, release: int):
+    _cache_release_data(toplevel_url, release, False)
+
+
+def find_earliest_release(toplevel_url: str, _max_release=200):
+    cached_earliest = get_cached_release_value(toplevel_url)[0]
+
+    if cached_earliest > -1:
+        return cached_earliest
+
+    release = 0
+
+    while release < _max_release:
+        try:
+            check_ensembl_toplevel_url(toplevel_url, release)
+            break
+        except BadResponse:
+            release += 1
+
+    if release == _max_release:
+        raise BadResponse(f"Unable to find release content for {toplevel_url}")
+
+    cache_earliest_release(toplevel_url, release)
+
+    return release
+
+
+def find_latest_release(toplevel_url: str, _max_release=200):
+    release = max(get_cached_release_value(toplevel_url))
+
+    if release == -1:
+        release = find_earliest_release(toplevel_url, _max_release)
+
+    while release < _max_release:
+        try:
+            check_ensembl_toplevel_url(toplevel_url, release)
+            release += 1
+        except BadResponse:
+            release -= 1
+            break
+
+    cache_latest_release(toplevel_url, release)
+
+    return release
 
 
 def build_ensembl_urls(species: str, reference: str):
     mixed_case_species = species[0].upper() + species[1:]
-    base = (
-        "https://ftp.ensembl.org/pub/release-{RELEASE}"
-        + f"/fasta/{species}/dna"
-    )
-    partial = f"{base}/{mixed_case_species}.{reference}.dna"
+    dna_url = get_dna_url(species)
+    _url = f"{dna_url}/{mixed_case_species}.{reference}.dna"
 
-    toplevel = f"{partial}.toplevel.fa.gz"
-    primary_assembly = f"{partial}.primary_assembly.fa.gz"
+    toplevel_url = f"{_url}.toplevel.fa.gz"
+    primary_assembly_url = f"{_url}.primary_assembly.fa.gz"
 
-    return {"toplevel": toplevel, "primary_assembly": primary_assembly}
+    return {"toplevel": toplevel_url, "primary_assembly": primary_assembly_url}
 
 
 class _GatherReferences:
@@ -119,10 +229,19 @@ class _GatherReferences:
             target_path=dest_path,
         )
 
+    def _check_release_ok(self, release):
+        min_release = find_earliest_release(self.toplevel_url)
+        max_release = find_latest_release(self.toplevel_url)
+
+        if not (min_release <= release <= max_release):
+            raise ValueError(release)
+
     def download_toplevel(self, release=110):
+        self._check_release_ok(release)
         self._download(release, _toplevel=True)
 
     def download_primary_assembly(self, release=110):
+        self._check_release_ok(release)
         self._download(release, _toplevel=False)
 
     def decompress_toplevel(self, release=110):
@@ -136,14 +255,14 @@ class _GatherReferences:
 
 
 class EnsemblData(_GatherReferences):
-    def __init__(self, species: str, reference: str):
+    def __init__(self, species: str, reference: str, _init_urls=True):
         self.species = species
         self.reference = reference
 
-        url_dict = build_ensembl_urls(species, reference)
-
-        self.toplevel_url = url_dict["toplevel"]
-        self.primary_assembly_url = url_dict["primary_assembly"]
+        if _init_urls:
+            url_dict = build_ensembl_urls(species, reference)
+            self.toplevel_url = url_dict["toplevel"]
+            self.primary_assembly_url = url_dict["primary_assembly"]
 
     @classmethod
     def homo_sapiens_GRCh38(cls):
@@ -151,22 +270,23 @@ class EnsemblData(_GatherReferences):
 
     @classmethod
     def homo_sapiens_GRCh37(cls):
-        return _GRCh37Data()
+        # GRCh37 is actually has a deviant url structure, so manually set here
+        toplevel_url = (
+            "https://ftp.ensembl.org/pub/grch37/release-{RELEASE}/"
+            "fasta/homo_sapiens/dna/"
+            "Homo_sapiens.GRCh37.dna.toplevel.fa.gz"
+        )
 
+        primary_assembly_url = (
+            "https://ftp.ensembl.org/pub/grch37/release-{RELEASE}/"
+            "fasta/homo_sapiens/dna/"
+            "Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz"
+        )
 
-class _GRCh37Data(_GatherReferences):
-    # GRCh37 is actually has a deviant url structure, so manually set here
-    toplevel_url = (
-        "https://ftp.ensembl.org/pub/grch37/release-{RELEASE}/"
-        "fasta/homo_sapiens/dna/"
-        "Homo_sapiens.GRCh37.dna.toplevel.fa.gz"
-    )
+        species = "homo_sapiens"
+        reference = "GRCh37"
 
-    primary_assembly_url = (
-        "https://ftp.ensembl.org/pub/grch37/release-{RELEASE}/"
-        "fasta/homo_sapiens/dna/"
-        "Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz"
-    )
-
-    species = "homo_sapiens"
-    reference = "GRCh37"
+        obj = cls(species, reference, _init_urls=False)
+        obj.toplevel_url = toplevel_url
+        obj.primary_assembly_url = primary_assembly_url
+        return obj
