@@ -39,19 +39,17 @@ def test_check_ensembl_dna_url():
         url_utils.check_ensembl_dna_url(dna_url, 1000)  # Error expected
 
 
-def test_check_ensembl_toplevel_url():
+def test_check_ensembl_file_url():
     toplevel_url = (
         "https://ftp.ensembl.org/pub/grch37/release-{RELEASE}/"
         "fasta/homo_sapiens/dna/"
         "Homo_sapiens.GRCh37.dna.toplevel.fa.gz"
     )
 
-    url_utils.check_ensembl_toplevel_url(
-        toplevel_url, 110
-    )  # No error expected
+    url_utils.check_ensembl_file_url(toplevel_url, 110)  # No error expected
 
     with pytest.raises(url_utils.BadResponse):
-        url_utils.check_ensembl_toplevel_url(toplevel_url, 1000)
+        url_utils.check_ensembl_file_url(toplevel_url, 1000)
 
 
 def test_get_cached_release_dict():

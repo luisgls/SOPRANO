@@ -71,12 +71,12 @@ def check_ensembl_dna_url(dna_url: str, release: int):
         )
 
 
-def check_ensembl_toplevel_url(toplevel_url: str, release: int):
-    toplevel_url = toplevel_url.format(RELEASE=release)
-    response = requests.head(toplevel_url)
+def check_ensembl_file_url(file_url: str, release: int):
+    file_url = file_url.format(RELEASE=release)
+    response = requests.head(file_url)
     if response.status_code != 200:
         raise BadResponse(
-            f"Response for {toplevel_url} = {response.status_code}\nIt is "
+            f"Response for {file_url} = {response.status_code}\nIt is "
             f"likely that there is no ensembl release {release} for the "
             f"target genome reference."
         )
@@ -130,7 +130,7 @@ def find_earliest_release(toplevel_url: str, _max_release=200):
 
     while release < _max_release:
         try:
-            check_ensembl_toplevel_url(toplevel_url, release)
+            check_ensembl_file_url(toplevel_url, release)
             break
         except BadResponse:
             release += 1
@@ -151,7 +151,7 @@ def find_latest_release(toplevel_url: str, _max_release=200):
 
     while release < _max_release:
         try:
-            check_ensembl_toplevel_url(toplevel_url, release)
+            check_ensembl_file_url(toplevel_url, release)
             release += 1
         except BadResponse:
             release -= 1
@@ -223,6 +223,8 @@ class _GatherReferences:
         else:
             source_url = self.primary_assembly_url
             dest_path = self._dest_fa_gz(release, _toplevel)
+
+        check_ensembl_file_url(source_url, release)
 
         download_from_url(
             source_url,
