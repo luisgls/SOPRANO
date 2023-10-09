@@ -258,3 +258,17 @@ def test_primary_assembly_fa_path(foo_bar_reference):
     assert x.primary_assembly_fa_path(release) == x._dest_fa(
         release, _toplevel=False
     )
+
+
+def test__check_release_ok():
+    for x in (
+        url_utils.EnsemblData.homo_sapiens_GRCh38(),
+        url_utils.EnsemblData.homo_sapiens_GRCh37(),
+    ):
+        x._check_release_ok(100)  # Should be fine
+
+        # Check val error raised on out of range releases
+        with pytest.raises(ValueError):
+            x._check_release_ok(1)
+        with pytest.raises(ValueError):
+            x._check_release_ok(1000)
