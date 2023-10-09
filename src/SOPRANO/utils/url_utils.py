@@ -1,11 +1,16 @@
+import gzip
 import pathlib
 import pickle as pk
+import shutil
 from pathlib import Path
+from typing import Set
 
 import requests
+from clint.textui import progress
 
 from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.print_utils import task_output
+from SOPRANO.utils.sh_utils import pipe
 
 _SOPRANO_ENSEMBL_RELEASES = Directories.data("ensembl.releases")
 
@@ -24,7 +29,8 @@ def filename_from_url(url: str):
 
 def download_from_url(url: str, target_path: Path | None = None):
     task_output(f"Attempting request from: {url}")
-    response = requests.get(url)
+
+    response = requests.get(url, stream=True)
 
     if response.status_code != 200:
         raise DownloadError(f"Download status code = {response.status_code}")
@@ -39,17 +45,52 @@ def download_from_url(url: str, target_path: Path | None = None):
         target_path = Path.cwd().joinpath(filename)
 
     task_output(f"Writing content to {target_path.as_posix()}")
-    with open(target_path, mode="wb") as file:
-        file.write(response.content)
-    task_output("Process complete.")
+
+    with open(target_path, "wb") as f:
+        # fmt: off
+        total_length = int(response.headers.get("content-length"))  # type: ignore[arg-type]
+        # fmt: on
+        for chunk in progress.bar(
+            response.iter_content(chunk_size=1024),
+            expected_size=(total_length / 1024) + 1,
+        ):
+            if chunk:
+                f.write(chunk)
+                f.flush()
 
 
 def decompress(gz_path: pathlib.Path):
-    pass  # TODO
+    if not gz_path.exists():
+        raise FileNotFoundError(gz_path)
+
+    output_path = gz_path.with_suffix("")
+
+    task_output(f"Decompressing {gz_path}")
+    with gzip.open(gz_path, "rb") as f_in:
+        with open(output_path, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
 
 
-def compute_chrom_sizes(path: pathlib.Path):
-    pass  # TODO
+def compute_fasta_index(fa_path: pathlib.Path):
+    if not fa_path.exists():
+        raise FileNotFoundError(fa_path)
+
+    index_path = fa_path.with_suffix(".fa.fai")
+
+    task_output(f"Computing fasta index file from {fa_path}")
+    pipe(
+        ["samtools", "faidx", fa_path.as_posix(), "-o", index_path.as_posix()]
+    )
+
+
+def compute_chrom_sizes(fa_path: pathlib.Path):
+    if not fa_path.exists():
+        raise FileNotFoundError(fa_path)
+
+    chrom_path = fa_path.with_suffix(".chrom")
+
+    task_output(f"Computing chromosome sizes from {fa_path}")
+    pipe(["cut", "-f1,2", fa_path.as_posix()], output_path=chrom_path)
 
 
 def get_dna_url(species: str):
@@ -183,9 +224,13 @@ class _GatherReferences:
     reference: str
 
     # Status
-    toplevel_done: bool = False
-    primary_assembly_done: bool = False
-    sizes_done: bool = False
+    toplevel_gz_done = Set[int]
+    toplevel_fa_done = Set[int]
+    toplevel_fai_done = Set[int]
+    primary_assembly_gz_done = Set[int]
+    primary_assembly_fa_done = Set[int]
+    primary_assembly_fai_done = Set[int]
+    sizes_done = Set[int]
 
     def _dest_directory(self, release: int):
         return Directories.data(self.species) / f"{release}_{self.reference}"
@@ -198,6 +243,9 @@ class _GatherReferences:
     def _dest_fa(self, release: int, _toplevel: bool):
         return self._dest_fa_gz(release, _toplevel).with_suffix("")
 
+    def _dest_fai(self, release: int, _toplevel: bool):
+        return self._dest_fa_gz(release, _toplevel).with_suffix(".fai")
+
     def dest_chrom(self, release: int, _toplevel: bool):
         return self._dest_fa(release, _toplevel).with_suffix(".chrom")
 
@@ -206,6 +254,9 @@ class _GatherReferences:
 
     def toplevel_fa_path(self, release: int):
         return self._dest_fa(release, _toplevel=True)
+
+    def toplevel_fai_path(self, release: int):
+        return self._dest_fai(release, _toplevel=True)
 
     def toplevel_chrom_path(self, release: int):
         return self.toplevel_fa_path(release).with_suffix(".chrom")
@@ -216,20 +267,26 @@ class _GatherReferences:
     def primary_assembly_fa_path(self, release: int):
         return self._dest_fa(release, _toplevel=False)
 
+    def primary_assembly_fai_path(self, release: int):
+        return self._dest_fai(release, _toplevel=False)
+
     def _download(self, release: int, _toplevel):
         if _toplevel:
             source_url = self.toplevel_url
-            dest_path = self._dest_fa_gz(release, _toplevel)
+            dest_path = self.toplevel_fa_gz_path(release)
+            decompressed_path = self.toplevel_fa_path(release)
         else:
             source_url = self.primary_assembly_url
-            dest_path = self._dest_fa_gz(release, _toplevel)
+            dest_path = self.primary_assembly_fa_gz_path(release)
+            decompressed_path = self.toplevel_fa_path(release)
 
-        check_ensembl_file_url(source_url, release)
-
-        download_from_url(
-            source_url,
-            target_path=dest_path,
-        )
+        if not (decompressed_path.exists() or dest_path.exists()):
+            dest_path.parent.mkdir(parents=True, exist_ok=True)
+            check_ensembl_file_url(source_url, release)
+            download_from_url(
+                source_url.format(RELEASE=release),
+                target_path=dest_path,
+            )
 
     def _check_release_ok(self, release):
         min_release = find_earliest_release(self.toplevel_url)
@@ -238,22 +295,69 @@ class _GatherReferences:
         if not (min_release <= release <= max_release):
             raise ValueError(release)
 
-    def download_toplevel(self, release=110):
-        self._check_release_ok(release)
-        self._download(release, _toplevel=True)
+    def download_toplevel(self, release):
+        if release not in self.toplevel_gz_done:
+            self._check_release_ok(release)
 
-    def download_primary_assembly(self, release=110):
-        self._check_release_ok(release)
-        self._download(release, _toplevel=False)
+            if not self.toplevel_fa_gz_path(release).exists():
+                self._download(release, _toplevel=True)
 
-    def decompress_toplevel(self, release=110):
-        decompress(self.toplevel_fa_gz_path(release))
+            self.toplevel_gz_done.add(release)
 
-    def decompress_primary_assembly(self, release=110):
-        decompress(self.primary_assembly_fa_gz_path(release))
+    def download_primary_assembly(self, release):
+        if release not in self.primary_assembly_gz_done:
+            self._check_release_ok(release)
 
-    def compute_chrom_sizes(self, release=110):
-        compute_chrom_sizes(self.primary_assembly_fa_path(release))
+            if self.primary_assembly_fa_gz_path(release).exists():
+                self._download(release, _toplevel=False)
+
+            self.primary_assembly_gz_done.add(release)
+
+    def decompress_toplevel(self, release):
+        if release not in self.toplevel_fa_done:
+            if not self.toplevel_fa_path(release).exists():
+                decompress(self.toplevel_fa_gz_path(release))
+
+            self.toplevel_fa_done.add(release)
+
+    def decompress_primary_assembly(self, release):
+        if release not in self.primary_assembly_fa_done:
+            if not self.primary_assembly_fa_path(release).exists():
+                decompress(self.primary_assembly_fa_gz_path(release))
+
+            self.primary_assembly_fa_done.add(release)
+
+    def compute_chrom_sizes(self, release):
+        if release not in self.sizes_done:
+            if not self.toplevel_chrom_path(release).exists():
+                compute_chrom_sizes(self.toplevel_fai_path(release))
+
+            self.sizes_done.add(release)
+
+    def compute_fasta_index_toplevel(self, release):
+        if release not in self.toplevel_fai_done:
+            if not self.toplevel_fai_path(release).exists():
+                compute_fasta_index(self.toplevel_fa_path(release))
+
+            self.toplevel_fai_done.add(release)
+
+    def compute_fasta_index_primary_assembly(self, release):
+        if release not in self.primary_assembly_fai_done:
+            if not self.primary_assembly_fai_path(release).exists():
+                compute_fasta_index(self.primary_assembly_fa_path(release))
+
+            self.primary_assembly_fai_done.add(release)
+
+    def compute_all_toplevel(self, release):
+        self.download_toplevel(release)
+        self.decompress_toplevel(release)
+        self.compute_fasta_index_toplevel(release)
+        self.compute_chrom_sizes(release)
+
+    def compute_all_primary_assembly(self, release):
+        self.download_primary_assembly(release)
+        self.decompress_primary_assembly(release)
+        self.compute_fasta_index_primary_assembly(release)
 
 
 class EnsemblData(_GatherReferences):
