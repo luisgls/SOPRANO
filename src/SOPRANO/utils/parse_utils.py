@@ -36,9 +36,12 @@ def _add_core_genome_args(parser: argparse.ArgumentParser):
     return parser
 
 
-def fix_species_arg(_namespace: argparse.Namespace) -> argparse.Namespace:
-    species: str = _namespace.species
-    _namespace.species = species.replace(" ", "_").lower()
+def fix_species_arg(species: str) -> str:
+    return species.replace(" ", "_").lower()
+
+
+def fix_ns_species_arg(_namespace: argparse.Namespace) -> argparse.Namespace:
+    _namespace.species = fix_species_arg(_namespace.species)
     return _namespace
 
 
@@ -56,7 +59,7 @@ def parse_genome_args(argv=None):
     parser.add_argument(
         "--download_only", "-d", dest="download_only", action="store_true"
     )
-    return fix_species_arg(parser.parse_args(argv))
+    return fix_ns_species_arg(parser.parse_args(argv))
 
 
 def parse_args(argv=None):
@@ -175,7 +178,7 @@ def parse_args(argv=None):
     _add_core_genome_args(parser)
 
     args = parser.parse_args(argv)
-    args = fix_species_arg(args)
+    args = fix_ns_species_arg(args)
 
     check_cli_path(args.input_path)
     check_cli_path(args.bed_path)
