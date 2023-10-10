@@ -273,8 +273,6 @@ def with_tab_genomes(tab: DeltaGenerator):
         )
         st.text(f"Selected: {st.session_state.download_type}")
 
-        st.checkbox("Post-process download", key="download_post_process")
-
         if st.button("Download", disabled=False):
             if st.session_state.download_assembly == "GRCh37":
                 assert st.session_state.download_species == "homo_sapiens"
@@ -289,23 +287,32 @@ def with_tab_genomes(tab: DeltaGenerator):
             output = st.empty()
             with st_capture(output.code):
                 if st.session_state.download_type == "toplevel":
-                    if st.session_state.download_post_process:
-                        data.compute_all_toplevel(
-                            st.session_state.download_release
-                        )
-                    else:
-                        data.download_toplevel(
-                            st.session_state.download_release
-                        )
+                    data.compute_all_toplevel(
+                        st.session_state.download_release
+                    )
+                    checks = (
+                        data.toplevel_gz_done,
+                        data.toplevel_fa_done,
+                        data.toplevel_fai_done,
+                        data.sizes_done,
+                    )
                 else:
-                    if st.session_state.download_post_process:
-                        data.compute_all_primary_assembly(
-                            st.session_state.download_release
-                        )
-                    else:
-                        data.download_primary_assembly(
-                            st.session_state.download_release
-                        )
+                    data.compute_all_primary_assembly(
+                        st.session_state.download_release
+                    )
+                    checks = (
+                        data.primary_assembly_gz_done,
+                        data.primary_assembly_fa_done,
+                        data.primary_assembly_fai_done,
+                        {st.session_state.download_release},
+                    )
+                process_ok = all(
+                    [
+                        st.session_state.download_release in check
+                        for check in checks
+                    ]
+                )
+                print(f"All downloads complete: {process_ok}")
             t_end = time.time()
             st.text(f"Download complete in {int(t_end - t_start)} seconds")
 
