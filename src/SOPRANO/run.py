@@ -32,8 +32,14 @@ def link_vep_cache():
 
 def download_genome():
     args = parse_genome_args()
-    startup_output()
-    ensembl_data = objects.EnsemblData(args.species, args.ref)
+    startup_output(**args.__dict__)
+    print("Starting download...")
+
+    if args.assembly == "GRCh37":
+        assert args.species == "homo_sapiens"
+        ensembl_data = objects.EnsemblData.homo_sapiens_GRCh37()
+    else:
+        ensembl_data = objects.EnsemblData(args.species, args.assembly)
 
     if args.primary_assembly:
         ensembl_data.download_primary_assembly(args.release)

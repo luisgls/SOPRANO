@@ -14,7 +14,7 @@ def test_parse_genome_args(capsys):
         args = parse_genome_args()
         assert args.species == "homo_sapiens"
         assert args.assembly == "GRCh38"
-        assert args.release == "110"
+        assert args.release == 110
         assert args.primary_assembly is False
         assert args.download_only is False
 
@@ -24,6 +24,6 @@ def test_parse_genome_args(capsys):
         args = parse_genome_args()
         assert args.species == "foo"
         assert args.assembly == "bar"
-        assert args.release == "110"
+        assert args.release == 110
         assert args.primary_assembly is True
         assert args.download_only is False

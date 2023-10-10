@@ -28,9 +28,9 @@ def _add_core_genome_args(parser: argparse.ArgumentParser):
         "--release",
         "-r",
         dest="release",
-        type=str,
+        type=int,
         help="Ensembl release number. E.g., 110.",
-        default="110",
+        default=110,
     )
 
     return parser
