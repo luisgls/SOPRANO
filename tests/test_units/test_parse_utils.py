@@ -1,12 +1,12 @@
 from argparse import Namespace
 from unittest.mock import patch
 
-from SOPRANO.utils.parse_utils import fix_species_arg, parse_genome_args
+from SOPRANO.utils.parse_utils import fix_ns_species_arg, parse_genome_args
 
 
 def test__fix_species_arg():
     ns = Namespace(species="Homo Sapiens")
-    assert fix_species_arg(ns).species == "homo_sapiens"
+    assert fix_ns_species_arg(ns).species == "homo_sapiens"
 
 
 def test_parse_genome_args(capsys):
