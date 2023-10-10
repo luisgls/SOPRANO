@@ -368,7 +368,7 @@ class _GatherReferences:
         if release not in self.primary_assembly_gz_done:
             self._check_release_ok(release)
 
-            if self.primary_assembly_fa_gz_path(release).exists():
+            if not self.primary_assembly_fa_gz_path(release).exists():
                 self._download(release, _toplevel=False)
 
             self.primary_assembly_gz_done.add(release)
