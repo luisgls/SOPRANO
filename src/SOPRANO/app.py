@@ -335,14 +335,31 @@ def with_tab_info(tab: DeltaGenerator):
         st.caption("Description of what is going on...")
 
 
+def with_tab_immunopeptidome(tab: DeltaGenerator):
+    with tab:
+        st.title("Immunopeptidomes")
+        st.caption(
+            "Generate a patient specific immunopeptidome file derived from "
+            "the SOPRANO internal master file and HLA allele selections."
+        )
+
+
 if __name__ == "__main__":
     st.set_page_config(layout="wide")
-    pipeline_tab, vep_tab, genome_tab, annotate_tab, info_tab = st.tabs(
+    (
+        pipeline_tab,
+        vep_tab,
+        genome_tab,
+        annotate_tab,
+        immunopeptidome_tab,
+        info_tab,
+    ) = st.tabs(
         [
             "Pipeline",
             "Link VEP",
             "Download Genomes",
             "Annotator",
+            "Immunopeptidomes",
             "Information",
         ]
     )
@@ -351,4 +368,5 @@ if __name__ == "__main__":
     with_tab_vep(vep_tab)
     with_tab_genomes(genome_tab)
     with_tab_annotator(annotate_tab)
+    with_tab_immunopeptidome(immunopeptidome_tab)
     with_tab_info(info_tab)
