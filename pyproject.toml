@@ -20,7 +20,8 @@ dependencies = [
     "numpy",
     "streamlit == 1.27.0",
     "requests",
-    "types-requests"
+    "types-requests",
+    "clint"
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
