@@ -49,17 +49,23 @@ These arguments have short (`-s`) or long (`--long`) argument flags.
     This value should be an integer greater than zero. Defaults to "-1", 
     implying no seed value chosen.
 
+  
+- `-s | --species`
 
-- `-r | --reference`
-
-    The name of the genome reference. Currently, this CLI supports GRCh37 and 
-    GRCh38, which may be passed as arguments. By default, GRCh37 is chosen.
+    The Latin species name associated with genome reference. The default value
+    is for homo_sapiens.
 
 
-- `-q | --release`
+- `-a | --assembly`
+
+    The name of the Ensembl reference genome assembly. The default value is for 
+    GRCh38 (Homo Sapiens).
+
+
+- `-r | --release`
 
     The Ensembl release number of the genome reference
-    file. By default, the CLI will select release 110.
+    file. The default value is 110.
 
 
 - `-t | --transcript`
