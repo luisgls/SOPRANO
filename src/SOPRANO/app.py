@@ -15,6 +15,7 @@ from SOPRANO.utils.app_utils import (
     get_immunopeptidome_options,
     st_capture,
 )
+from SOPRANO.utils.parse_utils import fix_species_arg
 from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.vep_utils import (
     _get_src_dst_link_pairs,
@@ -82,6 +83,14 @@ def process_vep_cache_selection():
         st.session_state.vep_cache_dir = vep_cache_selection
 
     st.text(f"Selected: {st.session_state.vep_cache_dir.as_posix()}")
+
+
+def process_download_species_selection():
+    download_species_selection = st.session_state.download_species_selection
+    st.session_state.download_species = fix_species_arg(
+        download_species_selection
+    )
+    st.text(f"Selected: {st.session_state.download_species}")
 
 
 def process_vcf_selection():
@@ -225,31 +234,80 @@ def with_tab_vep(tab: DeltaGenerator):
 def with_tab_genomes(tab: DeltaGenerator):
     with tab:
         st.title("Download Reference Genomes")
-        st.caption("Currently supporting Homo Sapien genome references.")
-
-        st.selectbox(
-            "Select a genome reference:",
-            options=("GRCh38", "GRCh37"),
-            key="download_genome_ref",
+        st.caption(
+            "Download Ensembl genome reference data. See "
+            "https://www.ensembl.org/info/genome/variation/species/"
+            "species_data_types.html for definitions."
         )
-        st.text(f"Selected: {st.session_state.download_genome_ref}")
+
+        st.text_input(
+            "Define the species",
+            value="Homo Sapiens",
+            key="download_species_selection",
+        )
+        process_download_species_selection()
+
+        st.text_input(
+            "Define the genome reference:",
+            value="GRCh38",
+            key="download_assembly",
+        )
+        st.text(f"Selected: {st.session_state.download_assembly}")
 
         st.number_input(
             "Define the Ensembl release:",
             min_value=76,
-            key="download_genome_rel",
+            key="download_release",
+            value=110,
         )
 
-        msg = f"Selected: {st.session_state.download_genome_rel}"
-        if st.session_state.download_genome_rel > 110:
-            msg += " [Warning Oct 1 2023: Latest Ensembl release is 110]"
+        msg = f"Selected: {st.session_state.download_release}"
+        if st.session_state.download_release > 110:
+            msg += "\n\n[Warning Oct 1 2023: Latest Ensembl release is 110]"
         st.text(msg)
 
-        if st.button("Download", disabled=True):
-            # TODO: Probably easiest to rewrite the download via the
-            #       the requests library. Getting a bit convoluted with
-            #       shell. See utils.url_utils
-            pass
+        st.selectbox(
+            "Download type:",
+            options=("toplevel", "primary_assembly"),
+            key="download_type",
+        )
+        st.text(f"Selected: {st.session_state.download_type}")
+
+        st.checkbox("Post-process download", key="download_post_process")
+
+        if st.button("Download", disabled=False):
+            if st.session_state.download_assembly == "GRCh37":
+                assert st.session_state.download_species == "homo_sapiens"
+                data = objects.EnsemblData.homo_sapiens_GRCh37()
+            else:
+                data = objects.EnsemblData(
+                    species=st.session_state.download_species,
+                    assembly=st.session_state.download_assembly,
+                )
+
+            t_start = time.time()
+            output = st.empty()
+            with st_capture(output.code):
+                if st.session_state.download_type == "toplevel":
+                    if st.session_state.download_post_process:
+                        data.compute_all_toplevel(
+                            st.session_state.download_release
+                        )
+                    else:
+                        data.download_toplevel(
+                            st.session_state.download_release
+                        )
+                else:
+                    if st.session_state.download_post_process:
+                        data.compute_all_primary_assembly(
+                            st.session_state.download_release
+                        )
+                    else:
+                        data.download_primary_assembly(
+                            st.session_state.download_release
+                        )
+            t_end = time.time()
+            st.text(f"Download complete in {int(t_end - t_start)} seconds")
 
 
 def with_tab_annotator(tab: DeltaGenerator):
