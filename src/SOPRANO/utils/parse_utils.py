@@ -21,7 +21,7 @@ def parse_genome_args():
         "--release",
         dest="release",
         type=str,
-        help="Ensemblv release number, e.g., 109, 110. Defaults to 110.",
+        help="Ensembl release number, e.g., 109, 110. Defaults to 110.",
         default="110",
     )
 
