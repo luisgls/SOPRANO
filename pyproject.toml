@@ -62,6 +62,7 @@ soprano-run = "SOPRANO.run:run_cli"
 soprano-app = "SOPRANO.run:run_app"
 soprano-get-genome = "SOPRANO.run:download_genome"
 soprano-link-vep = "SOPRANO.run:link_vep_cache"
+soprano-hla2ip = "SOPRANO.run:hla2pip"
 
 [tool.hatch]
 version.source = "vcs"
