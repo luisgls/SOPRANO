@@ -217,4 +217,25 @@ def parse_hla(argv=None):
         type=pathlib.Path,
         default=Directories.app_immunopeptidomes(),
     )
+    parser.add_argument(
+        "--restrict",
+        "-r",
+        dest="restricted_transcript_ids",
+        nargs="*",
+        type=str,
+        required=False,
+        help="Space seperated Ensembl transcript IDs.",
+        default=[],
+    )
+    parser.add_argument(
+        "--excluded",
+        "-e",
+        dest="excluded_transcript_ids",
+        nargs="*",
+        type=str,
+        required=False,
+        help="Space seperated Ensembl transcript IDs.",
+        default=[],
+    )
+
     return parser.parse_args(argv)

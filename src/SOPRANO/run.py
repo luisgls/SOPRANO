@@ -55,7 +55,11 @@ def download_genome():
 def hla2pip():
     args = parse_hla()
     hla2ip.immunopeptidome_from_hla(
-        *args.hla_values, output_name=args.output_id, cache_loc=args.cache_dir
+        *args.hla_values,
+        output_name=args.output_id,
+        cache_loc=args.cache_dir,
+        restricted_transcript_ids=args.restricted_transcript_ids,
+        excluded_transcript_ids=args.excluded_transcript_ids,
     )
 
 

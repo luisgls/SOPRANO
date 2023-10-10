@@ -7,6 +7,11 @@ from streamlit.delta_generator import DeltaGenerator
 
 import SOPRANO.utils.path_utils
 from SOPRANO.core import objects
+from SOPRANO.hla2ip import (
+    get_hla_options,
+    get_transcript_id_options,
+    immunopeptidome_from_hla,
+)
 from SOPRANO.pipeline import run_pipeline
 from SOPRANO.utils.app_utils import (
     get_annotated_input_options,
@@ -26,6 +31,8 @@ genome_options = get_human_genome_options()
 annotated_input_options = get_annotated_input_options()
 immunopeptidome_options = get_immunopeptidome_options()
 coordinate_options = get_coordinate_options()
+hla_options = [""] + get_hla_options()
+transcript_id_options = get_transcript_id_options()
 
 
 def process_genome_selection():
@@ -342,6 +349,70 @@ def with_tab_immunopeptidome(tab: DeltaGenerator):
             "Generate a patient specific immunopeptidome file derived from "
             "the SOPRANO internal master file and HLA allele selections."
         )
+
+        st.multiselect(
+            "Select HLA alleles:",
+            options=hla_options,
+            key="hla_selections",
+            max_selections=4,
+        )
+
+        st.text_input("Immunopeptidome name:", key="input_ip_name")
+
+        if not st.session_state.input_ip_name.endswith(".bed"):
+            st.session_state.ip_name = st.session_state.input_ip_name + ".bed"
+        else:
+            st.session_state.ip_name = st.session_state.input_ip_name
+
+        st.text(
+            f"Output path will be: "
+            f"{Directories.app_immunopeptidomes(st.session_state.ip_name)}"
+        )
+
+        _no = "No"
+        _retain = "Retain subset of IDs"
+        _exclude = "Exclude subset of IDs"
+
+        st.selectbox(
+            "Filter transcript IDs:",
+            options=(_no, _retain, _exclude),
+            key="filter_by_transcript",
+        )
+
+        if st.session_state.filter_by_transcript != _no:
+            st.multiselect(
+                "Select transcript IDs:",
+                options=transcript_id_options,
+                key="selected_transcripts",
+            )
+
+            if st.session_state.filter_by_transcript == _retain:
+                st.session_state.transcripts_retained = (
+                    st.session_state.selected_transcripts
+                )
+                st.session_state.transcripts_excluded = []
+            else:
+                st.session_state.transcripts_retained = []
+                st.session_state.transcripts_excluded = (
+                    st.session_state.selected_transcripts
+                )
+        else:
+            st.session_state.selected_transcripts = []
+            st.session_state.transcripts_retained = []
+            st.session_state.transcripts_excluded = []
+
+        # st.text(st.session_state.selected_transcripts)
+        # st.text(st.session_state.transcripts_retained)
+        # st.text(st.session_state.transcripts_excluded)
+
+        if st.button("Build immunopeptidome"):
+            immunopeptidome_from_hla(
+                *st.session_state.hla_selections,
+                output_name=st.session_state.ip_name,
+                restricted_transcript_ids=st.session_state.transcripts_retained,
+                excluded_transcript_ids=st.session_state.transcripts_excluded,
+            )
+            st.text(f"Completed: {st.session_state.ip_name}")
 
 
 if __name__ == "__main__":
