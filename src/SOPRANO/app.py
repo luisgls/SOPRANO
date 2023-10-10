@@ -248,20 +248,8 @@ def with_tab_genomes(tab: DeltaGenerator):
         if st.button("Download", disabled=True):
             # TODO: Probably easiest to rewrite the download via the
             #       the requests library. Getting a bit convoluted with
-            #       shell. See comment below
+            #       shell. See utils.url_utils
             pass
-
-
-# def download_file(url):
-#     response = requests.get(url)
-#     if "content-disposition" in response.headers:
-#         content_disposition = response.headers["content-disposition"]
-#         filename = content_disposition.split("filename=")[1]
-#     else:
-#         filename = url.split("/")[-1]
-#     with open(filename, mode="wb") as file:
-#         file.write(response.content)
-#     print(f"Downloaded file {filename}")
 
 
 def with_tab_annotator(tab: DeltaGenerator):

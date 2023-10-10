@@ -81,3 +81,6 @@ app_sources/
 !app_sources/annotated_inputs/.gitkeep
 !app_sources/coordinate_files/.gitkeep
 !app_sources/immunopeptidomes/.gitkeep
+
+# Ignore release cache file
+src/SOPRANO/data/ensembl.releases
