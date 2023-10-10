@@ -5,47 +5,60 @@ from SOPRANO.core import objects
 from SOPRANO.utils.path_utils import check_cli_path
 
 
-def parse_genome_args():
-    parser = argparse.ArgumentParser(description="Genome reference")
+def _add_core_genome_args(parser: argparse.ArgumentParser):
+    parser.add_argument(
+        "--species",
+        "-s",
+        dest="species",
+        type=str,
+        help="Ensembl species Latin name. E.g., 'Homo sapiens'/homo_sapiens.",
+        default="homo_sapiens",
+    )
 
     parser.add_argument(
-        "--reference",
-        "-r",
-        dest="genome_ref",
+        "--assembly",
+        "-a",
+        dest="assembly",
         type=str,
-        help="GRCh37 or GRCh38",
-        required=True,
+        help="Ensembl genome assembly ID. E.g., GRCh38.",
+        default="GRCh38",
     )
 
     parser.add_argument(
         "--release",
         dest="release",
         type=str,
-        help="Ensembl release number, e.g., 109, 110. Defaults to 110.",
+        help="Ensembl release number. E.g., 110.",
         default="110",
     )
 
-    ref_release = check_genome(parser.parse_args())
-
-    return ref_release
+    return parser
 
 
-def check_genome(_namespace: argparse.Namespace) -> tuple:
-    ref = _namespace.genome_ref
-    release = _namespace.release
-
-    available_refs = ("GRCh37", "GRCh38")
-
-    if ref not in available_refs:
-        raise ValueError(
-            f"Reference {ref} not supported. "
-            f"Permitted choices: {available_refs}"
-        )
-
-    return ref, release
+def fix_species_arg(_namespace: argparse.Namespace) -> argparse.Namespace:
+    species: str = _namespace.species
+    _namespace.species = species.replace(" ", "_").lower()
+    return _namespace
 
 
-def parse_args():
+def parse_genome_args(argv=None):
+    parser = argparse.ArgumentParser(description="Genome reference")
+    parser = _add_core_genome_args(parser)
+
+    parser.add_argument(
+        "--primary_assembly",
+        "-p",
+        dest="primary_assembly",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--download_only", "-d", dest="download_only", action="store_true"
+    )
+    return fix_species_arg(parser.parse_args(argv))
+
+
+def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="SOPRANO input arguments")
 
     parser.add_argument(
@@ -90,7 +103,7 @@ def parse_args():
     analysis_params_group.add_argument(
         "--random_regions",
         "-m",
-        dest="random_regions",  # TODO: Update to random_regions
+        dest="random_regions",
         type=pathlib.Path,
         help="Provide a bed file with regions to randomize.",
     )
@@ -158,32 +171,10 @@ def parse_args():
         type=pathlib.Path,
     )
 
-    genome_args = parser.add_argument_group()
+    _add_core_genome_args(parser)
 
-    genome_args.add_argument(
-        "--reference",
-        "-r",
-        dest="genome_ref",
-        default="GRCh37",
-        type=str,
-        help="Reference genome file definition. By default, uses GRCh37. Pass "
-        "instead GRCh38 if preferred. In order to download the reference "
-        "fasta file, you can execute the command:\n"
-        "GET_GENOMES -r GRCh37\n"
-        "or\n"
-        "GET_GENOMES -r GRCh38",
-    )
-
-    genome_args.add_argument(
-        "--release",
-        "-q",
-        dest="release",
-        type=str,
-        help="Ensembl release number, e.g., 109, 110. Defaults to 110.",
-        default="110",
-    )
-
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+    args = fix_species_arg(args)
 
     check_cli_path(args.input_path)
     check_cli_path(args.bed_path)
@@ -192,6 +183,5 @@ def parse_args():
     check_cli_path(args.transcript)
     check_cli_path(args.protein_transcript)
     check_cli_path(args.transcript_ids)
-    check_genome(args)
 
     return args

@@ -192,7 +192,8 @@ _NAMESPACE_KEYS = (
     "use_random",
     "keep_drivers",
     "seed",
-    "genome_ref",
+    "species",
+    "assembly",
     "release",
 )
 
@@ -238,16 +239,21 @@ class Parameters(AnalysisPaths):
             namespace.transcript_ids,
         )
 
-        if namespace.genome_ref in ("GRCh37", "GRCh38"):
-            fasta_path, chrom_path = genome_pars_to_paths(
-                namespace.genome_ref, namespace.genome_rel
+        species = namespace.species
+        assembly = namespace.assembly
+        release = namespace.release
+
+        if assembly == "GRCh37":
+            assert species == "homo_sapiens", species
+            genomes = (
+                EnsemblData.homo_sapiens_GRCh37().get_genome_reference_paths(
+                    release
+                )
             )
-            genomes = GenomePaths(sizes=chrom_path, fasta=fasta_path)
         else:
-            raise KeyError(
-                f"Unrecognized reference: {namespace.genome_ref}\n"
-                f"Possibly requires implementation."
-            )
+            genomes = EnsemblData(
+                species=species, assembly=assembly
+            ).get_genome_reference_paths(release)
 
         return cls(
             analysis_name=namespace.analysis_name,
@@ -275,7 +281,7 @@ class _GatherReferences:
 
     # Params
     species: str
-    reference: str
+    assembly: str
 
     # Status
     toplevel_gz_done: Set[int] = set()
@@ -287,7 +293,7 @@ class _GatherReferences:
     sizes_done: Set[int] = set()
 
     def _dest_directory(self, release: int):
-        return Directories.data(self.species) / f"{release}_{self.reference}"
+        return Directories.data(self.species) / f"{release}_{self.assembly}"
 
     def _dest_fa_gz(self, release: int, _toplevel: bool):
         return self._dest_directory(release) / filename_from_url(
@@ -421,12 +427,12 @@ class _GatherReferences:
 
 
 class EnsemblData(_GatherReferences):
-    def __init__(self, species: str, reference: str, _init_urls=True):
+    def __init__(self, species: str, assembly: str, _init_urls=True):
         self.species = species
-        self.reference = reference
+        self.assembly = assembly
 
         if _init_urls:
-            url_dict = build_ensembl_urls(species, reference)
+            url_dict = build_ensembl_urls(species, assembly)
             self.toplevel_url = url_dict["toplevel"]
             self.primary_assembly_url = url_dict["primary_assembly"]
 
@@ -450,9 +456,9 @@ class EnsemblData(_GatherReferences):
         )
 
         species = "homo_sapiens"
-        reference = "GRCh37"
+        assembly = "GRCh37"
 
-        obj = cls(species, reference, _init_urls=False)
+        obj = cls(species, assembly, _init_urls=False)
         obj.toplevel_url = toplevel_url
         obj.primary_assembly_url = primary_assembly_url
         return obj

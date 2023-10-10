@@ -189,7 +189,7 @@ def test__dest_directory(foo_bar_reference):
     posix_path = x._dest_directory(release).as_posix()
 
     assert posix_path.split("/")[-2] == x.species
-    assert posix_path.split("/")[-1] == f"{release}_{x.reference}"
+    assert posix_path.split("/")[-1] == f"{release}_{x.assembly}"
 
 
 def test__dest_fa_gz(foo_bar_reference):

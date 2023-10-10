@@ -26,7 +26,7 @@ def foo_bar_reference():
     species = "foo"
     reference = "bar"
     x.species = species
-    x.reference = reference
+    x.assembly = reference
     x.toplevel_url = "soprano.com/{RELEASE}/foo/bar/toplevel.fa.gz"
     x.primary_assembly_url = (
         "soprano.com/{RELEASE}/foo/bar/primary_assembly.fa.gz"

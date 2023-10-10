@@ -31,20 +31,18 @@ def link_vep_cache():
 
 
 def download_genome():
-    ref, release = parse_genome_args()
+    args = parse_genome_args()
     startup_output()
-    downloader_path = Directories.installers("download_homo_sapiens.sh")
-    data_dir = Directories.genomes_homo_sapiens(f"{release}_{ref}")
+    ensembl_data = objects.EnsemblData(args.species, args.ref)
 
-    if not data_dir.exists():
-        data_dir.mkdir(parents=True)
-
-    assert downloader_path.exists(), downloader_path
-    assert data_dir.exists(), data_dir
-
-    subprocess.run(
-        ["bash", downloader_path.as_posix(), ref, release, data_dir.as_posix()]
-    )
+    if args.primary_assembly:
+        ensembl_data.download_primary_assembly(args.release)
+        if not args.download_only:
+            ensembl_data.compute_all_primary_assembly(args.release)
+    else:
+        ensembl_data.download_toplevel(args.release)
+        if not args.download_only:
+            ensembl_data.compute_all_toplevel(args.release)
 
 
 if __name__ == "__main__":
