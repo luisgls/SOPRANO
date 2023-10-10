@@ -338,7 +338,7 @@ class _GatherReferences:
         else:
             source_url = self.primary_assembly_url
             dest_path = self.primary_assembly_fa_gz_path(release)
-            decompressed_path = self.toplevel_fa_path(release)
+            decompressed_path = self.primary_assembly_fa_path(release)
 
         if not (decompressed_path.exists() or dest_path.exists()):
             dest_path.parent.mkdir(parents=True, exist_ok=True)
