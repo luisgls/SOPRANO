@@ -2,10 +2,8 @@ import pickle as pk
 
 import pytest
 
-from SOPRANO.utils.url_utils import (
-    _SOPRANO_ENSEMBL_RELEASES,
-    _GatherReferences,
-)
+from SOPRANO.core.objects import _GatherReferences
+from SOPRANO.utils.url_utils import _SOPRANO_ENSEMBL_RELEASES
 
 
 @pytest.fixture

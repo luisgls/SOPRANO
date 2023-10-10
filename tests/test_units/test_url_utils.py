@@ -2,6 +2,7 @@ import pickle as pk
 
 import pytest
 
+import SOPRANO.core.objects
 from SOPRANO.utils import url_utils
 
 
@@ -183,7 +184,7 @@ def test_build_ensembl_urls():
 
 
 def test__dest_directory(foo_bar_reference):
-    x: url_utils._GatherReferences = foo_bar_reference
+    x: SOPRANO.core.objects._GatherReferences = foo_bar_reference
     release = 100
     posix_path = x._dest_directory(release).as_posix()
 
@@ -192,7 +193,7 @@ def test__dest_directory(foo_bar_reference):
 
 
 def test__dest_fa_gz(foo_bar_reference):
-    x: url_utils._GatherReferences = foo_bar_reference
+    x: SOPRANO.core.objects._GatherReferences = foo_bar_reference
     release = 100
 
     assert (
@@ -206,7 +207,7 @@ def test__dest_fa_gz(foo_bar_reference):
 
 
 def test__dest_fa(foo_bar_reference):
-    x: url_utils._GatherReferences = foo_bar_reference
+    x: SOPRANO.core.objects._GatherReferences = foo_bar_reference
     release = 100
 
     assert x._dest_fa(release, _toplevel=True).name == x.toplevel_url.split(
@@ -218,7 +219,7 @@ def test__dest_fa(foo_bar_reference):
 
 
 def test__dest_chrom(foo_bar_reference):
-    x: url_utils._GatherReferences = foo_bar_reference
+    x: SOPRANO.core.objects._GatherReferences = foo_bar_reference
     release = 100
 
     assert x.dest_chrom(release, _toplevel=True).name == x.toplevel_url.split(
@@ -227,7 +228,7 @@ def test__dest_chrom(foo_bar_reference):
 
 
 def test_toplevel_fa_gz_path(foo_bar_reference):
-    x: url_utils._GatherReferences = foo_bar_reference
+    x: SOPRANO.core.objects._GatherReferences = foo_bar_reference
     release = 100
 
     assert x.toplevel_fa_gz_path(release) == x._dest_fa_gz(
@@ -236,14 +237,14 @@ def test_toplevel_fa_gz_path(foo_bar_reference):
 
 
 def test_toplevel_fa_path(foo_bar_reference):
-    x: url_utils._GatherReferences = foo_bar_reference
+    x: SOPRANO.core.objects._GatherReferences = foo_bar_reference
     release = 100
 
     assert x.toplevel_fa_path(release) == x._dest_fa(release, _toplevel=True)
 
 
 def test_primary_assembly_fa_gz_path(foo_bar_reference):
-    x: url_utils._GatherReferences = foo_bar_reference
+    x: SOPRANO.core.objects._GatherReferences = foo_bar_reference
     release = 100
 
     assert x.primary_assembly_fa_gz_path(release) == x._dest_fa_gz(
@@ -252,7 +253,7 @@ def test_primary_assembly_fa_gz_path(foo_bar_reference):
 
 
 def test_primary_assembly_fa_path(foo_bar_reference):
-    x: url_utils._GatherReferences = foo_bar_reference
+    x: SOPRANO.core.objects._GatherReferences = foo_bar_reference
     release = 100
 
     assert x.primary_assembly_fa_path(release) == x._dest_fa(
@@ -262,8 +263,8 @@ def test_primary_assembly_fa_path(foo_bar_reference):
 
 def test__check_release_ok():
     for x in (
-        url_utils.EnsemblData.homo_sapiens_GRCh38(),
-        url_utils.EnsemblData.homo_sapiens_GRCh37(),
+        SOPRANO.core.objects.EnsemblData.homo_sapiens_GRCh38(),
+        SOPRANO.core.objects.EnsemblData.homo_sapiens_GRCh37(),
     ):
         x._check_release_ok(100)  # Should be fine
 
