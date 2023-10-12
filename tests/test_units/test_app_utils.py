@@ -1,4 +1,4 @@
-from SOPRANO.utils.app_utils import AppOptions
+from SOPRANO.utils.app_utils import PipelineUIOptions
 from SOPRANO.utils.path_utils import Directories
 
 
@@ -24,7 +24,7 @@ def _check_detected(dir_method, options_method, ext):
 def test_get_annotated_input_options():
     _check_detected(
         Directories.app_annotated_inputs,
-        AppOptions.get_annotated_input_options,
+        PipelineUIOptions.get_annotated_input_options,
         "anno",
     )
 
@@ -32,7 +32,7 @@ def test_get_annotated_input_options():
 def test_get_immunopeptidome_options():
     _check_detected(
         Directories.app_immunopeptidomes,
-        AppOptions.get_immunopeptidome_options,
+        PipelineUIOptions.get_immunopeptidome_options,
         "bed",
     )
 
@@ -40,6 +40,6 @@ def test_get_immunopeptidome_options():
 def test_get_coordinate_options():
     _check_detected(
         Directories.app_coordinate_files,
-        AppOptions.get_coordinate_options,
+        PipelineUIOptions.get_coordinate_options,
         "bed",
     )
