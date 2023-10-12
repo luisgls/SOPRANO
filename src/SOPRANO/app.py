@@ -12,23 +12,10 @@ from SOPRANO.utils.app_utils import (
     PipelineUIProcessing,
     RunTab,
 )
-from SOPRANO.utils.parse_utils import fix_species_arg
 from SOPRANO.utils.path_utils import Directories
 
 hla_options = ImmunopeptidomesUIOptions.hla_alleles()
 transcript_id_options = ImmunopeptidomesUIOptions.transcript_ids()
-
-
-def process_download_species_selection():
-    download_species_selection = st.session_state.download_species_selection
-    st.session_state.download_species = fix_species_arg(
-        download_species_selection
-    )
-    st.text(f"Selected: {st.session_state.download_species}")
-
-
-def process_vcf_selection():
-    pass  # TODO
 
 
 def with_tab_pipeline(tab: DeltaGenerator):
@@ -184,9 +171,9 @@ def with_tab_annotator(tab: DeltaGenerator):
             "Upload a VCF file to annotate for use in the SOPRANO pipeline."
         )
         st.file_uploader("Select a VCF file:", key="vcf_selection")
-        process_vcf_selection()
+
         if st.button("Annotate", disabled=True):
-            pass  # TODO
+            RunTab.annotate()
 
 
 def with_tab_info(tab: DeltaGenerator):

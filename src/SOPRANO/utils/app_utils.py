@@ -8,6 +8,7 @@ import streamlit as st
 
 from SOPRANO.core.objects import EnsemblData, Parameters
 from SOPRANO.pipeline import run_pipeline
+from SOPRANO.utils.parse_utils import fix_species_arg
 from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.sh_utils import pipe
 from SOPRANO.utils.vep_utils import (
@@ -210,7 +211,7 @@ class DownloaderUIOptions(_DownloaderUI):
 class DownloaderUIProcessing(_DownloaderUI):
     @staticmethod
     def species(species_selection: str):
-        output = species_selection.lower().replace(" ", "_")
+        output = fix_species_arg(species_selection)
         st.text(f"Selected: {output}")
         return output
 
@@ -343,3 +344,7 @@ class RunTab:
         st.text(f"All complete: {process_ok}")
         t_end = time()
         st.text(f"... in {int(t_end - t_start)} seconds")
+
+    @staticmethod
+    def annotate(*args, **kwargs):
+        pass
