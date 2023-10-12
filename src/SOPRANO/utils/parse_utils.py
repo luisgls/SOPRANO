@@ -2,7 +2,7 @@ import argparse
 import pathlib
 
 from SOPRANO.core import objects
-from SOPRANO.utils.path_utils import check_cli_path
+from SOPRANO.utils.path_utils import Directories, check_cli_path
 
 
 def _add_core_genome_args(parser: argparse.ArgumentParser):
@@ -189,3 +189,53 @@ def parse_args(argv=None):
     check_cli_path(args.transcript_ids)
 
     return args
+
+
+def parse_hla(argv=None):
+    parser = argparse.ArgumentParser("Parse HLA parameters")
+    parser.add_argument(
+        "--alleles",
+        "-a",
+        dest="hla_values",
+        nargs="+",
+        type=str,
+        required=True,
+        help="Space seperated HLA alleles.",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        dest="output_id",
+        type=str,
+        required=True,
+        help="Identifying name for the output immunopeptidome file.",
+    )
+    parser.add_argument(
+        "--cache",
+        "-c",
+        dest="cache_dir",
+        type=pathlib.Path,
+        default=Directories.app_immunopeptidomes(),
+    )
+    parser.add_argument(
+        "--restrict",
+        "-r",
+        dest="restricted_transcript_ids",
+        nargs="*",
+        type=str,
+        required=False,
+        help="Space seperated Ensembl transcript IDs.",
+        default=[],
+    )
+    parser.add_argument(
+        "--excluded",
+        "-e",
+        dest="excluded_transcript_ids",
+        nargs="*",
+        type=str,
+        required=False,
+        help="Space seperated Ensembl transcript IDs.",
+        default=[],
+    )
+
+    return parser.parse_args(argv)

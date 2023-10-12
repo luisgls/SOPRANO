@@ -1,8 +1,9 @@
 import subprocess
 
+from SOPRANO import hla2ip
 from SOPRANO.core import objects
 from SOPRANO.pipeline import run_pipeline
-from SOPRANO.utils.parse_utils import parse_args, parse_genome_args
+from SOPRANO.utils.parse_utils import parse_args, parse_genome_args, parse_hla
 from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.print_utils import startup_output
 from SOPRANO.utils.vep_utils import (
@@ -49,6 +50,17 @@ def download_genome():
         ensembl_data.download_toplevel(args.release)
         if not args.download_only:
             ensembl_data.compute_all_toplevel(args.release)
+
+
+def hla2pip():
+    args = parse_hla()
+    hla2ip.immunopeptidome_from_hla(
+        *args.hla_values,
+        output_name=args.output_id,
+        cache_loc=args.cache_dir,
+        restricted_transcript_ids=args.restricted_transcript_ids,
+        excluded_transcript_ids=args.excluded_transcript_ids,
+    )
 
 
 if __name__ == "__main__":
