@@ -1,15 +1,13 @@
-import pathlib
 import time
 
-import pandas as pd
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
 
 from SOPRANO.core import objects
 from SOPRANO.hla2ip import immunopeptidome_from_hla
-from SOPRANO.pipeline import run_pipeline
 from SOPRANO.utils.app_utils import (
     ImmunopeptidomesUIOptions,
+    LinkVEPUIProcessing,
     PipelineUIOptions,
     PipelineUIProcessing,
     RunTab,
@@ -17,28 +15,9 @@ from SOPRANO.utils.app_utils import (
 )
 from SOPRANO.utils.parse_utils import fix_species_arg
 from SOPRANO.utils.path_utils import Directories
-from SOPRANO.utils.vep_utils import (
-    _get_src_dst_link_pairs,
-    _link_src_dst_pairs,
-)
-
-genome_options = PipelineUIOptions.genome_reference()
-annotated_input_options = PipelineUIOptions.annotated_mutations()
-immunopeptidome_options = PipelineUIOptions.immunopeptidome()
-coordinate_options = PipelineUIOptions.coordinates()
 
 hla_options = ImmunopeptidomesUIOptions.hla_alleles()
 transcript_id_options = ImmunopeptidomesUIOptions.transcript_ids()
-
-
-def process_vep_cache_selection():
-    vep_cache_selection = st.session_state.vep_cache
-    if isinstance(vep_cache_selection, str):
-        st.session_state.vep_cache_dir = pathlib.Path(vep_cache_selection)
-    else:
-        st.session_state.vep_cache_dir = vep_cache_selection
-
-    st.text(f"Selected: {st.session_state.vep_cache_dir.as_posix()}")
 
 
 def process_download_species_selection():
@@ -51,30 +30,6 @@ def process_download_species_selection():
 
 def process_vcf_selection():
     pass  # TODO
-
-
-def run_pipeline_in_app():
-    st.session_state.cache_dir.mkdir(exist_ok=True)
-
-    t_start = time.time()
-    output = st.empty()
-    with st_capture(output.code):
-        run_pipeline(st.session_state.params)
-    t_end = time.time()
-
-    st.session_state.compute_time_str = (
-        f"Pipeline run in {int(t_end - t_start)} seconds"
-    )
-
-    st.session_state.data_frame = pd.read_csv(
-        st.session_state.params.results_path, sep="\t"
-    )
-
-    st.session_state.job_complete = True
-
-    st.text(st.session_state.compute_time_str)
-    st.dataframe(st.session_state.data_frame, hide_index=True)
-    st.text(f"dN/dS file: {st.session_state.params.results_path}")
 
 
 def with_tab_pipeline(tab: DeltaGenerator):
@@ -166,20 +121,15 @@ def with_tab_vep(tab: DeltaGenerator):
             f"folder: {Directories.data()}"
         )
 
-        default_location = Directories.std_sys_vep()
-
-        st.text_input(
-            "VEP cache location:", key="vep_cache", value=default_location
+        cache_location_selection = st.text_input(
+            "VEP cache location:", value=Directories.std_sys_vep().as_posix()
         )
-        process_vep_cache_selection()
+        cache_location_processed = LinkVEPUIProcessing.cache_location(
+            cache_location_selection
+        )
 
         if st.button("Link", disabled=False):
-            output = st.empty()
-            with st_capture(output.code):
-                src_dst_links = _get_src_dst_link_pairs(
-                    st.session_state.vep_cache_dir
-                )
-                _link_src_dst_pairs(src_dst_links, _skip_user_input=True)
+            RunTab.link_vep(cache_location_processed)
 
 
 def with_tab_genomes(tab: DeltaGenerator):

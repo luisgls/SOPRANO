@@ -1,3 +1,4 @@
+import pathlib
 from contextlib import contextmanager, redirect_stdout
 from io import StringIO
 from time import time
@@ -9,6 +10,10 @@ from SOPRANO.core.objects import EnsemblData, Parameters
 from SOPRANO.pipeline import run_pipeline
 from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.sh_utils import pipe
+from SOPRANO.utils.vep_utils import (
+    _get_src_dst_link_pairs,
+    _link_src_dst_pairs,
+)
 
 
 @contextmanager
@@ -171,9 +176,11 @@ class LinkVEPUIOptions(_LinkVEPUI):
 
 
 class LinkVEPUIProcessing(_LinkVEPUI):
-    @classmethod
-    def cache_location(cls):
-        pass
+    @staticmethod
+    def cache_location(cache_location: str):
+        output = pathlib.Path(cache_location)
+        st.text(f"Selected: {output}")
+        return output
 
 
 class _DownloaderUI:
@@ -263,12 +270,13 @@ class RunTab:
     @staticmethod
     def pipeline(params: Parameters):
         params.cache_dir.mkdir(exist_ok=True)
-
-        t_start = time()
         output = st.empty()
         with st_capture(output.code):
-            run_pipeline(params)
-        t_end = time()
+            t_start = time()
+            output = st.empty()
+            with st_capture(output.code):
+                run_pipeline(params)
+            t_end = time()
 
         data_frame = pd.read_csv(
             st.session_state.params.results_path, sep="\t"
@@ -277,3 +285,10 @@ class RunTab:
         st.text(f"Pipeline run in {int(t_end - t_start)} seconds")
         st.dataframe(data_frame, hide_index=True)
         st.text(f"dN/dS file: {params.results_path}")
+
+    @staticmethod
+    def link_vep(cache_location: pathlib.Path):
+        output = st.empty()
+        with st_capture(output.code):
+            src_dst_links = _get_src_dst_link_pairs(cache_location)
+            _link_src_dst_pairs(src_dst_links, _skip_user_input=True)
