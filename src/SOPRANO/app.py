@@ -5,11 +5,16 @@ import pandas as pd
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
 
-import SOPRANO.utils.path_utils
 from SOPRANO.core import objects
 from SOPRANO.hla2ip import immunopeptidome_from_hla
 from SOPRANO.pipeline import run_pipeline
-from SOPRANO.utils.app_utils import AppOptions, st_capture
+from SOPRANO.utils.app_utils import (
+    ImmunopeptidomesUIOptions,
+    PipelineUIOptions,
+    PipelineUIProcessing,
+    RunTab,
+    st_capture,
+)
 from SOPRANO.utils.parse_utils import fix_species_arg
 from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.vep_utils import (
@@ -17,59 +22,13 @@ from SOPRANO.utils.vep_utils import (
     _link_src_dst_pairs,
 )
 
-genome_options = AppOptions.get_human_genome_options()
-annotated_input_options = AppOptions.get_annotated_input_options()
-immunopeptidome_options = AppOptions.get_immunopeptidome_options()
-coordinate_options = AppOptions.get_coordinate_options()
-hla_options = AppOptions.get_hla_options()
-transcript_id_options = AppOptions.get_transcript_id_options()
+genome_options = PipelineUIOptions.genome_reference()
+annotated_input_options = PipelineUIOptions.annotated_mutations()
+immunopeptidome_options = PipelineUIOptions.immunopeptidome()
+coordinate_options = PipelineUIOptions.coordinates()
 
-
-def process_genome_selection():
-    genome_selection = st.session_state.genome_selection
-
-    ref_id, rel_id = genome_selection.split(" - Ensembl release ")
-
-    (
-        genomes_path,
-        chroms_path,
-    ) = SOPRANO.utils.path_utils.genome_pars_to_paths(ref_id, rel_id)
-
-    st.session_state.ref_genome = objects.GenomePaths(
-        sizes=chroms_path, fasta=genomes_path
-    )
-
-    st.text(f"Selected: {st.session_state.ref_genome.fasta}")
-
-
-def process_annotated_input_selection():
-    input_selection = st.session_state.input_selection
-    st.session_state.input_path = annotated_input_options[input_selection]
-    st.text(f"Selected: {st.session_state.input_path}")
-
-
-def process_immunopeptidome_selection():
-    bed_selection = st.session_state.bed_selection
-    st.session_state.bed_path = immunopeptidome_options[bed_selection]
-    st.text(f"Selected: {st.session_state.bed_path}")
-
-
-def process_substitution_selection():
-    subs_selection = st.session_state.subs_selection
-    st.session_state.use_ssb192 = subs_selection == 192
-    st.text(f"Using SSB192: {st.session_state.use_ssb192}")
-
-
-def process_job_name_selection():
-    job_name = st.session_state.job_name
-    st.session_state.cache_dir = Directories.cache(job_name)
-    st.text(f"Cache location: {st.session_state.cache_dir}")
-
-
-def process_randomization_region():
-    region_selection = st.session_state.random_regions
-    st.session_state.random_regions_path = coordinate_options[region_selection]
-    st.text(f"Selected: {st.session_state.random_regions_path}")
+hla_options = ImmunopeptidomesUIOptions.hla_alleles()
+transcript_id_options = ImmunopeptidomesUIOptions.transcript_ids()
 
 
 def process_vep_cache_selection():
@@ -123,84 +82,80 @@ def with_tab_pipeline(tab: DeltaGenerator):
         st.title("SOPRANO")
         st.caption("Selection On PRotein ANnotated regiOns")
 
-        # Derived genome definitions
-        st.selectbox(
+        genome_selection = st.selectbox(
             "Select a reference genome:",
-            genome_options.keys(),
-            key="genome_selection",
+            PipelineUIOptions.genome_reference(),
         )
-        process_genome_selection()
+        genome_processed = PipelineUIProcessing.genome_reference(
+            genome_selection
+        )
 
-        # VEP annotated file
-        st.selectbox(
+        annotation_selection = st.selectbox(
             "Select a VEP annotated file:",
-            annotated_input_options.keys(),
-            key="input_selection",
+            PipelineUIOptions.annotated_mutations(),
         )
-        process_annotated_input_selection()
+        annotation_processed = PipelineUIProcessing.annotated_mutations(
+            annotation_selection
+        )
 
-        # BED protein transcript file
-        st.selectbox(
+        immunopeptidome_selection = st.selectbox(
             "Select a BED protein file:",
-            immunopeptidome_options.keys(),
-            key="bed_selection",
+            PipelineUIOptions.immunopeptidome(),
         )
-        process_immunopeptidome_selection()
-
-        # Substitution method
-        st.selectbox(
-            "Select a substitution method:", (192, 7), key="subs_selection"
+        immunopeptidome_processed = PipelineUIProcessing.immunopeptidome(
+            immunopeptidome_selection
         )
-        process_substitution_selection()
 
-        # Exclude driver genes
-        st.checkbox("Exclude driver genes:", value=True, key="exclude_drivers")
+        substitution_selection = st.selectbox(
+            "Select a substitution method:",
+            PipelineUIOptions.substitution_method(),
+        )
+        substitution_processed = PipelineUIProcessing.substitution_method(
+            substitution_selection
+        )
 
-        # Use randomization
-        st.checkbox("Use randomization:", value=False, key="use_random")
+        exclude_drivers = st.checkbox("Exclude driver genes:", value=True)
 
-        if st.session_state.use_random:
-            # Select random seed
-            st.number_input(
+        use_randomization = st.checkbox("Use randomization:", value=False)
+
+        if use_randomization:
+            random_seed = st.number_input(
                 "Select random seed for randomization:",
                 min_value=-1,
                 value="min",
-                key="random_seed",
             )
-            st.selectbox(
+            coordinates_selection = st.selectbox(
                 "Select a BED file defining the regions to randomize over:",
-                coordinate_options.keys(),
-                key="random_regions",
+                PipelineUIOptions.coordinates(),
             )
-            process_randomization_region()
+            coordinates_processed = PipelineUIProcessing.coordinates(
+                coordinates_selection
+            )
         else:
-            st.session_state.random_seed = -1
-            st.session_state.random_regions_path = None
+            random_seed = -1
+            coordinates_processed = None
 
-        # Pipeline job name & cache
-        st.text_input(
-            "Define a name for the output of your analysis:", key="job_name"
+        job_name_selection = st.text_input(
+            "Define a name for the output of your analysis:"
         )
-        process_job_name_selection()
+        job_name_processed = PipelineUIProcessing.job_name(job_name_selection)
 
-        st.session_state.params = objects.Parameters(
-            analysis_name=st.session_state.job_name,
-            input_path=st.session_state.input_path,
-            bed_path=st.session_state.bed_path,
-            cache_dir=st.session_state.cache_dir,
-            random_regions=st.session_state.random_regions_path,
-            use_ssb192=st.session_state.use_ssb192,
-            use_random=st.session_state.use_random,
-            exclude_drivers=st.session_state.exclude_drivers,
-            seed=st.session_state.random_seed,
+        params = objects.Parameters(
+            analysis_name=job_name_selection,
+            input_path=annotation_processed,
+            bed_path=immunopeptidome_processed,
+            cache_dir=job_name_processed,
+            random_regions=coordinates_processed,
+            use_ssb192=substitution_processed == 192,
+            use_random=use_randomization,
+            exclude_drivers=exclude_drivers,
+            seed=random_seed,
             transcripts=objects.TranscriptPaths.defaults(),
-            genomes=st.session_state.ref_genome,
+            genomes=genome_processed,
         )
-
-        st.session_state.job_complete = False
 
         if st.button("Run Pipeline"):
-            run_pipeline_in_app()
+            RunTab.pipeline(params=params)
 
 
 def with_tab_vep(tab: DeltaGenerator):
@@ -343,7 +298,7 @@ def with_tab_immunopeptidome(tab: DeltaGenerator):
             "Select HLA alleles:",
             options=hla_options,
             key="hla_selections",
-            max_selections=4,
+            max_selections=6,
         )
 
         st.text_input("Immunopeptidome name:", key="input_ip_name")

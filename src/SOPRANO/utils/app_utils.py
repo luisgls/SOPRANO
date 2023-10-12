@@ -1,9 +1,12 @@
 from contextlib import contextmanager, redirect_stdout
 from io import StringIO
+from time import time
 
+import pandas as pd
 import streamlit as st
 
-from SOPRANO.core.objects import EnsemblData
+from SOPRANO.core.objects import EnsemblData, Parameters
+from SOPRANO.pipeline import run_pipeline
 from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.sh_utils import pipe
 
@@ -254,3 +257,23 @@ class ImmunopeptidomesUIOptions(_ImmunopeptidomeUI):
             transcript_options = f.read()
 
         return transcript_options.split("\n")
+
+
+class RunTab:
+    @staticmethod
+    def pipeline(params: Parameters):
+        params.cache_dir.mkdir(exist_ok=True)
+
+        t_start = time()
+        output = st.empty()
+        with st_capture(output.code):
+            run_pipeline(params)
+        t_end = time()
+
+        data_frame = pd.read_csv(
+            st.session_state.params.results_path, sep="\t"
+        )
+
+        st.text(f"Pipeline run in {int(t_end - t_start)} seconds")
+        st.dataframe(data_frame, hide_index=True)
+        st.text(f"dN/dS file: {params.results_path}")
