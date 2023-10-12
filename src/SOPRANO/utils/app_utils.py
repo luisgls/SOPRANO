@@ -7,6 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from SOPRANO.core.objects import EnsemblData, Parameters
+from SOPRANO.hla2ip import immunopeptidome_from_hla
 from SOPRANO.pipeline import run_pipeline
 from SOPRANO.utils.parse_utils import fix_species_arg
 from SOPRANO.utils.path_utils import Directories
@@ -257,9 +258,13 @@ class _ImmunopeptidomeUI:
     def transcript_ids(*args, **kwargs):
         pass
 
+    @staticmethod
+    def subset_method(*args, **kwargs):
+        pass
 
-class ImmunopeptidomeUIProcessing(_ImmunopeptidomeUI):
-    pass
+    @staticmethod
+    def name(*args, **kwargs):
+        pass
 
 
 class ImmunopeptidomesUIOptions(_ImmunopeptidomeUI):
@@ -283,6 +288,50 @@ class ImmunopeptidomesUIOptions(_ImmunopeptidomeUI):
             transcript_options = f.read()
 
         return transcript_options.split("\n")
+
+    @staticmethod
+    def subset_method():
+        return "None", "Retention", "Exclusion"
+
+
+class ImmunopeptidomeUIProcessing(_ImmunopeptidomeUI):
+    @staticmethod
+    def hla_alleles(alleles_selected: list):
+        st.text(f"Selected: {sorted(alleles_selected)}")
+        return alleles_selected
+
+    @staticmethod
+    def transcript_ids(transcript_ids: list):
+        st.text(f"Selected: {sorted(transcript_ids)}")
+        return transcript_ids
+
+    @staticmethod
+    def subset_method(transcripts: list, method: str):
+        if len(transcripts) == 0 or method == "None":
+            st.text("No subset selected.")
+            return [], []
+        elif method == "Retention":
+            st.text(f"Retaining subset of transcripts: {transcripts}")
+            return transcripts, []
+        elif method == "Exclusion":
+            st.text(f"Excluding subset of transcripts: {transcripts}")
+            return [], transcripts
+        else:
+            raise ValueError(
+                f"Method does not belong to options: "
+                f"{ImmunopeptidomesUIOptions.subset_method()}"
+            )
+
+    @staticmethod
+    def name(name: str):
+        if not name.endswith(".bed"):
+            name += ".bed"
+
+        st.text(
+            f"Output file will be saved to "
+            f"{Directories.app_immunopeptidomes(name)}"
+        )
+        return name
 
 
 class RunTab:
@@ -348,3 +397,27 @@ class RunTab:
     @staticmethod
     def annotate(*args, **kwargs):
         pass
+
+    @staticmethod
+    def immunopeptidome(
+        hla_selections,
+        output_name,
+        transcripts_retained,
+        transcripts_excluded,
+    ):
+        try:
+            immunopeptidome_from_hla(
+                *hla_selections,
+                output_name=output_name,
+                restricted_transcript_ids=transcripts_retained,
+                excluded_transcript_ids=transcripts_excluded,
+            )
+            st.text(
+                f"Completed: {Directories.app_immunopeptidomes(output_name)}"
+            )
+        except RuntimeError:
+            st.text(
+                "Process failed with currently defined options. This was "
+                "likely caused by the selected HLA being unavailable in "
+                "the (filtered) transcript file."
+            )

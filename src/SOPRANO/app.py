@@ -2,20 +2,17 @@ import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
 
 from SOPRANO.core import objects
-from SOPRANO.hla2ip import immunopeptidome_from_hla
 from SOPRANO.utils.app_utils import (
     DownloaderUIOptions,
     DownloaderUIProcessing,
     ImmunopeptidomesUIOptions,
+    ImmunopeptidomeUIProcessing,
     LinkVEPUIProcessing,
     PipelineUIOptions,
     PipelineUIProcessing,
     RunTab,
 )
 from SOPRANO.utils.path_utils import Directories
-
-hla_options = ImmunopeptidomesUIOptions.hla_alleles()
-transcript_id_options = ImmunopeptidomesUIOptions.transcript_ids()
 
 
 def with_tab_pipeline(tab: DeltaGenerator):
@@ -56,7 +53,6 @@ def with_tab_pipeline(tab: DeltaGenerator):
         )
 
         exclude_drivers = st.checkbox("Exclude driver genes:", value=True)
-
         use_randomization = st.checkbox("Use randomization:", value=False)
 
         if use_randomization:
@@ -190,69 +186,48 @@ def with_tab_immunopeptidome(tab: DeltaGenerator):
             "the SOPRANO internal master file and HLA allele selections."
         )
 
-        st.multiselect(
-            "Select HLA alleles:",
-            options=hla_options,
-            key="hla_selections",
+        alleles_selected = st.multiselect(
+            "Select HLA alleles (min 2, max 6):",
+            options=ImmunopeptidomesUIOptions.hla_alleles(),
             max_selections=6,
         )
-
-        st.text_input("Immunopeptidome name:", key="input_ip_name")
-
-        if not st.session_state.input_ip_name.endswith(".bed"):
-            st.session_state.ip_name = st.session_state.input_ip_name + ".bed"
-        else:
-            st.session_state.ip_name = st.session_state.input_ip_name
-
-        st.text(
-            f"Output path will be: "
-            f"{Directories.app_immunopeptidomes(st.session_state.ip_name)}"
+        alleles_processed = ImmunopeptidomeUIProcessing.hla_alleles(
+            alleles_selected
         )
 
-        _no = "No"
-        _retain = "Retain subset of IDs"
-        _exclude = "Exclude subset of IDs"
+        name_selected = st.text_input("Immunopeptidome name:")
+        name_processed = ImmunopeptidomeUIProcessing.name(name_selected)
 
-        st.selectbox(
-            "Filter transcript IDs:",
-            options=(_no, _retain, _exclude),
-            key="filter_by_transcript",
+        transcripts_selected = st.multiselect(
+            "Select transcript IDs for subset (optional):",
+            options=ImmunopeptidomesUIOptions.transcript_ids(),
+        )
+        transcripts_processed = ImmunopeptidomeUIProcessing.transcript_ids(
+            transcripts_selected
         )
 
-        if st.session_state.filter_by_transcript != _no:
-            st.multiselect(
-                "Select transcript IDs:",
-                options=transcript_id_options,
-                key="selected_transcripts",
+        subset_method_selected = st.selectbox(
+            "Select method to subset available Ensembl transcript IDs "
+            "(optional):",
+            options=ImmunopeptidomesUIOptions.subset_method(),
+        )
+        (
+            transcripts_retained,
+            transcripts_excluded,
+        ) = ImmunopeptidomeUIProcessing.subset_method(
+            transcripts_processed, subset_method_selected
+        )
+
+        if st.button(
+            "Build immunopeptidome",
+            disabled=not (2 <= len(alleles_processed) <= 6),
+        ):
+            RunTab.immunopeptidome(
+                alleles_processed,
+                output_name=name_processed,
+                transcripts_retained=transcripts_retained,
+                transcripts_excluded=transcripts_excluded,
             )
-
-            if st.session_state.filter_by_transcript == _retain:
-                st.session_state.transcripts_retained = (
-                    st.session_state.selected_transcripts
-                )
-                st.session_state.transcripts_excluded = []
-            else:
-                st.session_state.transcripts_retained = []
-                st.session_state.transcripts_excluded = (
-                    st.session_state.selected_transcripts
-                )
-        else:
-            st.session_state.selected_transcripts = []
-            st.session_state.transcripts_retained = []
-            st.session_state.transcripts_excluded = []
-
-        # st.text(st.session_state.selected_transcripts)
-        # st.text(st.session_state.transcripts_retained)
-        # st.text(st.session_state.transcripts_excluded)
-
-        if st.button("Build immunopeptidome"):
-            immunopeptidome_from_hla(
-                *st.session_state.hla_selections,
-                output_name=st.session_state.ip_name,
-                restricted_transcript_ids=st.session_state.transcripts_retained,
-                excluded_transcript_ids=st.session_state.transcripts_excluded,
-            )
-            st.text(f"Completed: {st.session_state.ip_name}")
 
 
 if __name__ == "__main__":
