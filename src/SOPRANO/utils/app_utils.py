@@ -1,6 +1,9 @@
 from contextlib import contextmanager, redirect_stdout
 from io import StringIO
 
+import streamlit as st
+
+from SOPRANO.core.objects import EnsemblData
 from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.sh_utils import pipe
 
@@ -25,16 +28,44 @@ def st_capture(output_func):
         yield
 
 
-class AppOptions:
+def _select_from_dict(selection: str, selection_dict: dict):
+    selection_value = selection_dict[selection]
+    st.text(f"Selected: {selection_value}")
+    return selection_value
+
+
+class _PipelineUI:
     @staticmethod
-    def get_human_genome_options():
+    def genome_reference(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def annotated_mutations(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def immunopeptidome(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def substitution_method(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def coordinates(*args, **kwargs):
+        pass
+
+
+class PipelineUIOptions(_PipelineUI):
+    @staticmethod
+    def genome_reference():
         homo_sapiens_dir = Directories.genomes_homo_sapiens()
 
         genome_dirs = [
             item for item in homo_sapiens_dir.glob("*") if item.is_dir()
         ]
 
-        # Remove unviable options (i.e. no toplevel fa and chrom files)
+        # Remove bad options (i.e. no toplevel fa and chrom files)
         for item in genome_dirs[::-1]:
             toplevel_path = item.glob("*dna*toplevel*.fa")
             chrom_path = item.glob("*dna*toplevel*.chrom")
@@ -56,7 +87,7 @@ class AppOptions:
         return options_dict
 
     @staticmethod
-    def get_annotated_input_options():
+    def annotated_mutations():
         options_dict = {}
         for directory in (
             Directories.examples(),
@@ -67,7 +98,7 @@ class AppOptions:
         return options_dict
 
     @staticmethod
-    def get_immunopeptidome_options():
+    def immunopeptidome():
         options_dict = {}
         for directory in (
             Directories.immunopeptidomes_humans(),
@@ -78,14 +109,133 @@ class AppOptions:
         return options_dict
 
     @staticmethod
-    def get_coordinate_options():
+    def substitution_method():
+        return {"SSB192": 192, "SSB7": 7}
+
+    @staticmethod
+    def coordinates():
         options_dict = {None: None}
         for x in Directories.app_coordinate_files().glob("*.bed"):
             options_dict[x.name] = x
         return options_dict
 
+
+class PipelineUIProcessing(_PipelineUI):
     @staticmethod
-    def get_hla_options():
+    def genome_reference(genome_selection: str):
+        assembly, release = genome_selection.split(" - Ensembl release ")
+        data = EnsemblData(species="homo_sapiens", assembly=assembly)
+        fasta_path = data.toplevel_fa_path(int(release))
+        chrom_path = data.toplevel_chrom_path(int(release))
+        st.text(f"Selected: {fasta_path}, {chrom_path}")
+        return data.get_genome_reference_paths(int(release))
+
+    @staticmethod
+    def annotated_mutations(annotation_selection: str):
+        options_dict = PipelineUIOptions.annotated_mutations()
+        return _select_from_dict(annotation_selection, options_dict)
+
+    @staticmethod
+    def immunopeptidome(immunopeptidome_selection: str):
+        options_dict = PipelineUIOptions.immunopeptidome()
+        return _select_from_dict(immunopeptidome_selection, options_dict)
+
+    @staticmethod
+    def substitution_method(subs_selection: str):
+        options_dict = PipelineUIOptions.substitution_method()
+        return _select_from_dict(subs_selection, options_dict)
+
+    @staticmethod
+    def coordinates(coordinates_selection: str):
+        options_dict = PipelineUIOptions.coordinates()
+        return _select_from_dict(coordinates_selection, options_dict)
+
+    @staticmethod
+    def job_name(job_name: str):
+        cache_dir = Directories.cache(job_name)
+        st.text(f"Selected: {cache_dir}")
+        return cache_dir
+
+
+class _LinkVEPUI:
+    @staticmethod
+    def cache_location(*args, **kwargs):
+        pass
+
+
+class LinkVEPUIOptions(_LinkVEPUI):
+    pass
+
+
+class LinkVEPUIProcessing(_LinkVEPUI):
+    @classmethod
+    def cache_location(cls):
+        pass
+
+
+class _DownloaderUI:
+    @staticmethod
+    def species(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def assembly(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def release(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def type(*args, **kwargs):
+        pass
+
+
+class DownloaderUIOptions(_DownloaderUI):
+    @staticmethod
+    def type():
+        return {"toplevel": "toplevel", "primary_assembly": "primary_assembly"}
+
+
+class DownloaderUIProcessing(_DownloaderUI):
+    @staticmethod
+    def species(species: str):
+        return species.lower().replace(" ", "_")
+
+    @staticmethod
+    def type(type_selection: str):
+        return type_selection
+
+
+class _AnnotatorUI:
+    pass
+
+
+class AnnotatorUIOptions(_AnnotatorUI):
+    pass
+
+
+class AnnotatorUIProcessing(_AnnotatorUI):
+    pass
+
+
+class _ImmunopeptidomeUI:
+    @staticmethod
+    def hla_alleles(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def transcript_ids(*args, **kwargs):
+        pass
+
+
+class ImmunopeptidomeUIProcessing(_ImmunopeptidomeUI):
+    pass
+
+
+class ImmunopeptidomesUIOptions(_ImmunopeptidomeUI):
+    @staticmethod
+    def hla_alleles():
         hla_types_path = Directories.examples("TCGA_hlaTypesAll.tsv")
         options = pipe(
             ["cut", "-f3", hla_types_path.as_posix()],
@@ -95,7 +245,7 @@ class AppOptions:
         return options
 
     @staticmethod
-    def get_transcript_id_options():
+    def transcript_ids():
         hla_binders_path = Directories.data(
             "allhlaBinders_exprmean1.IEDBpeps.bed.unique_ids"
         )
