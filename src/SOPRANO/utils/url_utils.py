@@ -82,14 +82,17 @@ def compute_fasta_index(fa_path: pathlib.Path):
     )
 
 
-def compute_chrom_sizes(fa_path: pathlib.Path):
-    if not fa_path.exists():
-        raise FileNotFoundError(fa_path)
+def compute_chrom_sizes(fai_path: pathlib.Path):
+    if not fai_path.exists():
+        raise FileNotFoundError(fai_path)
 
-    chrom_path = fa_path.with_suffix(".chrom")
+    if not fai_path.name.endswith(".fa.fai"):
+        raise ValueError(f"Bad extension: {fai_path}")
 
-    task_output(f"Computing chromosome sizes from {fa_path}")
-    pipe(["cut", "-f1,2", fa_path.as_posix()], output_path=chrom_path)
+    chrom_path = fai_path.with_suffix("").with_suffix(".chrom")
+
+    task_output(f"Computing chromosome sizes from {fai_path}")
+    pipe(["cut", "-f1,2", fai_path.as_posix()], output_path=chrom_path)
 
 
 def get_dna_url(species: str):
