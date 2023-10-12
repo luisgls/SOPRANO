@@ -20,27 +20,6 @@ def join_transcript_ids(transcript_ids: List[str]):
     return r"\|".join(transcript_ids)
 
 
-def get_hla_options():
-    hla_types_path = Directories.examples("TCGA_hlaTypesAll.tsv")
-    options = pipe(
-        ["cut", "-f3", hla_types_path.as_posix()],
-        ["tr", ",", "\n"],
-        ["sort", "-u"],
-    ).split("\n")
-    return options
-
-
-def get_transcript_id_options():
-    hla_binders_path = Directories.data(
-        "allhlaBinders_exprmean1.IEDBpeps.bed.unique_ids"
-    )
-
-    with open(hla_binders_path, "r") as f:
-        transcript_options = f.read()
-
-    return transcript_options.split("\n")
-
-
 def prior_filter_restrictions(
     transcript_ids: List[str], output_path: pathlib.Path
 ):

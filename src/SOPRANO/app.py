@@ -7,19 +7,9 @@ from streamlit.delta_generator import DeltaGenerator
 
 import SOPRANO.utils.path_utils
 from SOPRANO.core import objects
-from SOPRANO.hla2ip import (
-    get_hla_options,
-    get_transcript_id_options,
-    immunopeptidome_from_hla,
-)
+from SOPRANO.hla2ip import immunopeptidome_from_hla
 from SOPRANO.pipeline import run_pipeline
-from SOPRANO.utils.app_utils import (
-    get_annotated_input_options,
-    get_coordinate_options,
-    get_human_genome_options,
-    get_immunopeptidome_options,
-    st_capture,
-)
+from SOPRANO.utils.app_utils import AppOptions, st_capture
 from SOPRANO.utils.parse_utils import fix_species_arg
 from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.vep_utils import (
@@ -27,12 +17,12 @@ from SOPRANO.utils.vep_utils import (
     _link_src_dst_pairs,
 )
 
-genome_options = get_human_genome_options()
-annotated_input_options = get_annotated_input_options()
-immunopeptidome_options = get_immunopeptidome_options()
-coordinate_options = get_coordinate_options()
-hla_options = [""] + get_hla_options()
-transcript_id_options = get_transcript_id_options()
+genome_options = AppOptions.get_human_genome_options()
+annotated_input_options = AppOptions.get_annotated_input_options()
+immunopeptidome_options = AppOptions.get_immunopeptidome_options()
+coordinate_options = AppOptions.get_coordinate_options()
+hla_options = AppOptions.get_hla_options()
+transcript_id_options = AppOptions.get_transcript_id_options()
 
 
 def process_genome_selection():
@@ -111,7 +101,6 @@ def run_pipeline_in_app():
     output = st.empty()
     with st_capture(output.code):
         run_pipeline(st.session_state.params)
-        # run_local_ssb_selection.main(st.session_state.namespace)
     t_end = time.time()
 
     st.session_state.compute_time_str = (
