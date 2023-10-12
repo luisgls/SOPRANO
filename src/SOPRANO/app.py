@@ -1,17 +1,16 @@
-import time
-
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
 
 from SOPRANO.core import objects
 from SOPRANO.hla2ip import immunopeptidome_from_hla
 from SOPRANO.utils.app_utils import (
+    DownloaderUIOptions,
+    DownloaderUIProcessing,
     ImmunopeptidomesUIOptions,
     LinkVEPUIProcessing,
     PipelineUIOptions,
     PipelineUIProcessing,
     RunTab,
-    st_capture,
 )
 from SOPRANO.utils.parse_utils import fix_species_arg
 from SOPRANO.utils.path_utils import Directories
@@ -141,81 +140,41 @@ def with_tab_genomes(tab: DeltaGenerator):
             "species_data_types.html for definitions."
         )
 
-        st.text_input(
+        species_selection = st.text_input(
             "Define the species",
             value="Homo Sapiens",
-            key="download_species_selection",
         )
-        process_download_species_selection()
+        species_processed = DownloaderUIProcessing.species(species_selection)
 
-        st.text_input(
+        assembly_selection = st.text_input(
             "Define the genome reference:",
             value="GRCh38",
-            key="download_assembly",
         )
-        st.text(f"Selected: {st.session_state.download_assembly}")
+        assembly_processed = DownloaderUIProcessing.assembly(
+            assembly_selection
+        )
 
-        st.number_input(
+        release_selection = st.number_input(
             "Define the Ensembl release:",
             min_value=76,
             key="download_release",
             value=110,
         )
+        release_processed = DownloaderUIProcessing.release(release_selection)
 
-        msg = f"Selected: {st.session_state.download_release}"
-        if st.session_state.download_release > 110:
-            msg += "\n\n[Warning Oct 1 2023: Latest Ensembl release is 110]"
-        st.text(msg)
-
-        st.selectbox(
+        type_selection = st.selectbox(
             "Download type:",
-            options=("toplevel", "primary_assembly"),
-            key="download_type",
+            options=DownloaderUIOptions.type(),
         )
-        st.text(f"Selected: {st.session_state.download_type}")
+        type_processed = DownloaderUIProcessing.type(type_selection)
 
         if st.button("Download", disabled=False):
-            if st.session_state.download_assembly == "GRCh37":
-                assert st.session_state.download_species == "homo_sapiens"
-                data = objects.EnsemblData.homo_sapiens_GRCh37()
-            else:
-                data = objects.EnsemblData(
-                    species=st.session_state.download_species,
-                    assembly=st.session_state.download_assembly,
-                )
-
-            t_start = time.time()
-            output = st.empty()
-            with st_capture(output.code):
-                if st.session_state.download_type == "toplevel":
-                    data.compute_all_toplevel(
-                        st.session_state.download_release
-                    )
-                    checks = (
-                        data.toplevel_gz_done,
-                        data.toplevel_fa_done,
-                        data.toplevel_fai_done,
-                        data.sizes_done,
-                    )
-                else:
-                    data.compute_all_primary_assembly(
-                        st.session_state.download_release
-                    )
-                    checks = (
-                        data.primary_assembly_gz_done,
-                        data.primary_assembly_fa_done,
-                        data.primary_assembly_fai_done,
-                        {st.session_state.download_release},
-                    )
-                process_ok = all(
-                    [
-                        st.session_state.download_release in check
-                        for check in checks
-                    ]
-                )
-                print(f"All downloads complete: {process_ok}")
-            t_end = time.time()
-            st.text(f"Download complete in {int(t_end - t_start)} seconds")
+            RunTab.download(
+                species=species_processed,
+                assembly=assembly_processed,
+                release=release_processed,
+                download_type=type_processed,
+            )
 
 
 def with_tab_annotator(tab: DeltaGenerator):

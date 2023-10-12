@@ -204,16 +204,34 @@ class _DownloaderUI:
 class DownloaderUIOptions(_DownloaderUI):
     @staticmethod
     def type():
-        return {"toplevel": "toplevel", "primary_assembly": "primary_assembly"}
+        return "toplevel", "primary_assembly"
 
 
 class DownloaderUIProcessing(_DownloaderUI):
     @staticmethod
-    def species(species: str):
-        return species.lower().replace(" ", "_")
+    def species(species_selection: str):
+        output = species_selection.lower().replace(" ", "_")
+        st.text(f"Selected: {output}")
+        return output
+
+    @staticmethod
+    def assembly(assembly_selection: str):
+        st.text(f"Selected: {assembly_selection}")
+        return assembly_selection
+
+    @staticmethod
+    def release(release: str):
+        output = int(release)
+        st.text(f"Selected: {output}")
+
+        if output > 110:
+            st.text("[Warning] Oct 1 2023: Latest Ensembl release is 110")
+
+        return output
 
     @staticmethod
     def type(type_selection: str):
+        st.text(f"Selected: {type_selection}")
         return type_selection
 
 
@@ -278,9 +296,7 @@ class RunTab:
                 run_pipeline(params)
             t_end = time()
 
-        data_frame = pd.read_csv(
-            st.session_state.params.results_path, sep="\t"
-        )
+        data_frame = pd.read_csv(params.results_path, sep="\t")
 
         st.text(f"Pipeline run in {int(t_end - t_start)} seconds")
         st.dataframe(data_frame, hide_index=True)
@@ -292,3 +308,38 @@ class RunTab:
         with st_capture(output.code):
             src_dst_links = _get_src_dst_link_pairs(cache_location)
             _link_src_dst_pairs(src_dst_links, _skip_user_input=True)
+
+    @staticmethod
+    def download(
+        species: str, assembly: str, release: int, download_type: str
+    ):
+        if assembly == "GRCh37":
+            assert species == "homo_sapiens"
+            data = EnsemblData.homo_sapiens_GRCh37()
+        else:
+            data = EnsemblData(species=species, assembly=assembly)
+
+        t_start = time()
+        output = st.empty()
+        with st_capture(output.code):
+            if download_type == "toplevel":
+                data.compute_all_toplevel(release)
+                checks = (
+                    data.toplevel_gz_done,
+                    data.toplevel_fa_done,
+                    data.toplevel_fai_done,
+                    data.sizes_done,
+                )
+            else:
+                data.compute_all_primary_assembly(release=release)
+                checks = (
+                    data.primary_assembly_gz_done,
+                    data.primary_assembly_fa_done,
+                    data.primary_assembly_fai_done,
+                    {release},
+                )
+
+        process_ok = all([release in check for check in checks])
+        st.text(f"All complete: {process_ok}")
+        t_end = time()
+        st.text(f"... in {int(t_end - t_start)} seconds")
