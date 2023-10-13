@@ -5,6 +5,11 @@ import pytest
 
 from SOPRANO.core.objects import GenomePaths
 from SOPRANO.utils.app_utils import (
+    DownloaderUIOptions,
+    DownloaderUIProcessing,
+    ImmunopeptidomesUIOptions,
+    ImmunopeptidomeUIProcessing,
+    LinkVEPUIProcessing,
     PipelineUIOptions,
     PipelineUIProcessing,
     _select_from_dict,
@@ -176,3 +181,88 @@ def test_pipeline_processing_job_name():
         assert PipelineUIProcessing.job_name(job_name) == mock_dir / job_name
     finally:
         os.environ[cache_key] = _soprano_cache
+
+
+def test_vep_processing_cache_location():
+    test_loc = Path.cwd()
+    assert LinkVEPUIProcessing.cache_location(test_loc.as_posix()) == test_loc
+
+
+def test_downloader_options_type():
+    options = DownloaderUIOptions.type()
+    assert "toplevel" in options
+    assert "primary_assembly" in options
+
+
+def test_downloader_processing_species():
+    assert DownloaderUIProcessing.species("Big Dog") == "big_dog"
+
+
+def test_downloader_processing_assembly():
+    assert DownloaderUIProcessing.assembly("cat") == "cat"
+
+
+def test_downloader_processing_release():
+    assert DownloaderUIProcessing.release("123") == 123
+
+
+def test_downloader_processing_type():
+    with pytest.raises(ValueError):
+        DownloaderUIProcessing.type("cat")
+
+    for permitted in ("primary_assembly", "toplevel"):
+        assert DownloaderUIProcessing.type(permitted) == permitted
+
+
+def test_immunopeptidome_options_hla_alleles():
+    options = ImmunopeptidomesUIOptions.hla_alleles()
+
+    assert isinstance(options, list)
+    assert len(options) == 354  # NOTE: Based on hard coded file... 13 Oct 2023
+
+
+def test_immunopeptidome_options_transcript_ids():
+    options = ImmunopeptidomesUIOptions.transcript_ids()
+
+    assert isinstance(options, list)
+    assert (
+        len(options) == 9754
+    )  # NOTE: Based on hard coded file... 13 Oct 2023
+
+
+def test_immunopeptidome_options_subset_method():
+    expected = {"None", "Retention", "Exclusion"}
+
+    assert set(ImmunopeptidomesUIOptions.subset_method()) == expected
+
+
+def test_immunopeptidome_processing_hla_alleles():
+    assert ImmunopeptidomeUIProcessing.hla_alleles([1, 2, 3]) == [1, 2, 3]
+
+
+def test_immunopeptidome_processing_transcript_ids():
+    assert ImmunopeptidomeUIProcessing.transcript_ids([1, 2, 3]) == [1, 2, 3]
+
+
+def test_immunopeptidome_processing_subset_method():
+    assert ImmunopeptidomeUIProcessing.subset_method([], "foo") == ([], [])
+    assert ImmunopeptidomeUIProcessing.subset_method([1, 2, 3], "None") == (
+        [],
+        [],
+    )
+
+    assert ImmunopeptidomeUIProcessing.subset_method([1, 2], "Retention") == (
+        [1, 2],
+        [],
+    )
+    assert ImmunopeptidomeUIProcessing.subset_method([1, 2], "Exclusion") == (
+        [],
+        [1, 2],
+    )
+    with pytest.raises(ValueError):
+        ImmunopeptidomeUIProcessing.subset_method([1, 2], "bar")
+
+
+def test_immunopeptidome_processing_name():
+    assert ImmunopeptidomeUIProcessing.name("x") == "x.bed"
+    assert ImmunopeptidomeUIProcessing.name("x.bed") == "x.bed"

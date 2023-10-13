@@ -233,6 +233,9 @@ class DownloaderUIProcessing(_DownloaderUI):
 
     @staticmethod
     def type(type_selection: str):
+        if type_selection not in ("toplevel", "primary_assembly"):
+            raise ValueError(type_selection)
+
         st.text(f"Selected: {type_selection}")
         return type_selection
 
@@ -286,8 +289,8 @@ class ImmunopeptidomesUIOptions(_ImmunopeptidomeUI):
 
         with open(hla_binders_path, "r") as f:
             transcript_options = f.read()
-
-        return transcript_options.split("\n")
+        # eol marker generates empty so excluded
+        return transcript_options.split("\n")[:-1]
 
     @staticmethod
     def subset_method():
