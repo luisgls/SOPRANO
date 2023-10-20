@@ -53,7 +53,7 @@ jobs:
           channels: conda-forge
           python-version: 3.11
           activate-environment: soprano-dev
-          environment-file: src/SOPRANO/local.yml
+          environment-file: src/SOPRANO/ci_linux.yml
           use-mamba: true
       - name: Install SOPRANO
         run: |
