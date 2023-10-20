@@ -1,14 +1,14 @@
-name: soprano-dev
 channels:
   - conda-forge
   - bioconda
+  - anaconda
 dependencies:
   - perl
-  - ensembl-vep=110.1
+  - ensembl-vep>=110
   - bedtools=2.31.0
   - ca-certificates
   - openssl
   - samtools
   - coreutils # [osx]
-  - python==3.11
+  - python>=3.10,<3.12
   - pip

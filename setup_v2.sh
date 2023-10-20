@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-ENV_NAME="foo"
-DEPS_FILE=test.yml # "./src/SOPRANO/test.yml"
+ENV_NAME="soprano-dev"
+DEPS_FILE="src/SOPRANO/local.yml"
 DEPS_FATAL=false
 
 # Parse installation method for pip
@@ -150,8 +150,8 @@ else
   echo "Fatal: Conda not detected."
 fi
 
-fasta_file="$DATA_DIR_PATH/ensemble_transcriptID.fasta"
-zipped_fasta_file="$DATA_DIR_PATH/ensemble_transcriptID.fasta.gz"
+fasta_file="src/SOPRANO/data/ensemble_transcriptID.fasta"
+zipped_fasta_file="src/SOPRANO/data/ensemble_transcriptID.fasta.gz"
 
 if [ ! -f "$fasta_file" ]
 then
