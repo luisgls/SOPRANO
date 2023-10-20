@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from SOPRANO.utils.env_utils import (
@@ -7,6 +9,8 @@ from SOPRANO.utils.env_utils import (
     running_soprano_env,
     vep_installed,
 )
+
+IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
 
 @pytest.mark.dependency(name="has_conda")
@@ -19,6 +23,7 @@ def test_running_soprano_env():
     assert running_soprano_env()
 
 
+@pytest.mark.skipif(IN_GITHUB_ACTIONS, reason="Not built in CI (for now)")
 @pytest.mark.dependency(depends=["has_conda"])
 def test_vep_installed():
     assert vep_installed()

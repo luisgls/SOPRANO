@@ -1,9 +1,12 @@
+import os
 import pickle as pk
 
 import pytest
 
 import SOPRANO.core.objects
 from SOPRANO.utils import url_utils
+
+IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
 
 def test_filename_from_url():
@@ -15,6 +18,7 @@ def test_filename_from_url():
     assert url_utils.filename_from_url(joined) == file_name
 
 
+@pytest.mark.skipif(IN_GITHUB_ACTIONS, reason="Too slow...")
 def test_download_from_url(tmp_path):
     test_url = "https://www.icr.ac.uk/assets/img/logo_share.jpg"
     test_target_path = tmp_path.joinpath("icr_logo.jpg")
@@ -81,6 +85,7 @@ def test_get_cached_release_value(backup_releases_cache):
     backup_releases_path.rename(url_utils._SOPRANO_ENSEMBL_RELEASES)
 
 
+@pytest.mark.skipif(IN_GITHUB_ACTIONS, reason="Too slow...")
 def test_find_earliest_release(backup_releases_cache):
     toplevel_url = (
         "https://ftp.ensembl.org/pub/release-{RELEASE}/fasta/"
