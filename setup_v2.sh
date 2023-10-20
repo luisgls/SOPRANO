@@ -150,3 +150,14 @@ else
   echo "Fatal: Conda not detected."
 fi
 
+fasta_file="$DATA_DIR_PATH/ensemble_transcriptID.fasta"
+zipped_fasta_file="$DATA_DIR_PATH/ensemble_transcriptID.fasta.gz"
+
+if [ ! -f "$fasta_file" ]
+then
+  echo "Decompressing transcript IDs"
+  gunzip -k "$zipped_fasta_file"
+  echo "Decompressed: $fasta_file"
+else
+  echo "Decompressed transcript IDs detected: $fasta_file"
+fi
