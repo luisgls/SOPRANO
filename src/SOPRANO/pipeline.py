@@ -4,12 +4,15 @@ from SOPRANO.core.analysis import (
     _build_flag_file,
     _check_triplet_counts,
     _col_correct,
-    _compute_theoretical_subs,
+    _compute_theoretical_subs_7,
+    _compute_theoretical_subs_192,
     _context_correction,
-    _correct_from_total_sites,
+    _correct_from_total_sites_ssb7,
+    _correct_from_total_sites_ssb192,
     _fix_simulated,
     _initial_triplet_counts,
     _sum_possible_across_region,
+    _transform_192_to_7,
 )
 from SOPRANO.core.dnds import _compute_coverage, _intersect_introns
 from SOPRANO.core.intersect import (
@@ -35,7 +38,7 @@ from SOPRANO.core.prepare_coordinates import (
     _exclude_positively_selected_genes_disabled,
     _get_protein_complement,
     _non_randomized,
-    _prep_not_ssb192,
+    _prep_ssb7,
     _prep_ssb192,
     _randomize_with_target_file,
     _sort_excluded_regions_for_randomization,
@@ -141,25 +144,17 @@ class BuildProteinComplement(_PipelineComponent):
         _get_protein_complement(params)
 
 
-class _SSB192Selection(_PipelineComponent):
-    """Intermediate class for ssb192 mutrate selection"""
+class PrepSSBSelection(_PipelineComponent):
+    msg = "Preparing coordinates"
 
     def check_ready(self, params: Parameters):
         _check_paths(params.epitopes)
 
-
-class UseSSB192(_SSB192Selection):
-    msg = "Preparing CDS coordinates using SSB 192 substitution"
-
     def _apply(self, params: Parameters):
-        _prep_ssb192(params)
-
-
-class NotSSB192(_SSB192Selection):
-    msg = "Preparing CDS coordinates using SSB 7 substitution"
-
-    def _apply(self, params: Parameters):
-        _prep_not_ssb192(params)
+        if params.use_ssb192:
+            _prep_ssb192(params)
+        else:
+            _prep_ssb7(params)
 
 
 class BuildIntraEpitopesCDS(_PipelineComponent):
@@ -204,8 +199,8 @@ class GetTranscriptRegionsForSites(_PipelineComponent):
         )
 
 
-class ComputeSSB192TheoreticalSubs(_PipelineComponent):
-    msg = "Computing all theoretical substitutions for SSB192"
+class ComputeTheoreticalSubs(_PipelineComponent):
+    msg = "Computing all theoretical substitutions"
 
     def check_ready(self, params: Parameters):
         _check_paths(
@@ -216,10 +211,13 @@ class ComputeSSB192TheoreticalSubs(_PipelineComponent):
         )
 
     def _apply(self, params: Parameters):
-        _compute_theoretical_subs(
-            params.epitopes_cds_fasta, params.epitopes_trans_regs
-        )
-        _compute_theoretical_subs(
+        if params.use_ssb192:
+            method = _compute_theoretical_subs_192
+        else:
+            method = _compute_theoretical_subs_7
+
+        method(params.epitopes_cds_fasta, params.epitopes_trans_regs)
+        method(
             params.intra_epitopes_cds_fasta, params.intra_epitopes_trans_regs
         )
 
@@ -243,7 +241,6 @@ class SumPossibleAcrossRegions(_PipelineComponent):
 
 
 class FixSimulated(_PipelineComponent):
-    msg = "Processing VEP annotated file to estimated 192 rate parameters"
     # TODO: Fix msg
 
     def check_ready(self, params: Parameters):
@@ -299,6 +296,9 @@ class TripletCounts(_PipelineComponent):
     def _apply(self, params: Parameters):
         _initial_triplet_counts(params)
 
+        if not params.use_ssb192:
+            _transform_192_to_7(params)
+
 
 class SiteCorrections(_PipelineComponent):
     msg = "Performing site corrections"
@@ -312,7 +312,10 @@ class SiteCorrections(_PipelineComponent):
         _check_triplet_counts(params)
 
     def _apply(self, params: Parameters):
-        _correct_from_total_sites(params)
+        if params.use_ssb192:
+            _correct_from_total_sites_ssb192(params)
+        else:
+            _correct_from_total_sites_ssb7(params)
 
 
 class IntersectByFrequency(_PipelineComponent):
@@ -511,28 +514,18 @@ def run_pipeline(params: Parameters):
         jobs.append(GeneExclusionsDisabled())
 
     jobs.append(BuildProteinComplement())
-
-    if params.use_ssb192:
-        jobs.append(UseSSB192())
-    else:
-        jobs.append(NotSSB192())
-
+    jobs.append(PrepSSBSelection())
     jobs.append(BuildIntraEpitopesCDS())
     jobs.append(ObtainFastaRegions())
     jobs.append(GetTranscriptRegionsForSites())
-
-    if params.use_ssb192:
-        jobs.append(ComputeSSB192TheoreticalSubs())
-        jobs.append(SumPossibleAcrossRegions())
-        jobs.append(FixSimulated())
-        jobs.append(ColumnCorrect())
-        jobs.append(ContextCorrection())
-        jobs.append(FlagComputations())
-        jobs.append(TripletCounts())
-        jobs.append(SiteCorrections())
-    else:
-        raise KeyError("SSB7 requires implementation")
-
+    jobs.append(ComputeTheoreticalSubs())
+    jobs.append(SumPossibleAcrossRegions())
+    jobs.append(FixSimulated())
+    jobs.append(ColumnCorrect())
+    jobs.append(ContextCorrection())
+    jobs.append(FlagComputations())
+    jobs.append(TripletCounts())
+    jobs.append(SiteCorrections())
     jobs.append(IntersectByFrequency())
     jobs.append(GetSilentCounts())
     jobs.append(GetNonSilentCounts())

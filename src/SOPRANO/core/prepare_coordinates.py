@@ -347,7 +347,7 @@ def _prep_ssb192(paths: AnalysisPaths):
     )
 
 
-def _prep_not_ssb192(paths: AnalysisPaths):
+def _prep_ssb7(paths: AnalysisPaths):
     """
     Implements:
 

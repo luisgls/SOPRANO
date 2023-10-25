@@ -1,178 +1,341 @@
-import time
+import os
 
-import pandas as pd
 import streamlit as st
+from streamlit.delta_generator import DeltaGenerator
 
-import SOPRANO.utils.path_utils
 from SOPRANO.core import objects
-from SOPRANO.pipeline import run_pipeline
-from SOPRANO.utils.app_utils import st_capture
+from SOPRANO.utils.app_utils import (
+    DownloaderUIOptions,
+    DownloaderUIProcessing,
+    ImmunopeptidomesUIOptions,
+    ImmunopeptidomeUIProcessing,
+    LinkVEPUIProcessing,
+    PipelineUIOptions,
+    PipelineUIProcessing,
+    RunTab,
+    text_or_file,
+)
 from SOPRANO.utils.path_utils import Directories
 
-_CACHE = Directories.cache()
 
-_HOMO_SAPIENS_DIR = Directories.homo_sapien_genomes()
+def with_tab_pipeline(tab: DeltaGenerator):
+    with tab:
+        st.title("SOPRANO")
+        st.caption("Selection On PRotein ANnotated regiOns")
 
-_GENOME_DIRS = [item for item in _HOMO_SAPIENS_DIR.glob("*") if item.is_dir()]
+        genome_selection = st.selectbox(
+            "Select a reference genome:",
+            PipelineUIOptions.genome_reference(),
+        )
+        genome_processed = PipelineUIProcessing.genome_reference(
+            genome_selection
+        )
+        genome_ready = genome_selection is not None
 
-# Remove unviable options (i.e. no toplevel fa and chrom files)
-for item in _GENOME_DIRS[::-1]:
-    toplevel_path = item.glob("*dna*toplevel*.fa")
-    chrom_path = item.glob("*dna*toplevel*.chrom")
+        annotation_selection = st.selectbox(
+            "Select a VEP annotated file:",
+            PipelineUIOptions.annotated_mutations(),
+        )
+        annotation_processed = PipelineUIProcessing.annotated_mutations(
+            annotation_selection
+        )
 
-    if len(list(toplevel_path)) == len(list(chrom_path)) == 1:
-        pass
-    else:
-        _GENOME_DIRS.remove(item)
+        immunopeptidome_selection = st.selectbox(
+            "Select a BED protein file:",
+            PipelineUIOptions.immunopeptidome(),
+        )
+        immunopeptidome_processed = PipelineUIProcessing.immunopeptidome(
+            immunopeptidome_selection
+        )
 
-_GENOME_NAMES = [
-    "{} - Ensembl release {}".format(*x.name.split("_")[::-1])
-    for x in _GENOME_DIRS
-]
+        substitution_selection = st.selectbox(
+            "Select a substitution method:",
+            PipelineUIOptions.substitution_method(),
+        )
+        substitution_processed = PipelineUIProcessing.substitution_method(
+            substitution_selection
+        )
 
-_GENOME_DICT = {
-    name: dir_path for name, dir_path in zip(_GENOME_NAMES, _GENOME_DIRS)
-}
+        exclude_drivers = st.checkbox("Exclude driver genes:", value=True)
+        use_randomization = st.checkbox("Use randomization:", value=False)
 
-_ANNO_DIR = Directories.examples()
-_ANNO_OPTIONS = {x.name: x for x in _ANNO_DIR.glob("*.anno*")}
+        if use_randomization:
+            random_seed = st.number_input(
+                "Select random seed for randomization:",
+                min_value=-1,
+                value="min",
+            )
+            coordinates_selection = st.selectbox(
+                "Select a BED file defining the regions to randomize over:",
+                PipelineUIOptions.coordinates(),
+            )
+            coordinates_processed = PipelineUIProcessing.coordinates(
+                coordinates_selection
+            )
+        else:
+            random_seed = -1
+            coordinates_processed = None
 
-_BED_DIR = Directories.immuno_humans()
-_BED_OPTIONS = {x.name: x for x in _BED_DIR.glob("*.bed")}
+        cache_selected = st.text_input(
+            "Cache directory:", value=Directories.cache().as_posix()
+        )
+        cache_processed = PipelineUIProcessing.cache(cache_selected)
+        cache_ready = os.path.exists(cache_processed)
+
+        job_name_selection = st.text_input(
+            "Define a name for the output of your analysis:"
+        )
+        name_ready = job_name_selection != ""
+        job_name_processed = PipelineUIProcessing.job_name(job_name_selection)
+
+        params = objects.Parameters(
+            analysis_name=job_name_selection,
+            input_path=annotation_processed,
+            bed_path=immunopeptidome_processed,
+            cache_dir=job_name_processed,
+            random_regions=coordinates_processed,
+            use_ssb192=substitution_processed == 192,
+            use_random=use_randomization,
+            exclude_drivers=exclude_drivers,
+            seed=random_seed,
+            transcripts=objects.TranscriptPaths.defaults(),
+            genomes=genome_processed,
+        )
+
+        if st.button(
+            "Run Pipeline",
+            disabled=not (cache_ready and name_ready and genome_ready),
+        ):
+            RunTab.pipeline(params=params)
+
+
+def with_tab_genomes(tab: DeltaGenerator):
+    with tab:
+        st.subheader("Link existing reference genome files")
+        st.markdown(
+            "SOPRANO uses a self-contained directory structure for the "
+            "the download and caching of derived genomic data.\n\n"
+            "Users who have an existing Ensembl VEP configuration on their "
+            "computer may have readily available reference genomes "
+            "downloaded. These downloads can be linked to the SOPRANO "
+            "directories by running the button below.\n\nNote: "
+            " the default VEP cache that is searched for is `~/.vep` but you "
+            "can define any other non-standard locations that reference "
+            "genomes may be found within."
+        )
+
+        cache_location_selection = st.text_input(
+            "VEP cache location:", value=Directories.std_sys_vep().as_posix()
+        )
+
+        cache_location_processed = LinkVEPUIProcessing.cache_location(
+            cache_location_selection
+        )
+
+        if st.button("Attempt VEP cache link", disabled=False):
+            RunTab.link_vep(cache_location_processed)
+
+        st.subheader("Download new reference genome files")
+        st.markdown(
+            "You can use SOPRANO to download reference genomes from the "
+            "ensembl FTP server by making use of the below definitions, before"
+            " clicking `Download`.\n\n"
+            "The core SOPRANO calculation requires toplevel reference data "
+            "to be available. Secondary downloads of the primary assembly "
+            "may be used to accelerate the annotation procedure; though this "
+            "is _not_ essential."
+        )
+
+        species_selection = st.text_input(
+            "Define the species",
+            value="Homo Sapiens",
+            disabled=True,
+        )
+        species_processed = DownloaderUIProcessing.species(species_selection)
+
+        assembly_selection = st.text_input(
+            "Define the genome reference:",
+            value="GRCh38",
+        )
+        assembly_processed = DownloaderUIProcessing.assembly(
+            assembly_selection
+        )
+
+        release_selection = st.number_input(
+            "Define the Ensembl release:",
+            min_value=76,
+            key="download_release",
+            value=110,
+        )
+        release_processed = DownloaderUIProcessing.release(release_selection)
+
+        type_selection = st.selectbox(
+            "Download type:",
+            options=DownloaderUIOptions.type(),
+        )
+        type_processed = DownloaderUIProcessing.type(type_selection)
+
+        if st.button("Download", disabled=False):
+            RunTab.download(
+                species=species_processed,
+                assembly=assembly_processed,
+                release=release_processed,
+                download_type=type_processed,
+            )
+
+
+def with_tab_annotator(tab: DeltaGenerator):
+    with tab:
+        st.title("Annotate VCF File")
+        st.caption(
+            "Upload a VCF file to annotate for use in the SOPRANO pipeline."
+        )
+        st.file_uploader("Select a VCF file:", key="vcf_selection")
+
+        if st.button("Annotate", disabled=True):
+            RunTab.annotate()
+
+
+def with_tab_info(tab: DeltaGenerator):
+    with tab:
+        st.title("Welcome to SOPRANO! :wave:")
+        st.caption("Selection On PRotein ANnotated regiOns")
+        st.markdown(
+            "This application is designed to provide a user interface to the "
+            "SOPRANO computational pipeline, without the need of command line "
+            "intervention."
+            "\n\n"
+            "There are three essential files required to run "
+            "SOPRANO. These define the\n"
+            "1. Reference genome\n"
+            "2. Annotated somatic mutations\n"
+            "3. Immunopeptidome\n"
+            "\n\n"
+            "These three inputs can be configured in term via the tabs "
+            "indicating steps 1, 2 and 3. Once you have prepared your data, "
+            "step 4 will enable you to run the pipeline, subject to "
+            "further runtime configuration choices."
+            "\n\n"
+            "Any technical issues can be raised on [GitHub]"
+            "(https://github.com/instituteofcancerresearch/SOPRANO/issues)"
+        )
+
+
+def with_tab_immunopeptidome(tab: DeltaGenerator):
+    with tab:
+        st.header("HLA-allele selections")
+
+        st.markdown(
+            "In order to generate custom, or, patient specific "
+            "immunopeptidome files to run through SOPRANO, we must "
+            "specify a set of HLA alleles to restrict the analysis to.\n\n"
+            "You should enter 1-6 HLA allele choices into the text box,"
+            " or upload a text file containing similar information."
+        )
+
+        hla_ready, alleles_selected = text_or_file(
+            "Define the HLA allele selection manually via text input *OR* "
+            "file uploader. (1-6 alleles are required).",
+            min_args=1,
+            max_args=6,
+            help_text="Provide HLA alleles on separate lines.",
+            help_upload="Select a text file defining the HLA alleles on "
+            "separate lines.",
+        )
+
+        if not hla_ready:
+            st.warning("HLA selection is currently invalid.")
+
+        alleles_processed = ImmunopeptidomeUIProcessing.hla_alleles(
+            [] if alleles_selected is None else alleles_selected
+        )
+
+        st.header("Ensembl transcript selections")
+
+        st.markdown(
+            "Analyses can be further restricted by providing a set of "
+            "Ensembl transcript IDs to either\n\n"
+            "1. Exclude from the analysis; or\n"
+            "2. Restrict the analysis to.\n\n"
+            "These filtering characteristics are presented as the choices\n"
+            "- 'Retention'\n"
+            "- 'Exclusion'\n\n"
+            "in the following drop down menu.\n\n"
+            "Transcript IDs should either be manually entered into the text "
+            "box over separate lines, or uploaded within a text file of "
+            "similar contents."
+        )
+
+        transcripts_ready, transcripts_selected = text_or_file(
+            "Define the Ensembl transcript IDs to restrict or exclude from the"
+            " immunopeptidome construction.",
+            help_text="Provide transcript IDs on separate lines.",
+            help_upload="Select a text file defining transcript IDs on "
+            "separate lines.",
+        )
+
+        transcripts_processed = ImmunopeptidomeUIProcessing.transcript_ids(
+            [] if transcripts_selected is None else transcripts_selected
+        )
+
+        subset_method_selected = st.selectbox(
+            "Select method to subset available Ensembl transcript IDs "
+            "(optional):",
+            options=ImmunopeptidomesUIOptions.subset_method(),
+        )
+        (
+            transcripts_retained,
+            transcripts_excluded,
+        ) = ImmunopeptidomeUIProcessing.subset_method(
+            transcripts_processed, subset_method_selected
+        )
+
+        st.header("Ensembl transcript selections")
+
+        st.markdown(
+            "Once you are happy with your immunopeptidome choices, "
+            "provide a name for the corresponding file, then click "
+            "'Build immunopeptidome'."
+        )
+
+        name_selected = st.text_input("Immunopeptidome name:")
+        name_processed = ImmunopeptidomeUIProcessing.name(name_selected)
+        name_ready = name_processed != ".bed"
+
+        if not name_ready:
+            st.warning("Please provide an input file name.")
+
+        if st.button(
+            "Build immunopeptidome",
+            disabled=not (hla_ready and name_ready),
+        ):
+            RunTab.immunopeptidome(
+                alleles_processed,
+                output_name=name_processed,
+                transcripts_retained=transcripts_retained,
+                transcripts_excluded=transcripts_excluded,
+            )
 
 
 if __name__ == "__main__":
-    # Init app
-    st.title("SOPRANO")
-    st.caption("Selection On PRotein ANnotated regiOns")
-
-    def process_genome_selection():
-        genome_selection = st.session_state.genome_selection
-
-        ref_id, rel_id = genome_selection.split(" - Ensembl release ")
-
-        (
-            genomes_path,
-            chroms_path,
-        ) = SOPRANO.utils.misc_utils.genome_pars_to_paths(ref_id, rel_id)
-
-        st.session_state.ref_genome = objects.GenomePaths(
-            sizes=chroms_path, fasta=genomes_path
-        )
-
-        st.text(f"Selected: {st.session_state.ref_genome.fasta}")
-
-    # Derived genome definitions
-    st.selectbox(
-        "Select a reference genome:",
-        _GENOME_DICT.keys(),
-        key="genome_selection",
+    st.set_page_config(layout="wide")
+    (
+        welcome_tab,
+        genome_tab,
+        annotate_tab,
+        immunopeptidome_tab,
+        pipeline_tab,
+    ) = st.tabs(
+        [
+            "Welcome!",
+            "Step 1: Prepare genome reference",
+            "Step 2: Annotate mutations",
+            "Step 3: Prepare immunopeptidome",
+            "Step 4: Run pipeline",
+        ]
     )
-    process_genome_selection()
-
-    def process_annotation():
-        input_selection = st.session_state.input_selection
-        st.session_state.input_path = _ANNO_OPTIONS[input_selection]
-        st.text(f"Selected: {st.session_state.input_path}")
-
-    # VEP annotated file
-    st.selectbox(
-        "Select a VEP annotated file:",
-        _ANNO_OPTIONS.keys(),
-        key="input_selection",
-    )
-    process_annotation()
-
-    def process_bed():
-        bed_selection = st.session_state.bed_selection
-        st.session_state.bed_path = _BED_OPTIONS[bed_selection]
-        st.text(f"Selected: {st.session_state.bed_path}")
-
-    # BED protein transcript file
-    st.selectbox(
-        "Select a BED protein file:", _BED_OPTIONS.keys(), key="bed_selection"
-    )
-    process_bed()
-
-    def process_subs():
-        subs_selection = st.session_state.subs_selection
-        st.session_state.use_ssb192 = subs_selection == 192
-        st.text(f"Using SSB192: {st.session_state.use_ssb192}")
-
-    # Substitution method
-    st.selectbox(
-        "Select a substitution method:", (192, 7), key="subs_selection"
-    )
-    process_subs()
-
-    # Exclude driver genes
-    st.checkbox("Exclude driver genes:", value=True, key="exclude_drivers")
-
-    # Use randomization
-    st.checkbox("Use randomization:", value=False, key="use_random")
-
-    if st.session_state.use_random:
-        # Select random seed
-        st.number_input(
-            "Select random seed for randomization:",
-            min_value=-1,
-            value="min",
-            key="random_seed",
-        )
-        # TODO: Option for randomization regions
-    else:
-        st.session_state.random_seed = -1
-
-    def process_name():
-        job_name = st.session_state.job_name
-        st.session_state.cache_dir = _CACHE / job_name
-        st.text(f"Cache location: {st.session_state.cache_dir}")
-
-    # Pipeline job name & cache
-    st.text_input(
-        "Define a name for the output of your analysis:", key="job_name"
-    )
-    process_name()
-
-    st.session_state.params = objects.Parameters(
-        analysis_name=st.session_state.job_name,
-        input_path=st.session_state.input_path,
-        bed_path=st.session_state.bed_path,
-        cache_dir=st.session_state.cache_dir,
-        random_regions=None,  # TODO: Fix
-        use_ssb192=st.session_state.use_ssb192,
-        use_random=st.session_state.use_random,
-        exclude_drivers=st.session_state.exclude_drivers,
-        seed=st.session_state.random_seed,
-        transcripts=objects.TranscriptPaths.defaults(),
-        genomes=st.session_state.ref_genome,
-    )
-
-    st.session_state.job_complete = False
-
-    def run_pipeline_in_app():
-        st.session_state.cache_dir.mkdir(exist_ok=True)
-
-        t_start = time.time()
-        output = st.empty()
-        with st_capture(output.code):
-            run_pipeline(st.session_state.params)
-            # run_local_ssb_selection.main(st.session_state.namespace)
-        t_end = time.time()
-
-        st.session_state.compute_time_str = (
-            f"Pipeline run in {int(t_end - t_start)} seconds"
-        )
-
-        st.session_state.data_frame = pd.read_csv(
-            st.session_state.params.results_path, sep="\t"
-        )
-
-        st.session_state.job_complete = True
-
-        st.text(st.session_state.compute_time_str)
-        st.dataframe(st.session_state.data_frame, hide_index=True)
-        st.text(f"dN/dS file: {st.session_state.params.results_path}")
-
-    if st.button("Run Pipeline"):
-        run_pipeline_in_app()
+    with_tab_info(welcome_tab)
+    with_tab_genomes(genome_tab)
+    with_tab_annotator(annotate_tab)
+    with_tab_immunopeptidome(immunopeptidome_tab)
+    with_tab_pipeline(pipeline_tab)

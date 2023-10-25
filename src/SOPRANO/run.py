@@ -1,8 +1,9 @@
 import subprocess
 
+from SOPRANO import hla2ip
 from SOPRANO.core import objects
 from SOPRANO.pipeline import run_pipeline
-from SOPRANO.utils.parse_utils import parse_args, parse_genome_args
+from SOPRANO.utils.parse_utils import parse_args, parse_genome_args, parse_hla
 from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.print_utils import startup_output
 from SOPRANO.utils.vep_utils import (
@@ -31,19 +32,34 @@ def link_vep_cache():
 
 
 def download_genome():
-    ref, release = parse_genome_args()
-    startup_output()
-    downloader_path = Directories.installers("download_homo_sapiens.sh")
-    data_dir = Directories.homo_sapien_genomes(f"{release}_{ref}")
+    args = parse_genome_args()
+    startup_output(**args.__dict__)
+    print("Starting download...")
 
-    if not data_dir.exists():
-        data_dir.mkdir(parents=True)
+    if args.assembly == "GRCh37":
+        assert args.species == "homo_sapiens"
+        ensembl_data = objects.EnsemblData.homo_sapiens_GRCh37()
+    else:
+        ensembl_data = objects.EnsemblData(args.species, args.assembly)
 
-    assert downloader_path.exists(), downloader_path
-    assert data_dir.exists(), data_dir
+    if args.primary_assembly:
+        ensembl_data.download_primary_assembly(args.release)
+        if not args.download_only:
+            ensembl_data.compute_all_primary_assembly(args.release)
+    else:
+        ensembl_data.download_toplevel(args.release)
+        if not args.download_only:
+            ensembl_data.compute_all_toplevel(args.release)
 
-    subprocess.run(
-        ["bash", downloader_path.as_posix(), ref, release, data_dir.as_posix()]
+
+def hla2pip():
+    args = parse_hla()
+    hla2ip.immunopeptidome_from_hla(
+        *args.hla_values,
+        output_name=args.output_id,
+        cache_loc=args.cache_dir,
+        restricted_transcript_ids=args.restricted_transcript_ids,
+        excluded_transcript_ids=args.excluded_transcript_ids,
     )
 
 

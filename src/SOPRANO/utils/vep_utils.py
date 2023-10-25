@@ -24,7 +24,8 @@ def _get_src_dst_link_pairs(vep_cache: pathlib.Path):
 
     src_dirs = []
     for item in [
-        [release for release in vs.glob("*")] for vs in species_caches
+        [release for release in vs.glob("*") if release.is_dir()]
+        for vs in species_caches
     ]:
         src_dirs += item
 
@@ -86,10 +87,11 @@ def _process(
 
 
 def _link_src_dst_pairs(
-    src_dst_pairs: List[Tuple[pathlib.Path, pathlib.Path]]
+    src_dst_pairs: List[Tuple[pathlib.Path, pathlib.Path]],
+    _skip_user_input=False,
 ):
     for src, dst in src_dst_pairs:
-        str_response = ""
+        str_response = "y" if _skip_user_input else ""
 
         input_options = ("y", "n")
 

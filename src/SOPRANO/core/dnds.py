@@ -90,6 +90,18 @@ def _preprocess_dfs(paths: AnalysisPaths):
     return merged_df, sites_extra_df, sites_intra_df
 
 
+def get_series_value(df: pd.Series, value_key: str, default=0):
+    try:
+        value = df[value_key]
+    except KeyError:
+        print(
+            f"WARNING: No value found in data frame for key '{value_key}'."
+            f"\n... returning {default}"
+        )
+        value = default
+    return value
+
+
 def _compute_mutation_counts(merged_df: pd.DataFrame) -> pd.Series:
     try:
         mutations_only = merged_df.drop(["EnsemblID", "intronrate"], axis=1)
@@ -97,14 +109,24 @@ def _compute_mutation_counts(merged_df: pd.DataFrame) -> pd.Series:
         mutations_only = merged_df.drop(["EnsemblID"], axis=1)
     mutations_sums = mutations_only.sum(axis=0)  # type: pd.Series
 
-    n_total_epitope = (
-        mutations_sums["extra_missense_variant"]
-        + mutations_sums["extra_synonymous_variant"]
-    )
-    n_total_nonepitope = (
-        mutations_sums["intra_missense_variant"]
-        + mutations_sums["intra_synonymous_variant"]
-    )
+    # n_total_epitope = (
+    #     mutations_sums["extra_missense_variant"]
+    #     + mutations_sums["extra_synonymous_variant"]
+    # )
+    # n_total_nonepitope = (
+    #     mutations_sums["intra_missense_variant"]
+    #     + mutations_sums["intra_synonymous_variant"]
+    # )
+
+    # In some instances the epiptope data file will not contain data for
+    # certain variants! _add_if_key_present prevents such key errors.
+    n_total_epitope = get_series_value(
+        mutations_sums, "extra_missense_variant"
+    ) + get_series_value(mutations_sums, "extra_synonymous_variant")
+    n_total_nonepitope = get_series_value(
+        mutations_sums, "intra_missense_variant"
+    ) + get_series_value(mutations_sums, "intra_synonymous_variant")
+
     combined_sums = pd.Series(
         {
             "mut_total_epitope": n_total_epitope,
@@ -134,17 +156,32 @@ def _define_variables(
 
 
 def _rescale_intron_by_synonymous(variables: pd.Series):
-    # Sum over intron and synonymous muts
-    n_intron = variables["mutsintron"]
-    n_intra_syn = variables["intra_synonymous_variant"]
-    n_extra_syn = variables["extra_synonymous_variant"]
+    # Sum over intron and synonymous muts TODO: Fix
+    n_intron = get_series_value(variables, "mutsintron")
+    n_intra_syn = get_series_value(variables, "intra_synonymous_variant")
+    n_extra_syn = get_series_value(variables, "extra_synonymous_variant")
 
     # Second element of intra and extra sites
-    n_intra_sites_2 = variables["intra_site_2"]
-    n_extra_sites_2 = variables["extra_site_2"]
+    n_intra_sites_2 = get_series_value(variables, "intra_site_2")
+    n_extra_sites_2 = get_series_value(variables, "extra_site_2")
 
-    ri = n_intra_syn / n_intra_sites_2
-    re = n_extra_syn / n_extra_sites_2
+    try:
+        ri = n_intra_syn / n_intra_sites_2
+    except ZeroDivisionError:
+        print(
+            "WARNING: Zero division occurred driven by number of "
+            "intra sites. n_intra_syn / n_intra_sites_2 -> inf"
+        )
+        ri = np.inf
+
+    try:
+        re = n_extra_syn / n_extra_sites_2
+    except ZeroDivisionError:
+        print(
+            "WARNING: Zero division occurred driven by number of "
+            "extra sites. n_extra_syn / n_extra_sites_2 -> inf"
+        )
+        re = np.inf
 
     return 2 * n_intron / (ri + re)
 
@@ -154,15 +191,30 @@ def _compute_kaks(variables: pd.Series, prefix: str):
         raise ValueError(prefix)
 
     # Sum vals over missesne and synonymous muts
-    n_mis = variables[f"{prefix}_missense_variant"]
-    n_syn = variables[f"{prefix}_synonymous_variant"]
+    n_mis = get_series_value(variables, f"{prefix}_missense_variant")
+    n_syn = get_series_value(variables, f"{prefix}_synonymous_variant")
 
     # First and second elements of sites vector
     sites_1 = variables[f"{prefix}_site_1"]
     sites_2 = variables[f"{prefix}_site_2"]
 
-    rn = n_mis / n_syn
-    rs = sites_2 / sites_1
+    try:
+        rn = n_mis / n_syn
+    except ZeroDivisionError:
+        print(
+            "WARNING: Zero division occurred driven by number of "
+            "synonymous variants. n_mis / n_syn -> inf"
+        )
+        rn = np.inf
+
+    try:
+        rs = sites_2 / sites_1
+    except ZeroDivisionError:
+        print(
+            "WARNING: Zero division occurred driven by number of "
+            "sites. sites_2 / sites_1 -> inf"
+        )
+        rs = np.inf
 
     return rn * rs
 
@@ -177,19 +229,35 @@ def _compute_kaks_intra(variables: pd.Series):
 
 def _compute_kaks_intron(variables: pd.Series):
     # Sum vals over intron, missesne and synonymous intra muts
-    n_int = variables["mutsintron"]
-    n_mis = variables["intra_missense_variant"]
-    n_syn = variables["intra_synonymous_variant"]
+    n_int = get_series_value(variables, "mutsintron")
+    n_mis = get_series_value(variables, "intra_missense_variant")
+    n_syn = get_series_value(variables, "intra_synonymous_variant")
 
     # First and second elements of sites vector
-    sites_1 = variables["intra_site_1"]
-    sites_2 = variables["intra_site_2"]
+    sites_1 = get_series_value(variables, "intra_site_1")
+    sites_2 = get_series_value(variables, "intra_site_2")
 
     # Get intron muts rescaled by synonymous muts
     n_intron_rescaled = _rescale_intron_by_synonymous(variables)
 
-    rn = n_mis / (n_syn + n_int)
-    rs = (sites_2 + n_intron_rescaled) / sites_1
+    try:
+        rn = n_mis / (n_syn + n_int)
+    except ZeroDivisionError:
+        print(
+            "WARNING: Zero division occurred driven by number of "
+            "synonymous and intronic muts. n_mis / (n_syn + n_int) -> inf"
+        )
+        rn = np.inf
+
+    try:
+        rs = (sites_2 + n_intron_rescaled) / sites_1
+    except ZeroDivisionError:
+        print(
+            "WARNING: Zero division occurred driven by number of "
+            "synonymous and intronic muts. "
+            "(sites_2 + n_intron_rescaled) / sites_1 -> inf"
+        )
+        rs = np.inf
 
     return rn * rs
 
@@ -221,22 +289,24 @@ def _compute_conf_interval(variables: pd.Series, prefix: str, method: str):
         raise ValueError(f"Unimplemented method: {method}")
 
     if prefix == "intra":
-        n_mis = variables["intra_missense_variant"]
-        n_syn = variables["intra_synonymous_variant"]
-        sites_1 = variables["intra_site_1"]
-        sites_2 = variables["intra_site_2"]
+        n_mis = get_series_value(variables, "intra_missense_variant")
+        n_syn = get_series_value(variables, "intra_synonymous_variant")
+        sites_1 = get_series_value(variables, "intra_site_1")
+        sites_2 = get_series_value(variables, "intra_site_2")
     elif prefix == "extra":
-        n_mis = variables["extra_missense_variant"]
-        n_syn = variables["extra_synonymous_variant"]
-        sites_1 = variables["extra_site_1"]
-        sites_2 = variables["extra_site_2"]
+        n_mis = get_series_value(variables, "extra_missense_variant")
+        n_syn = get_series_value(variables, "extra_synonymous_variant")
+        sites_1 = get_series_value(variables, "extra_site_1")
+        sites_2 = get_series_value(variables, "extra_site_2")
     elif prefix == "intron":
-        n_mis = variables["intra_missense_variant"]
-        n_syn = variables["intra_synonymous_variant"] + variables["mutsintron"]
-        sites_1 = variables["intra_site_1"]
-        sites_2 = variables["intra_site_2"] + _rescale_intron_by_synonymous(
-            variables
-        )
+        n_mis = get_series_value(variables, "intra_missense_variant")
+        n_syn = get_series_value(
+            variables, "intra_synonymous_variant"
+        ) + get_series_value(variables, "mutsintron")
+        sites_1 = get_series_value(variables, "intra_site_1")
+        sites_2 = get_series_value(
+            variables, "intra_site_2"
+        ) + _rescale_intron_by_synonymous(variables)
     else:
         raise ValueError(prefix)
 
@@ -327,14 +397,14 @@ def _compute_coverage(paths: AnalysisPaths):
             "OFF_High_CI": [conf_intervals["intra_Cl_high"]],
             "OFF_Mutations": [mut_counts["mut_total_non_epitope"]],
             "Pvalue": [pval_intra],
-            "ON_na": [vars["extra_missense_variant"]],
-            "ON_NA": [vars["extra_site_1"]],
-            "ON_ns": [vars["extra_synonymous_variant"]],
-            "ON_NS": [vars["extra_site_2"]],
-            "OFF_na": [vars["intra_missense_variant"]],
-            "OFF_NA": [vars["intra_site_1"]],
-            "OFF_ns": [vars["intra_synonymous_variant"]],
-            "OFF_NS": [vars["intra_site_2"]],
+            "ON_na": [get_series_value(vars, "extra_missense_variant")],
+            "ON_NA": [get_series_value(vars, "extra_site_1")],
+            "ON_ns": [get_series_value(vars, "extra_synonymous_variant")],
+            "ON_NS": [get_series_value(vars, "extra_site_2")],
+            "OFF_na": [get_series_value(vars, "intra_missense_variant")],
+            "OFF_NA": [get_series_value(vars, "intra_site_1")],
+            "OFF_ns": [get_series_value(vars, "intra_synonymous_variant")],
+            "OFF_NS": [get_series_value(vars, "intra_site_2")],
         }
     )
 
@@ -356,16 +426,17 @@ def _compute_coverage(paths: AnalysisPaths):
                 "OFF_High_CI": [conf_intervals["intron_Cl_high"]],
                 "OFF_Mutations": [mut_counts["mut_total_intron"]],
                 "Pvalue": [pval_intron],
-                "ON_na": [vars["extra_missense_variant"]],
-                "ON_NA": [vars["extra_site_1"]],
-                "ON_ns": [vars["extra_synonymous_variant"]],
-                "ON_NS": [vars["extra_site_2"]],
-                "OFF_na": [vars["intra_missense_variant"]],
-                "OFF_NA": [vars["intra_site_1"]],
+                "ON_na": [get_series_value(vars, "extra_missense_variant")],
+                "ON_NA": [get_series_value(vars, "extra_site_1")],
+                "ON_ns": [get_series_value(vars, "extra_synonymous_variant")],
+                "ON_NS": [get_series_value(vars, "extra_site_2")],
+                "OFF_na": [get_series_value(vars, "intra_missense_variant")],
+                "OFF_NA": [get_series_value(vars, "intra_site_1")],
                 "OFF_ns": [
-                    vars["intra_synonymous_variant"] + vars["mutsintron"]
+                    get_series_value(vars, "intra_synonymous_variant")
+                    + get_series_value(vars, "mutsintron")
                 ],
-                "OFF_NS": [vars["intra_site_2"] + rs_intron],
+                "OFF_NS": [get_series_value(vars, "intra_site_2") + rs_intron],
             }
         )
         results_df = pd.concat([results_df, intron_df], axis=0)

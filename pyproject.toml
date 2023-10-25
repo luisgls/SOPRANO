@@ -8,26 +8,30 @@ description = "SOPRANO: Selection On PRotein ANnotated regiOns"
 readme = "README.md"
 authors = [
     { name = "Luis Zapata", email = "Luis.Zapata@icr.ac.uk" },
-    { name = "ICR Scientific Software Group", email = "scientificcomputingteam@icr.ac.uk"},
+    { name = "ICR Scientific Software Group", email = "scientificcomputingteam@icr.ac.uk" },
 ]
 maintainers = [
     { name = "Luis Zapata", email = "Luis.Zapata@icr.ac.uk" },
-    { name = "ICR Scientific Software Group", email = "scientificcomputingteam@icr.ac.uk"},
+    { name = "ICR Scientific Software Group", email = "scientificcomputingteam@icr.ac.uk" },
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
     "pandas",
     "numpy",
-    "streamlit == 1.27.0"
+    "streamlit == 1.27.0",
+    "requests",
+    "types-requests",
+    "clint"
 ]
 classifiers = [
-  "Development Status :: 3 - Alpha",
-  "License :: OSI Approved :: BSD License",
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Perl",
-  "Topic :: Scientific/Engineering :: Bio-Informatics",
-  "Intended Audience :: Science/Research"
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Perl",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Intended Audience :: Science/Research"
 ]
 dynamic = ["version"]
 
@@ -59,6 +63,7 @@ soprano-run = "SOPRANO.run:run_cli"
 soprano-app = "SOPRANO.run:run_app"
 soprano-get-genome = "SOPRANO.run:download_genome"
 soprano-link-vep = "SOPRANO.run:link_vep_cache"
+soprano-hla2ip = "SOPRANO.run:hla2pip"
 
 [tool.hatch]
 version.source = "vcs"

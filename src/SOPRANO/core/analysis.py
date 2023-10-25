@@ -5,7 +5,7 @@ from SOPRANO.utils.path_utils import Directories, is_empty
 from SOPRANO.utils.sh_utils import pipe
 
 
-def _compute_theoretical_subs(
+def _compute_theoretical_subs_192(
     cds_fasta: pathlib.Path, trans_regs: pathlib.Path
 ):
     """
@@ -25,7 +25,43 @@ def _compute_theoretical_subs(
     perl_path = Directories.scripts("calculate_sites_signaturesLZ_192.pl")
 
     pipe(
-        [perl_path.as_posix(), cds_fasta.as_posix(), trans_regs],
+        [
+            "perl",
+            perl_path.as_posix(),
+            cds_fasta.as_posix(),
+            trans_regs.as_posix(),
+        ],
+        output_path=trans_regs,
+        overwrite=True,
+    )
+
+
+def _compute_theoretical_subs_7(
+    cds_fasta: pathlib.Path, trans_regs: pathlib.Path
+):
+    """
+
+    Implement
+
+    $BASEDIR/scripts/calculate_sites_signaturesLZ_192.pl
+        $TMP/$NAME.epitopes_cds.fasta $TMP/$NAME.listA > $TMP/$NAME.listA.sites
+
+    Estimates all theoretical possible 192 subsitutions in target and
+    non-target regions
+
+    :param cds_fasta: path to epitopes_cds of intra_epitopes_cds fasta file
+    :param trans_regs: list of transcript:regions
+    """
+
+    perl_path = Directories.scripts("calculate_sites_signaturesLZ.pl")
+
+    pipe(
+        [
+            "perl",
+            perl_path.as_posix(),
+            cds_fasta.as_posix(),
+            trans_regs.as_posix(),
+        ],
         output_path=trans_regs,
         overwrite=True,
     )
@@ -197,6 +233,53 @@ class SOPRANOError(Exception):
     pass
 
 
+def _transform_192_to_7(paths: AnalysisPaths):
+    r"""
+    Implements:
+
+    perl $BASEDIR/scripts/transform192to7.pl $NAME.finalVEP.triplets.counts
+        $BASEDIR/data/final_translate_SSB192toSSB7 |
+            awk -F "\t" '{OFS="\t"}{print $3,1,2,$2}' | sortBed -i stdin |
+                mergeBed -i stdin -c 4 -o sum |
+                    awk '{OFS="\t"}{print "Estimated",$1,$4}' |
+                        sed 's/_/\//g' > tmp_to_7
+
+    cp $NAME.finalVEP.triplets.counts $NAME.finalVEP.triplets192.counts
+    mv tmp_to_7 $NAME.finalVEP.triplets.counts
+    """
+
+    perl_path = Directories.scripts("transform192to7.pl")
+    translation_data_path = Directories.data("final_translate_SSB192toSSB7")
+
+    if is_empty(paths.triplet_counts):
+        raise Warning(
+            f"{paths.triplet_counts}is empty before attempting conversion"
+        )
+
+    assert perl_path.exists()
+    assert translation_data_path.exists()
+
+    import shutil
+
+    shutil.copy(paths.triplet_counts, paths.triplet_counts.as_posix() + ".bkp")
+
+    pipe(
+        [
+            "perl",
+            perl_path.as_posix(),
+            paths.triplet_counts.as_posix(),
+            translation_data_path.as_posix(),
+        ],
+        ["awk", r'{OFS="\t"}{print $3,1,2,$2}'],  # removed -F "\t" bit
+        ["sortBed", "-i", "stdin"],
+        ["mergeBed", "-i", "stdin", "-c", "4", "-o", "sum"],
+        ["awk", r'{OFS="\t"}{print "Estimated",$1,$4}'],
+        ["sed", r"s/_/\//g"],
+        output_path=paths.triplet_counts,
+        overwrite=True,
+    )
+
+
 def _check_triplet_counts(paths: AnalysisPaths):
     """
     Implements:
@@ -241,13 +324,13 @@ def _check_triplet_counts(paths: AnalysisPaths):
         f"discarded (indels or reference conflicts)."
     )
 
-    if int(back) < 7:
+    if int(back) + 1 < 7:  # +1 due to lack of trailing \n in pipe output
         raise SOPRANOError(
             "Too few rate parameters available to analyse data."
         )
 
 
-def _correct_from_total_sites(paths: AnalysisPaths):
+def _correct_from_total_sites_ssb192(paths: AnalysisPaths):
     """
     Implements:
     perl $BASEDIR/scripts/correct_update_epitope_sitesV3.pl
@@ -265,6 +348,46 @@ def _correct_from_total_sites(paths: AnalysisPaths):
     """
 
     perl_script = Directories.scripts("correct_update_epitope_sitesV3.pl")
+
+    pipe(
+        [
+            "perl",
+            perl_script.as_posix(),
+            paths.epitopes_trans_regs_sum.as_posix(),
+            paths.triplet_counts.as_posix(),
+        ],
+        output_path=paths.final_epitope_corrections,
+    )
+
+    pipe(
+        [
+            "perl",
+            perl_script.as_posix(),
+            paths.intra_epitopes_trans_regs_sum.as_posix(),
+            paths.triplet_counts.as_posix(),
+        ],
+        output_path=paths.final_intra_epitope_corrections,
+    )
+
+
+def _correct_from_total_sites_ssb7(paths: AnalysisPaths):
+    """
+    Implements:
+    perl $BASEDIR/scripts/correct_update_epitope_sitesV3.pl
+        $TMP/$NAME.listA.totalsites $NAME.finalVEP.triplets.counts >
+            $TMP/$NAME.final_corrected_matrix_A.txt
+    perl $BASEDIR/scripts/correct_update_epitope_sitesV3.pl
+        $TMP/$NAME.listB.totalsites $NAME.finalVEP.triplets.counts >
+            $TMP/$NAME.final_corrected_matrix_B.txt
+
+    NOTE: listA.total sites is the trans_regs_sum for epitopes
+    and listB.total sites is the trans_regs_sum for intra epitopes
+    in the parameter defs.
+
+    :param paths:
+    """
+
+    perl_script = Directories.scripts("correct_update_epitope_sitesV2.pl")
 
     pipe(
         [
