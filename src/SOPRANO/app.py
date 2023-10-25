@@ -11,6 +11,7 @@ from SOPRANO.utils.app_utils import (
     PipelineUIOptions,
     PipelineUIProcessing,
     RunTab,
+    text_or_file,
 )
 from SOPRANO.utils.path_utils import Directories
 
@@ -95,9 +96,10 @@ def with_tab_pipeline(tab: DeltaGenerator):
             RunTab.pipeline(params=params)
 
 
-def with_tab_vep(tab: DeltaGenerator):
+def with_tab_genomes(tab: DeltaGenerator):
     with tab:
-        st.title("Link VEP")
+        st.title("Download Reference Genomes")
+
         st.caption(
             f"Symbolically link files in your VEP cache to the SOPRANO data "
             f"folder: {Directories.data()}"
@@ -113,11 +115,7 @@ def with_tab_vep(tab: DeltaGenerator):
         if st.button("Link", disabled=False):
             RunTab.link_vep(cache_location_processed)
 
-
-def with_tab_genomes(tab: DeltaGenerator):
-    with tab:
-        st.title("Download Reference Genomes")
-        st.caption(
+        st.text(
             "Download Ensembl genome reference data. See "
             "https://www.ensembl.org/info/genome/variation/species/"
             "species_data_types.html for definitions."
@@ -186,6 +184,11 @@ def with_tab_immunopeptidome(tab: DeltaGenerator):
             "the SOPRANO internal master file and HLA allele selections."
         )
 
+        ready, other = text_or_file("This is for IP")
+
+        st.text(f"Status: {ready}")
+        st.text(f"{other}, {type(other)}")
+
         alleles_selected = st.multiselect(
             "Select HLA alleles (min 2, max 6):",
             options=ImmunopeptidomesUIOptions.hla_alleles(),
@@ -233,26 +236,22 @@ def with_tab_immunopeptidome(tab: DeltaGenerator):
 if __name__ == "__main__":
     st.set_page_config(layout="wide")
     (
-        pipeline_tab,
-        vep_tab,
+        welcome_tab,
         genome_tab,
         annotate_tab,
         immunopeptidome_tab,
-        info_tab,
+        pipeline_tab,
     ) = st.tabs(
         [
-            "Pipeline",
-            "Link VEP",
-            "Download Genomes",
-            "Annotator",
-            "Immunopeptidomes",
-            "Information",
+            "Welcome!",
+            "Step 1: Prepare genome references",
+            "Step 2: Annotate mutation files",
+            "Step 3: Prepare immunopeptidome files",
+            "Step 4: Run pipeline",
         ]
     )
-
-    with_tab_pipeline(pipeline_tab)
-    with_tab_vep(vep_tab)
+    with_tab_info(welcome_tab)
     with_tab_genomes(genome_tab)
     with_tab_annotator(annotate_tab)
     with_tab_immunopeptidome(immunopeptidome_tab)
-    with_tab_info(info_tab)
+    with_tab_pipeline(pipeline_tab)

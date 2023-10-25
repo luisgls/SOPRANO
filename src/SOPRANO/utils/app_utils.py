@@ -56,21 +56,6 @@ def text_or_file(desc: str):
     text_ready, text_input = process_text_and_file_inputs(raw_text_input)
     file_ready, file_input = process_text_and_file_inputs(raw_file_input)
 
-    print("text: {} {}".format(text_ready, text_input))
-    print("file: {} {}".format(file_ready, file_input))
-
-    # text_ready = len(raw_text_input) > 0
-    # file_ready = raw_file_input is not None
-    #
-    # print(raw_text_input, raw_file_input)
-    #
-    # if file_ready:
-    #     raw_file_input = StringIO(
-    #         raw_file_input.getvalue().decode("utf-8")
-    #     ).readlines()
-    #
-    #     print("io", io)
-
     if text_ready == file_ready:
         ready = False
         content = None
