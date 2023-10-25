@@ -220,11 +220,10 @@ class PipelineUIOptions(_PipelineUI):
 class PipelineUIProcessing(_PipelineUI):
     @staticmethod
     def genome_reference(genome_selection: str | None):
-
         if genome_selection is None:
             st.warning("Warning: No genome selection.")
             return None
-        
+
         assembly, release = genome_selection.split(" - Ensembl release ")
         data = EnsemblData(species="homo_sapiens", assembly=assembly)
         fasta_path = data.toplevel_fa_path(int(release))

@@ -103,7 +103,8 @@ def with_tab_pipeline(tab: DeltaGenerator):
         )
 
         if st.button(
-            "Run Pipeline", disabled=not (cache_ready and name_ready and genome_ready)
+            "Run Pipeline",
+            disabled=not (cache_ready and name_ready and genome_ready),
         ):
             RunTab.pipeline(params=params)
 
