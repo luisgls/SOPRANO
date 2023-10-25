@@ -30,6 +30,7 @@ def with_tab_pipeline(tab: DeltaGenerator):
         genome_processed = PipelineUIProcessing.genome_reference(
             genome_selection
         )
+        genome_ready = genome_selection is not None
 
         annotation_selection = st.selectbox(
             "Select a VEP annotated file:",
@@ -102,7 +103,7 @@ def with_tab_pipeline(tab: DeltaGenerator):
         )
 
         if st.button(
-            "Run Pipeline", disabled=not (cache_ready and name_ready)
+            "Run Pipeline", disabled=not (cache_ready and name_ready and genome_ready)
         ):
             RunTab.pipeline(params=params)
 
