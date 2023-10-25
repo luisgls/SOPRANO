@@ -12,7 +12,9 @@ from SOPRANO.utils.app_utils import (
     LinkVEPUIProcessing,
     PipelineUIOptions,
     PipelineUIProcessing,
+    _lines_ok,
     _select_from_dict,
+    process_text_and_file_inputs,
 )
 from SOPRANO.utils.path_utils import _SOPRANO_DEFAULT_CACHE, Directories
 
@@ -266,3 +268,17 @@ def test_immunopeptidome_processing_subset_method():
 def test_immunopeptidome_processing_name():
     assert ImmunopeptidomeUIProcessing.name("x") == "x.bed"
     assert ImmunopeptidomeUIProcessing.name("x.bed") == "x.bed"
+
+
+def test__lines_ok():
+    assert _lines_ok(["a", "b", "c"], 0, 10)
+    assert not _lines_ok(["a", "b", "c"], 0, 2)
+    with pytest.raises(ValueError):
+        _lines_ok(["a", "b", "c"], 4, 3)
+
+
+def test_process_text_and_file_inputs():
+    assert process_text_and_file_inputs("cats\nand\ndogs") == (
+        True,
+        ["cats", "and", "dogs"],
+    )

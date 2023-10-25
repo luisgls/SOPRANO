@@ -5,6 +5,7 @@ from time import time
 
 import pandas as pd
 import streamlit as st
+from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from SOPRANO.core.objects import EnsemblData, Parameters
 from SOPRANO.hla2ip import immunopeptidome_from_hla
@@ -16,6 +17,75 @@ from SOPRANO.utils.vep_utils import (
     _get_src_dst_link_pairs,
     _link_src_dst_pairs,
 )
+
+
+def _lines_ok(lines: list | tuple, min_args: int, max_args: int):
+    if min_args > max_args:
+        raise ValueError(f"(min = {min_args}) > (max = {max_args})")
+
+    return min_args <= len(lines) <= max_args
+
+
+def process_text_and_file_inputs(
+    raw_input: str | UploadedFile | None,
+    min_args=0,
+    max_args=int(1e9),
+    remove_empty_lines=True,
+):
+    if raw_input is None:
+        return False, None
+    elif isinstance(raw_input, str):
+        if raw_input == "":
+            return False, None
+        else:
+            lines = raw_input.split("\n")
+    else:
+        lines = StringIO(raw_input.getvalue().decode("utf-8")).readlines()
+    lines = [line.strip() for line in lines]
+
+    if remove_empty_lines:
+        lines = [line for line in lines if line != ""]
+
+    return _lines_ok(lines, min_args, max_args), lines
+
+
+def text_or_file(desc: str):
+    raw_text_input = st.text_area(desc, value="")
+    raw_file_input = st.file_uploader(desc)
+
+    text_ready, text_input = process_text_and_file_inputs(raw_text_input)
+    file_ready, file_input = process_text_and_file_inputs(raw_file_input)
+
+    print("text: {} {}".format(text_ready, text_input))
+    print("file: {} {}".format(file_ready, file_input))
+
+    # text_ready = len(raw_text_input) > 0
+    # file_ready = raw_file_input is not None
+    #
+    # print(raw_text_input, raw_file_input)
+    #
+    # if file_ready:
+    #     raw_file_input = StringIO(
+    #         raw_file_input.getvalue().decode("utf-8")
+    #     ).readlines()
+    #
+    #     print("io", io)
+
+    if text_ready == file_ready:
+        ready = False
+        content = None
+    elif text_ready:
+        ready = True
+        content = raw_text_input
+    elif file_ready:
+        ready = True
+        content = raw_file_input
+    else:
+        ready = False
+        content = None
+
+    # Ready status should disable button prompt in UI
+    return ready, content
 
 
 @contextmanager
