@@ -49,12 +49,22 @@ def process_text_and_file_inputs(
     return _lines_ok(lines, min_args, max_args), lines
 
 
-def text_or_file(desc: str):
-    raw_text_input = st.text_area(desc, value="")
-    raw_file_input = st.file_uploader(desc)
+def text_or_file(
+    desc: str,
+    min_args: int,
+    max_args: int,
+    help_text: str | None = None,
+    help_upload: str | None = None,
+):
+    raw_text_input = st.text_area(desc, value="", help=help_text)
+    raw_file_input = st.file_uploader(desc, help=help_upload)
 
-    text_ready, text_input = process_text_and_file_inputs(raw_text_input)
-    file_ready, file_input = process_text_and_file_inputs(raw_file_input)
+    text_ready, text_input = process_text_and_file_inputs(
+        raw_text_input, min_args=min_args, max_args=max_args
+    )
+    file_ready, file_input = process_text_and_file_inputs(
+        raw_file_input, min_args=min_args, max_args=max_args
+    )
 
     if text_ready == file_ready:
         ready = False
