@@ -1,3 +1,4 @@
+import os
 import pathlib
 from contextlib import contextmanager, redirect_stdout
 from io import StringIO
@@ -46,13 +47,21 @@ def process_text_and_file_inputs(
     if remove_empty_lines:
         lines = [line for line in lines if line != ""]
 
-    return _lines_ok(lines, min_args, max_args), lines
+    status_ok = _lines_ok(lines, min_args, max_args)
+
+    if not status_ok:
+        st.warning(
+            f"Number of arguments parsed from input not within bounds "
+            f"[{min_args}, {max_args}]"
+        )
+
+    return status_ok, lines
 
 
 def text_or_file(
     desc: str,
-    min_args: int,
-    max_args: int,
+    min_args: int = 0,
+    max_args: int = int(1e9),
     help_text: str | None = None,
     help_upload: str | None = None,
 ):
@@ -69,15 +78,24 @@ def text_or_file(
     if text_ready == file_ready:
         ready = False
         content = None
+
+        if text_ready:
+            st.warning(
+                "Multiple input selections detected!"
+                " Provide manual text input OR upload a file."
+            )
+
     elif text_ready:
         ready = True
-        content = raw_text_input
+        content = text_input
     elif file_ready:
         ready = True
-        content = raw_file_input
+        content = file_input
     else:
         ready = False
         content = None
+
+    assert isinstance(content, list | None), (content, type(content))
 
     # Ready status should disable button prompt in UI
     return ready, content
@@ -128,6 +146,10 @@ class _PipelineUI:
 
     @staticmethod
     def coordinates(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def cache(*args, **kwargs):
         pass
 
 
@@ -230,6 +252,15 @@ class PipelineUIProcessing(_PipelineUI):
         cache_dir = Directories.cache(job_name)
         st.text(f"Selected: {cache_dir}")
         return cache_dir
+
+    @staticmethod
+    def cache(cache_selected: str):
+        if os.path.exists(cache_selected):
+            os.environ["SOPRANO_CACHE"] = cache_selected
+            st.text(f"Selected: {cache_selected}")
+        else:
+            st.warning(f"Cache directory does not exist: {cache_selected}")
+        return cache_selected
 
 
 class _LinkVEPUI:
@@ -484,7 +515,7 @@ class RunTab:
                 f"Completed: {Directories.app_immunopeptidomes(output_name)}"
             )
         except RuntimeError:
-            st.text(
+            st.warning(
                 "Process failed with currently defined options. This was "
                 "likely caused by the selected HLA being unavailable in "
                 "the (filtered) transcript file."
