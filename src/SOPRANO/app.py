@@ -1,3 +1,5 @@
+import os
+
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
 
@@ -73,9 +75,16 @@ def with_tab_pipeline(tab: DeltaGenerator):
             random_seed = -1
             coordinates_processed = None
 
+        cache_selected = st.text_input(
+            "Cache directory:", value=Directories.cache().as_posix()
+        )
+        cache_processed = PipelineUIProcessing.cache(cache_selected)
+        cache_ready = os.path.exists(cache_processed)
+
         job_name_selection = st.text_input(
             "Define a name for the output of your analysis:"
         )
+        name_ready = job_name_selection != ""
         job_name_processed = PipelineUIProcessing.job_name(job_name_selection)
 
         params = objects.Parameters(
@@ -92,7 +101,9 @@ def with_tab_pipeline(tab: DeltaGenerator):
             genomes=genome_processed,
         )
 
-        if st.button("Run Pipeline"):
+        if st.button(
+            "Run Pipeline", disabled=not (cache_ready and name_ready)
+        ):
             RunTab.pipeline(params=params)
 
 
@@ -210,35 +221,59 @@ def with_tab_info(tab: DeltaGenerator):
 
 def with_tab_immunopeptidome(tab: DeltaGenerator):
     with tab:
-        st.title("Immunopeptidomes")
-        st.caption(
-            "Generate a patient specific immunopeptidome file derived from "
-            "the SOPRANO internal master file and HLA allele selections."
+        st.header("HLA-allele selections")
+
+        st.markdown(
+            "In order to generate custom, or, patient specific "
+            "immunopeptidome files to run through SOPRANO, we must "
+            "specify a set of HLA alleles to restrict the analysis to.\n\n"
+            "You should enter 1-6 HLA allele choices into the text box,"
+            " or upload a text file containing similar information."
         )
 
-        ready, other = text_or_file("This is for IP")
-
-        st.text(f"Status: {ready}")
-        st.text(f"{other}, {type(other)}")
-
-        alleles_selected = st.multiselect(
-            "Select HLA alleles (min 2, max 6):",
-            options=ImmunopeptidomesUIOptions.hla_alleles(),
-            max_selections=6,
+        hla_ready, alleles_selected = text_or_file(
+            "Define the HLA allele selection manually via text input *OR* "
+            "file uploader. (1-6 alleles are required).",
+            min_args=1,
+            max_args=6,
+            help_text="Provide HLA alleles on separate lines.",
+            help_upload="Select a text file defining the HLA alleles on "
+            "separate lines.",
         )
+
+        if not hla_ready:
+            st.warning("HLA selection is currently invalid.")
+
         alleles_processed = ImmunopeptidomeUIProcessing.hla_alleles(
-            alleles_selected
+            [] if alleles_selected is None else alleles_selected
         )
 
-        name_selected = st.text_input("Immunopeptidome name:")
-        name_processed = ImmunopeptidomeUIProcessing.name(name_selected)
+        st.header("Ensembl transcript selections")
 
-        transcripts_selected = st.multiselect(
-            "Select transcript IDs for subset (optional):",
-            options=ImmunopeptidomesUIOptions.transcript_ids(),
+        st.markdown(
+            "Analyses can be further restricted by providing a set of "
+            "Ensembl transcript IDs to either\n\n"
+            "1. Exclude from the analysis; or\n"
+            "2. Restrict the analysis to.\n\n"
+            "These filtering characteristics are presented as the choices\n"
+            "- 'Retention'\n"
+            "- 'Exclusion'\n\n"
+            "in the following drop down menu.\n\n"
+            "Transcript IDs should either be manually entered into the text "
+            "box over separate lines, or uploaded within a text file of "
+            "similar contents."
         )
+
+        transcripts_ready, transcripts_selected = text_or_file(
+            "Define the Ensembl transcript IDs to restrict or exclude from the"
+            " immunopeptidome construction.",
+            help_text="Provide transcript IDs on separate lines.",
+            help_upload="Select a text file defining transcript IDs on "
+            "separate lines.",
+        )
+
         transcripts_processed = ImmunopeptidomeUIProcessing.transcript_ids(
-            transcripts_selected
+            [] if transcripts_selected is None else transcripts_selected
         )
 
         subset_method_selected = st.selectbox(
@@ -253,9 +288,24 @@ def with_tab_immunopeptidome(tab: DeltaGenerator):
             transcripts_processed, subset_method_selected
         )
 
+        st.header("Ensembl transcript selections")
+
+        st.markdown(
+            "Once you are happy with your immunopeptidome choices, "
+            "provide a name for the corresponding file, then click "
+            "'Build immunopeptidome'."
+        )
+
+        name_selected = st.text_input("Immunopeptidome name:")
+        name_processed = ImmunopeptidomeUIProcessing.name(name_selected)
+        name_ready = name_processed != ".bed"
+
+        if not name_ready:
+            st.warning("Please provide an input file name.")
+
         if st.button(
             "Build immunopeptidome",
-            disabled=not (2 <= len(alleles_processed) <= 6),
+            disabled=not (hla_ready and name_ready),
         ):
             RunTab.immunopeptidome(
                 alleles_processed,
