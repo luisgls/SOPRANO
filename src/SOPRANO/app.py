@@ -98,32 +98,45 @@ def with_tab_pipeline(tab: DeltaGenerator):
 
 def with_tab_genomes(tab: DeltaGenerator):
     with tab:
-        st.title("Download Reference Genomes")
-
-        st.caption(
-            f"Symbolically link files in your VEP cache to the SOPRANO data "
-            f"folder: {Directories.data()}"
+        st.subheader("Link existing reference genome files")
+        st.markdown(
+            "SOPRANO uses a self-contained directory structure for the "
+            "the download and caching of derived genomic data.\n\n"
+            "Users who have an existing Ensembl VEP configuration on their "
+            "computer may have readily available reference genomes "
+            "downloaded. These downloads can be linked to the SOPRANO "
+            "directories by running the button below.\n\nNote: "
+            " the default VEP cache that is searched for is `~/.vep` but you "
+            "can define any other non-standard locations that reference "
+            "genomes may be found within."
         )
 
         cache_location_selection = st.text_input(
             "VEP cache location:", value=Directories.std_sys_vep().as_posix()
         )
+
         cache_location_processed = LinkVEPUIProcessing.cache_location(
             cache_location_selection
         )
 
-        if st.button("Link", disabled=False):
+        if st.button("Attempt VEP cache link", disabled=False):
             RunTab.link_vep(cache_location_processed)
 
-        st.text(
-            "Download Ensembl genome reference data. See "
-            "https://www.ensembl.org/info/genome/variation/species/"
-            "species_data_types.html for definitions."
+        st.subheader("Download new reference genome files")
+        st.markdown(
+            "You can use SOPRANO to download reference genomes from the "
+            "ensembl FTP server by making use of the below definitions, before"
+            " clicking `Download`.\n\n"
+            "The core SOPRANO calculation requires toplevel reference data "
+            "to be available. Secondary downloads of the primary assembly "
+            "may be used to accelerate the annotation procedure; though this "
+            "is _not_ essential."
         )
 
         species_selection = st.text_input(
             "Define the species",
             value="Homo Sapiens",
+            disabled=True,
         )
         species_processed = DownloaderUIProcessing.species(species_selection)
 
@@ -172,8 +185,27 @@ def with_tab_annotator(tab: DeltaGenerator):
 
 def with_tab_info(tab: DeltaGenerator):
     with tab:
-        st.title("Information")
-        st.caption("Description of what is going on...")
+        st.title("Welcome to SOPRANO! :wave:")
+        st.caption("Selection On PRotein ANnotated regiOns")
+        st.markdown(
+            "This application is designed to provide a user interface to the "
+            "SOPRANO computational pipeline, without the need of command line "
+            "intervention."
+            "\n\n"
+            "There are three essential files required to run "
+            "SOPRANO. These define the\n"
+            "1. Reference genome\n"
+            "2. Annotated somatic mutations\n"
+            "3. Immunopeptidome\n"
+            "\n\n"
+            "These three inputs can be configured in term via the tabs "
+            "indicating steps 1, 2 and 3. Once you have prepared your data, "
+            "step 4 will enable you to run the pipeline, subject to "
+            "further runtime configuration choices."
+            "\n\n"
+            "Any technical issues can be raised on [GitHub]"
+            "(https://github.com/instituteofcancerresearch/SOPRANO/issues)"
+        )
 
 
 def with_tab_immunopeptidome(tab: DeltaGenerator):
@@ -244,9 +276,9 @@ if __name__ == "__main__":
     ) = st.tabs(
         [
             "Welcome!",
-            "Step 1: Prepare genome references",
-            "Step 2: Annotate mutation files",
-            "Step 3: Prepare immunopeptidome files",
+            "Step 1: Prepare genome reference",
+            "Step 2: Annotate mutations",
+            "Step 3: Prepare immunopeptidome",
             "Step 4: Run pipeline",
         ]
     )
