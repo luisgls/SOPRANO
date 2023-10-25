@@ -25,7 +25,12 @@ def _compute_theoretical_subs_192(
     perl_path = Directories.scripts("calculate_sites_signaturesLZ_192.pl")
 
     pipe(
-        [perl_path.as_posix(), cds_fasta.as_posix(), trans_regs],
+        [
+            "perl",
+            perl_path.as_posix(),
+            cds_fasta.as_posix(),
+            trans_regs.as_posix(),
+        ],
         output_path=trans_regs,
         overwrite=True,
     )
@@ -51,7 +56,12 @@ def _compute_theoretical_subs_7(
     perl_path = Directories.scripts("calculate_sites_signaturesLZ.pl")
 
     pipe(
-        [perl_path.as_posix(), cds_fasta.as_posix(), trans_regs],
+        [
+            "perl",
+            perl_path.as_posix(),
+            cds_fasta.as_posix(),
+            trans_regs.as_posix(),
+        ],
         output_path=trans_regs,
         overwrite=True,
     )

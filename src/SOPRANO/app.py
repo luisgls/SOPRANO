@@ -1,3 +1,5 @@
+import os
+
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
 
@@ -11,6 +13,7 @@ from SOPRANO.utils.app_utils import (
     PipelineUIOptions,
     PipelineUIProcessing,
     RunTab,
+    text_or_file,
 )
 from SOPRANO.utils.path_utils import Directories
 
@@ -27,6 +30,7 @@ def with_tab_pipeline(tab: DeltaGenerator):
         genome_processed = PipelineUIProcessing.genome_reference(
             genome_selection
         )
+        genome_ready = genome_selection is not None
 
         annotation_selection = st.selectbox(
             "Select a VEP annotated file:",
@@ -72,9 +76,16 @@ def with_tab_pipeline(tab: DeltaGenerator):
             random_seed = -1
             coordinates_processed = None
 
+        cache_selected = st.text_input(
+            "Cache directory:", value=Directories.cache().as_posix()
+        )
+        cache_processed = PipelineUIProcessing.cache(cache_selected)
+        cache_ready = os.path.exists(cache_processed)
+
         job_name_selection = st.text_input(
             "Define a name for the output of your analysis:"
         )
+        name_ready = job_name_selection != ""
         job_name_processed = PipelineUIProcessing.job_name(job_name_selection)
 
         params = objects.Parameters(
@@ -91,41 +102,54 @@ def with_tab_pipeline(tab: DeltaGenerator):
             genomes=genome_processed,
         )
 
-        if st.button("Run Pipeline"):
+        if st.button(
+            "Run Pipeline",
+            disabled=not (cache_ready and name_ready and genome_ready),
+        ):
             RunTab.pipeline(params=params)
 
 
-def with_tab_vep(tab: DeltaGenerator):
+def with_tab_genomes(tab: DeltaGenerator):
     with tab:
-        st.title("Link VEP")
-        st.caption(
-            f"Symbolically link files in your VEP cache to the SOPRANO data "
-            f"folder: {Directories.data()}"
+        st.subheader("Link existing reference genome files")
+        st.markdown(
+            "SOPRANO uses a self-contained directory structure for the "
+            "the download and caching of derived genomic data.\n\n"
+            "Users who have an existing Ensembl VEP configuration on their "
+            "computer may have readily available reference genomes "
+            "downloaded. These downloads can be linked to the SOPRANO "
+            "directories by running the button below.\n\nNote: "
+            " the default VEP cache that is searched for is `~/.vep` but you "
+            "can define any other non-standard locations that reference "
+            "genomes may be found within."
         )
 
         cache_location_selection = st.text_input(
             "VEP cache location:", value=Directories.std_sys_vep().as_posix()
         )
+
         cache_location_processed = LinkVEPUIProcessing.cache_location(
             cache_location_selection
         )
 
-        if st.button("Link", disabled=False):
+        if st.button("Attempt VEP cache link", disabled=False):
             RunTab.link_vep(cache_location_processed)
 
-
-def with_tab_genomes(tab: DeltaGenerator):
-    with tab:
-        st.title("Download Reference Genomes")
-        st.caption(
-            "Download Ensembl genome reference data. See "
-            "https://www.ensembl.org/info/genome/variation/species/"
-            "species_data_types.html for definitions."
+        st.subheader("Download new reference genome files")
+        st.markdown(
+            "You can use SOPRANO to download reference genomes from the "
+            "ensembl FTP server by making use of the below definitions, before"
+            " clicking `Download`.\n\n"
+            "The core SOPRANO calculation requires toplevel reference data "
+            "to be available. Secondary downloads of the primary assembly "
+            "may be used to accelerate the annotation procedure; though this "
+            "is _not_ essential."
         )
 
         species_selection = st.text_input(
             "Define the species",
             value="Homo Sapiens",
+            disabled=True,
         )
         species_processed = DownloaderUIProcessing.species(species_selection)
 
@@ -174,36 +198,84 @@ def with_tab_annotator(tab: DeltaGenerator):
 
 def with_tab_info(tab: DeltaGenerator):
     with tab:
-        st.title("Information")
-        st.caption("Description of what is going on...")
+        st.title("Welcome to SOPRANO! :wave:")
+        st.caption("Selection On PRotein ANnotated regiOns")
+        st.markdown(
+            "This application is designed to provide a user interface to the "
+            "SOPRANO computational pipeline, without the need of command line "
+            "intervention."
+            "\n\n"
+            "There are three essential files required to run "
+            "SOPRANO. These define the\n"
+            "1. Reference genome\n"
+            "2. Annotated somatic mutations\n"
+            "3. Immunopeptidome\n"
+            "\n\n"
+            "These three inputs can be configured in term via the tabs "
+            "indicating steps 1, 2 and 3. Once you have prepared your data, "
+            "step 4 will enable you to run the pipeline, subject to "
+            "further runtime configuration choices."
+            "\n\n"
+            "Any technical issues can be raised on [GitHub]"
+            "(https://github.com/instituteofcancerresearch/SOPRANO/issues)"
+        )
 
 
 def with_tab_immunopeptidome(tab: DeltaGenerator):
     with tab:
-        st.title("Immunopeptidomes")
-        st.caption(
-            "Generate a patient specific immunopeptidome file derived from "
-            "the SOPRANO internal master file and HLA allele selections."
+        st.header("HLA-allele selections")
+
+        st.markdown(
+            "In order to generate custom, or, patient specific "
+            "immunopeptidome files to run through SOPRANO, we must "
+            "specify a set of HLA alleles to restrict the analysis to.\n\n"
+            "You should enter 1-6 HLA allele choices into the text box,"
+            " or upload a text file containing similar information."
         )
 
-        alleles_selected = st.multiselect(
-            "Select HLA alleles (min 2, max 6):",
-            options=ImmunopeptidomesUIOptions.hla_alleles(),
-            max_selections=6,
+        hla_ready, alleles_selected = text_or_file(
+            "Define the HLA allele selection manually via text input *OR* "
+            "file uploader. (1-6 alleles are required).",
+            min_args=1,
+            max_args=6,
+            help_text="Provide HLA alleles on separate lines.",
+            help_upload="Select a text file defining the HLA alleles on "
+            "separate lines.",
         )
+
+        if not hla_ready:
+            st.warning("HLA selection is currently invalid.")
+
         alleles_processed = ImmunopeptidomeUIProcessing.hla_alleles(
-            alleles_selected
+            [] if alleles_selected is None else alleles_selected
         )
 
-        name_selected = st.text_input("Immunopeptidome name:")
-        name_processed = ImmunopeptidomeUIProcessing.name(name_selected)
+        st.header("Ensembl transcript selections")
 
-        transcripts_selected = st.multiselect(
-            "Select transcript IDs for subset (optional):",
-            options=ImmunopeptidomesUIOptions.transcript_ids(),
+        st.markdown(
+            "Analyses can be further restricted by providing a set of "
+            "Ensembl transcript IDs to either\n\n"
+            "1. Exclude from the analysis; or\n"
+            "2. Restrict the analysis to.\n\n"
+            "These filtering characteristics are presented as the choices\n"
+            "- 'Retention'\n"
+            "- 'Exclusion'\n\n"
+            "in the following drop down menu.\n\n"
+            "Transcript IDs should either be manually entered into the text "
+            "box over separate lines, or uploaded within a text file of "
+            "similar contents."
         )
+
+        transcripts_ready, transcripts_selected = text_or_file(
+            "Define the Ensembl transcript IDs to restrict or exclude from the"
+            " immunopeptidome construction.",
+            help_text="Provide transcript IDs on separate lines.",
+            help_upload="Select a text file defining transcript IDs on "
+            "separate lines.",
+        )
+
         transcripts_processed = ImmunopeptidomeUIProcessing.transcript_ids(
-            transcripts_selected
+            [] if transcripts_selected is None else transcripts_selected
         )
 
         subset_method_selected = st.selectbox(
@@ -218,9 +290,24 @@ def with_tab_immunopeptidome(tab: DeltaGenerator):
             transcripts_processed, subset_method_selected
         )
 
+        st.header("Ensembl transcript selections")
+
+        st.markdown(
+            "Once you are happy with your immunopeptidome choices, "
+            "provide a name for the corresponding file, then click "
+            "'Build immunopeptidome'."
+        )
+
+        name_selected = st.text_input("Immunopeptidome name:")
+        name_processed = ImmunopeptidomeUIProcessing.name(name_selected)
+        name_ready = name_processed != ".bed"
+
+        if not name_ready:
+            st.warning("Please provide an input file name.")
+
         if st.button(
             "Build immunopeptidome",
-            disabled=not (2 <= len(alleles_processed) <= 6),
+            disabled=not (hla_ready and name_ready),
         ):
             RunTab.immunopeptidome(
                 alleles_processed,
@@ -233,26 +320,22 @@ def with_tab_immunopeptidome(tab: DeltaGenerator):
 if __name__ == "__main__":
     st.set_page_config(layout="wide")
     (
-        pipeline_tab,
-        vep_tab,
+        welcome_tab,
         genome_tab,
         annotate_tab,
         immunopeptidome_tab,
-        info_tab,
+        pipeline_tab,
     ) = st.tabs(
         [
-            "Pipeline",
-            "Link VEP",
-            "Download Genomes",
-            "Annotator",
-            "Immunopeptidomes",
-            "Information",
+            "Welcome!",
+            "Step 1: Prepare genome reference",
+            "Step 2: Annotate mutations",
+            "Step 3: Prepare immunopeptidome",
+            "Step 4: Run pipeline",
         ]
     )
-
-    with_tab_pipeline(pipeline_tab)
-    with_tab_vep(vep_tab)
+    with_tab_info(welcome_tab)
     with_tab_genomes(genome_tab)
     with_tab_annotator(annotate_tab)
     with_tab_immunopeptidome(immunopeptidome_tab)
-    with_tab_info(info_tab)
+    with_tab_pipeline(pipeline_tab)

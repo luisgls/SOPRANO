@@ -1,3 +1,4 @@
+import os
 import pathlib
 from contextlib import contextmanager, redirect_stdout
 from io import StringIO
@@ -5,6 +6,7 @@ from time import time
 
 import pandas as pd
 import streamlit as st
+from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from SOPRANO.core.objects import EnsemblData, Parameters
 from SOPRANO.hla2ip import immunopeptidome_from_hla
@@ -16,6 +18,87 @@ from SOPRANO.utils.vep_utils import (
     _get_src_dst_link_pairs,
     _link_src_dst_pairs,
 )
+
+
+def _lines_ok(lines: list | tuple, min_args: int, max_args: int):
+    if min_args > max_args:
+        raise ValueError(f"(min = {min_args}) > (max = {max_args})")
+
+    return min_args <= len(lines) <= max_args
+
+
+def process_text_and_file_inputs(
+    raw_input: str | UploadedFile | None,
+    min_args=0,
+    max_args=int(1e9),
+    remove_empty_lines=True,
+):
+    if raw_input is None:
+        return False, None
+    elif isinstance(raw_input, str):
+        if raw_input == "":
+            return False, None
+        else:
+            lines = raw_input.split("\n")
+    else:
+        lines = StringIO(raw_input.getvalue().decode("utf-8")).readlines()
+    lines = [line.strip() for line in lines]
+
+    if remove_empty_lines:
+        lines = [line for line in lines if line != ""]
+
+    status_ok = _lines_ok(lines, min_args, max_args)
+
+    if not status_ok:
+        st.warning(
+            f"Number of arguments parsed from input not within bounds "
+            f"[{min_args}, {max_args}]"
+        )
+
+    return status_ok, lines
+
+
+def text_or_file(
+    desc: str,
+    min_args: int = 0,
+    max_args: int = int(1e9),
+    help_text: str | None = None,
+    help_upload: str | None = None,
+):
+    raw_text_input = st.text_area(desc, value="", help=help_text)
+    raw_file_input = st.file_uploader(desc, help=help_upload)
+
+    text_ready, text_input = process_text_and_file_inputs(
+        raw_text_input, min_args=min_args, max_args=max_args
+    )
+    file_ready, file_input = process_text_and_file_inputs(
+        raw_file_input, min_args=min_args, max_args=max_args
+    )
+
+    if text_ready == file_ready:
+        ready = False
+        content = None
+
+        if text_ready:
+            st.warning(
+                "Multiple input selections detected!"
+                " Provide manual text input OR upload a file."
+            )
+
+    elif text_ready:
+        ready = True
+        content = text_input
+    elif file_ready:
+        ready = True
+        content = file_input
+    else:
+        ready = False
+        content = None
+
+    assert isinstance(content, list | None), (content, type(content))
+
+    # Ready status should disable button prompt in UI
+    return ready, content
 
 
 @contextmanager
@@ -63,6 +146,10 @@ class _PipelineUI:
 
     @staticmethod
     def coordinates(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def cache(*args, **kwargs):
         pass
 
 
@@ -132,7 +219,11 @@ class PipelineUIOptions(_PipelineUI):
 
 class PipelineUIProcessing(_PipelineUI):
     @staticmethod
-    def genome_reference(genome_selection: str):
+    def genome_reference(genome_selection: str | None):
+        if genome_selection is None:
+            st.warning("Warning: No genome selection.")
+            return None
+
         assembly, release = genome_selection.split(" - Ensembl release ")
         data = EnsemblData(species="homo_sapiens", assembly=assembly)
         fasta_path = data.toplevel_fa_path(int(release))
@@ -165,6 +256,15 @@ class PipelineUIProcessing(_PipelineUI):
         cache_dir = Directories.cache(job_name)
         st.text(f"Selected: {cache_dir}")
         return cache_dir
+
+    @staticmethod
+    def cache(cache_selected: str):
+        if os.path.exists(cache_selected):
+            os.environ["SOPRANO_CACHE"] = cache_selected
+            st.text(f"Selected: {cache_selected}")
+        else:
+            st.warning(f"Cache directory does not exist: {cache_selected}")
+        return cache_selected
 
 
 class _LinkVEPUI:
@@ -419,7 +519,7 @@ class RunTab:
                 f"Completed: {Directories.app_immunopeptidomes(output_name)}"
             )
         except RuntimeError:
-            st.text(
+            st.warning(
                 "Process failed with currently defined options. This was "
                 "likely caused by the selected HLA being unavailable in "
                 "the (filtered) transcript file."
