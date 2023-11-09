@@ -198,15 +198,18 @@ def with_tab_annotator(tab: DeltaGenerator):
         vcf_dir_selection = st.text_input(
             "Directory containing VCF files:", value=pathlib.Path.home()
         )
-        vcf_dir_ready = AnnotatorUIProcessing.vcf_dir(vcf_dir_selection)
+        vcf_dir_ready, vcf_dir_processed = AnnotatorUIProcessing.vcf_dir(
+            vcf_dir_selection
+        )
 
         assembly_selection = st.selectbox(
             "Genome reference assembly:",
             options=AnnotatorUIOptions.genome_assembly(),
         )
-        assembly_ready = AnnotatorUIProcessing.genome_assembly(
-            assembly_selection
-        )
+        (
+            assembly_ready,
+            assembly_processed,
+        ) = AnnotatorUIProcessing.genome_assembly(assembly_selection)
 
         name_selection = st.text_input(
             "Choose a name for the annotated output:"
@@ -217,7 +220,7 @@ def with_tab_annotator(tab: DeltaGenerator):
             "Annotate",
             disabled=not (vcf_dir_ready and assembly_ready and name_ready),
         ):
-            RunTab.annotate()
+            RunTab.annotate(sources_dir=vcf_dir_processed, output_name=name)
 
 
 def with_tab_info(tab: DeltaGenerator):
@@ -313,8 +316,6 @@ def with_tab_immunopeptidome(tab: DeltaGenerator):
         ) = ImmunopeptidomeUIProcessing.subset_method(
             transcripts_processed, subset_method_selected
         )
-
-        st.header("Ensembl transcript selections")
 
         st.markdown(
             "Once you are happy with your immunopeptidome choices, "

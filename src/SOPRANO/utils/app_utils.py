@@ -373,7 +373,7 @@ class AnnotatorUIProcessing(_AnnotatorUI):
             )
             assembly_ready = False
 
-        return assembly_ready
+        return assembly_ready, genome_assembly_selection
 
     @staticmethod
     def vcf_dir(vcf_dir_selected: str):
@@ -394,7 +394,7 @@ class AnnotatorUIProcessing(_AnnotatorUI):
             vcf_text = "\n".join(detected)
             st.text(f"Annotated file will be constructed from: \n{vcf_text}")
 
-        return vcf_files_ready
+        return vcf_files_ready, vcf_dir_path
 
     @staticmethod
     def output_name(name: str):
@@ -555,8 +555,15 @@ class RunTab:
         st.text(f"... in {int(t_end - t_start)} seconds")
 
     @staticmethod
-    def annotate(*args, **kwargs):
-        pass
+    def annotate(
+        sources_dir: pathlib.Path,
+        output_name: str,
+    ):
+        anno_utils.annotate_source(
+            vcf_sources_dir=sources_dir,
+            output_name=output_name,
+            cache_directory=Directories.app_annotated_inputs(),
+        )
 
     @staticmethod
     def immunopeptidome(
