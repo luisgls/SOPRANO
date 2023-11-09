@@ -17,8 +17,8 @@ _SOPRANO_DEFAULT_CACHE = _SOPRANO_REPO / "pipeline_cache"
 
 # Test dirs
 _SOPRANO_TESTS = _SOPRANO_REPO / "tests"
-_SOPRANO_UNIT_TESTS = _SOPRANO_TESTS / "test_units"
-_SOPRANO_INT_TESTS = _SOPRANO_TESTS / "test_integrations"
+_SOPRANO_UNIT_TESTS = _SOPRANO_TESTS / "units"
+_SOPRANO_INT_TESTS = _SOPRANO_TESTS / "e2e"
 _SOPRANO_CFG_TESTS = _SOPRANO_TESTS / "test_configuration"
 
 # Common dirs from app sources
