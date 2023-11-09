@@ -17,6 +17,13 @@ opt_parser <- optparse::add_option(
   help = "Output file path.", metavar = "character"
 )
 
+# Location of sources for translating ensp and ref
+opt_parser <- optparse::add_option(
+  opt_parser, c("-t", "--trans"),
+  type = "character",
+  help = "Location of translator files.", metavar = "character"
+)
+
 # Parse inputs
 args <- optparse::parse_args(opt_parser)
 
@@ -25,6 +32,34 @@ data_dir <- args$dir
 
 if (is.null(data_dir)) {
     stop("Data directory not defined. Flag -d | --d <directory path> required")
+}
+if (!dir.exists(data_dir)) {
+    stop(paste("Data directory does not exist:", data_dir))
+}
+
+
+# Get translator dir
+trans_dir <- args$trans
+
+if (is.null(trans_dir)) {
+    stop("Translator directory not defined. Flag -t | --t <dir path> required")
+}
+
+if (!dir.exists(trans_dir)) {
+    stop(paste("Translator directory does not exits:", trans_dir))
+}
+
+ensp_2_enst_path <- file.path(trans_dir, "ENSP2ENST.txt")
+variant_list_path <- file.path(trans_dir, "REF2VEP.txt")
+covs_path = file.path(trans_dir, "covariates_hg19_hg38_epigenome_pcawg.rda")
+refdb_path <- file.path(
+    trans_dir, "RefCDS_human_GRCh38_GencodeV18_recommended.rda"
+)
+
+for (p in c(ensp_2_enst_path, variant_list_path, covs_path, refdb_path)) {
+    if (! file.exists(p)) {
+        stop(paste("Auxiliary file not found:", p))
+    }
 }
 
 # Get output file name
@@ -67,19 +102,20 @@ names(df_all_with_vaf) <- c(
 )
 
 # Read transcript and annotation info
+
+
+
 transcriptlist <- readr::read_delim(
-  file.path("data", "ENSP2ENST.txt"),
-  delim = "\t", col_names = TRUE
+  ensp_2_enst_path, delim = "\t", col_names = TRUE
 )
 variantlist <- readr::read_delim(
-  file.path("data", "REF2VEP.txt"),
-  delim = "\t", col_names = TRUE
+  variant_list_path, delim = "\t", col_names = TRUE
 )
 
 # See discussion:
 # https://github.com/im3sanger/dndscv/issues/30#issuecomment-1000868593
 
-load("data/covariates_hg19_hg38_epigenome_pcawg.rda") # Loads the covs object
+load(covs_path) # Loads the covs object
 
 
 # dndscv bit...
@@ -92,6 +128,7 @@ load("data/covariates_hg19_hg38_epigenome_pcawg.rda") # Loads the covs object
 #   how-to-know-if-rsync-did-not-change-any-files
 df_all_with_vaf$chr <- gsub("chr", "", as.vector(df_all_with_vaf$chr))
 
+
 res1dnds <- dndscv::dndscv(
   mutations = df_all_with_vaf,
   outmats = TRUE,
@@ -100,7 +137,7 @@ res1dnds <- dndscv::dndscv(
   outp = 2,
   use_indel_sites = TRUE,
   min_indels = 1,
-  refdb = "data/RefCDS_human_GRCh38_GencodeV18_recommended.rda",
+  refdb = refdb_path,
   cv = covs
 )
 
