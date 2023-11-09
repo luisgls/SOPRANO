@@ -315,12 +315,16 @@ def _check_triplet_counts(paths: AnalysisPaths):
     back = pipe(
         ["wc", "-l", paths.triplet_counts.as_posix()], ["awk", "{ print $1 }"]
     )
-    fails = pipe(["grep", "-c", "FAIL", paths.flagged.as_posix()])
+    try:
+        fails = pipe(["grep", "-c", "FAIL", paths.flagged.as_posix()])
+    except RuntimeError:
+        # If no FAIL are found, exit code is non-zero (confusingly!) so except
+        fails = "0"
 
     print(
         f"Rate parameter file {paths.triplet_counts.as_posix()} has {back} "
         f"lines of data.\n"
-        f"Processed {mutations} from VEP file. {fails} mutations were "
+        f"Processed {mutations} from annotated file. {fails} mutations were "
         f"discarded (indels or reference conflicts)."
     )
 
