@@ -4,6 +4,7 @@ channels:
   - anaconda
 dependencies:
   - perl
+  - bedtools=2.31.0
   - ca-certificates
   - openssl
   - samtools
