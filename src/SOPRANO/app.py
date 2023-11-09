@@ -1,4 +1,3 @@
-import os
 import pathlib
 
 import streamlit as st
@@ -23,93 +22,131 @@ from SOPRANO.utils.path_utils import Directories
 
 def with_tab_pipeline(tab: DeltaGenerator):
     with tab:
-        st.title("SOPRANO")
-        st.caption("Selection On PRotein ANnotated regiOns")
+        st.title("Pipeline deployment")
+        st.markdown(
+            "To run SOPRRANO, you must choose three core inputs:\n"
+            "- reference genome\n"
+            "- annotated mutation file\n"
+            "- bed protein file\n\n"
+            "followed by the run time parameters.\n\n"
+            "Once all required fields have been filled, you can deploy with"
+            "'Run Pipeline'."
+        )
 
         genome_selection = st.selectbox(
             "Select a reference genome:",
             PipelineUIOptions.genome_reference(),
+            help="Can't find what you're looking for? Go to 'Step 1'.",
         )
-        genome_processed = PipelineUIProcessing.genome_reference(
+        genome_ready, genome_processed = PipelineUIProcessing.genome_reference(
             genome_selection
         )
-        genome_ready = genome_selection is not None
 
         annotation_selection = st.selectbox(
             "Select a VEP annotated file:",
             PipelineUIOptions.annotated_mutations(),
+            help="Build your own custom files with 'Step 2'.",
         )
-        annotation_processed = PipelineUIProcessing.annotated_mutations(
-            annotation_selection
-        )
+        (
+            annotation_ready,
+            annotation_processed,
+        ) = PipelineUIProcessing.annotated_mutations(annotation_selection)
 
         immunopeptidome_selection = st.selectbox(
             "Select a BED protein file:",
             PipelineUIOptions.immunopeptidome(),
+            help="Build your own custom files with 'Step 3'.",
         )
-        immunopeptidome_processed = PipelineUIProcessing.immunopeptidome(
-            immunopeptidome_selection
-        )
+        (
+            immunopeptidome_ready,
+            immunopeptidome_processed,
+        ) = PipelineUIProcessing.immunopeptidome(immunopeptidome_selection)
 
         substitution_selection = st.selectbox(
-            "Select a substitution method:",
+            "Trinucleotide context correction:",
             PipelineUIOptions.substitution_method(),
         )
-        substitution_processed = PipelineUIProcessing.substitution_method(
-            substitution_selection
-        )
+        (
+            substitution_ready,
+            substitution_processed,
+        ) = PipelineUIProcessing.substitution_method(substitution_selection)
 
         exclude_drivers = st.checkbox("Exclude driver genes:", value=True)
         use_randomization = st.checkbox("Use randomization:", value=False)
+
+        coordinates_ready = True
+        random_seed = -1
+        coordinates_processed = None
 
         if use_randomization:
             random_seed = st.number_input(
                 "Select random seed for randomization:",
                 min_value=-1,
                 value="min",
+                help="Choose a seed value to replicate dN/dS derived from a "
+                "randomized background. If '-1' is selected, then no seed "
+                "value is selected, and results will not be reproducible.",
             )
             coordinates_selection = st.selectbox(
-                "Select a BED file defining the regions to randomize over:",
+                "Coordinate file:",
                 PipelineUIOptions.coordinates(),
+                help="A BED coordinate file can be used to constrain the "
+                "regions of randomization.",
             )
-            coordinates_processed = PipelineUIProcessing.coordinates(
-                coordinates_selection
-            )
-        else:
-            random_seed = -1
-            coordinates_processed = None
+            (
+                coordinates_ready,
+                coordinates_processed,
+            ) = PipelineUIProcessing.coordinates(coordinates_selection)
 
         cache_selected = st.text_input(
-            "Cache directory:", value=Directories.cache().as_posix()
+            "Cache directory:",
+            value=Directories.cache().as_posix(),
+            help="This is the root folder for caching results (it must exist)."
+            " A sub-folder will be created using the name of the "
+            "analysis as given below.",
         )
-        cache_processed = PipelineUIProcessing.cache(cache_selected)
-        cache_ready = os.path.exists(cache_processed)
+        cache_ready, cache_processed = PipelineUIProcessing.cache(
+            cache_selected
+        )
 
         job_name_selection = st.text_input(
             "Define a name for the output of your analysis:"
         )
-        name_ready = job_name_selection != ""
-        job_name_processed = PipelineUIProcessing.job_name(job_name_selection)
-
-        params = objects.Parameters(
-            analysis_name=job_name_selection,
-            input_path=annotation_processed,
-            bed_path=immunopeptidome_processed,
-            cache_dir=job_name_processed,
-            random_regions=coordinates_processed,
-            use_ssb192=substitution_processed == 192,
-            use_random=use_randomization,
-            exclude_drivers=exclude_drivers,
-            seed=random_seed,
-            transcripts=objects.TranscriptPaths.defaults(),
-            genomes=genome_processed,
+        job_name_ready, job_name_processed = PipelineUIProcessing.job_name(
+            job_name_selection
         )
 
-        if st.button(
-            "Run Pipeline",
-            disabled=not (cache_ready and name_ready and genome_ready),
-        ):
+        not_calculating = True
+
+        ready = (
+            genome_ready
+            and annotation_ready
+            and annotation_ready
+            and immunopeptidome_ready
+            and substitution_ready
+            and coordinates_ready
+            and cache_ready
+            and job_name_ready
+            and not_calculating
+        )
+
+        if st.button("Run Pipeline", disabled=not ready):
+            not_calculating = False
+            params = objects.Parameters(
+                analysis_name=job_name_selection,
+                input_path=annotation_processed,
+                bed_path=immunopeptidome_processed,
+                cache_dir=job_name_processed,
+                random_regions=coordinates_processed,
+                use_ssb192=substitution_processed == 192,
+                use_random=use_randomization,
+                exclude_drivers=exclude_drivers,
+                seed=random_seed,
+                transcripts=objects.TranscriptPaths.defaults(),
+                genomes=genome_processed,
+            )
             RunTab.pipeline(params=params)
+            not_calculating = True
 
 
 def with_tab_genomes(tab: DeltaGenerator):
