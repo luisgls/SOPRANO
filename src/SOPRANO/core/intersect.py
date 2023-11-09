@@ -36,8 +36,10 @@ _VARIANT_TYPES = (
     r"regulatory_region_variant|retained|\?"
 )
 
+# TODO: Establish importance of col 3 as this is buggy when set to NA
 _FMT_COMMANDS = (
-    ["awk", r'{if(length($3)>1||$10=="-"){}else{print}}'],
+    # ["awk", r'{if(length($3)>1||$10=="-"){}else{print}}'],
+    ["awk", r'{if($10=="-"){}else{print}}'],  # Changed from ^
     ["cut", "-f4,5,7,10,89", "-"],
     ["sed", r"s/\//\t/g"],
     ["awk", r'{print $2"\t"$4"\t"$4"\t"$3}'],
