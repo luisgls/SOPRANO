@@ -1,0 +1,6 @@
+REF	VEP
+Essential_Splice	splice_acceptor_variant
+Missense	missense_variant
+no-SNV	non_coding
+Nonsense	stop_gained
+Synonymous	synonymous_variant
