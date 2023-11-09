@@ -60,8 +60,8 @@ def pipe(
         msg = (
             "The subprocess returned the non-zero exit {exit_code}:\n"
             f"{args[0]}\n\n"
-            f"std output:\n{ps.stdout}\n\n"
-            f"std error:\n{ps.stderr}"
+            f"std output:\n{ps.stdout.decode()}\n\n"
+            f"std error:\n{ps.stderr.decode()}"
         )
         raise RuntimeError(msg)
 
