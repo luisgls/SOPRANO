@@ -75,3 +75,7 @@ def link_vep_installed():
 
 def get_genome_installed():
     return _check_exec("soprano-get-genome")
+
+
+def annotate_vcfs_installed():
+    return _check_exec("soprano-annotate")

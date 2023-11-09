@@ -1,4 +1,5 @@
 from SOPRANO.utils.env_utils import (
+    annotate_vcfs_installed,
     app_installed,
     bedtools_installed,
     cli_installed,
@@ -35,3 +36,7 @@ def test_link_vep_installed():
 
 def test_get_genome_installed():
     assert get_genome_installed()
+
+
+def test_annotator_installed():
+    assert annotate_vcfs_installed()
