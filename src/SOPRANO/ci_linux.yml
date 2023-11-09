@@ -17,3 +17,4 @@ dependencies:
   - pytest
   - pytest-dependency
   - ruff
+  - r-base=4.3.2
