@@ -12,3 +12,4 @@ dependencies:
   - coreutils # [osx]
   - python>=3.10,<3.12
   - pip
+  - r-base=4.3.2
