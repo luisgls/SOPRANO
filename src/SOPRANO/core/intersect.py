@@ -29,6 +29,16 @@ def _intersect_by_frequency(
     )
 
 
+def variant_in_input(variant: str, anno_input: pathlib.Path):
+    muts = pipe(
+        ["cat", anno_input.as_posix()], ["cut", "-f7"], ["sort"], ["uniq"]
+    )
+    # Note: Could split over "\n" but then what if comm seperated variants?
+    # Have to split again... then what if diff delim?
+
+    return variant in muts
+
+
 _VARIANT_TYPES = (
     r"#|intergenic_variant|UTR|downstream|intron|miRNA|frameshift|"
     r"non_coding|splice_acceptor_variant|splice_donor_variant|"
@@ -67,18 +77,21 @@ def _get_silent_variant_counts(paths: AnalysisPaths):
     :param paths:
     """
 
-    pipe(
-        [
-            "egrep",
-            "-v",
-            "-e",
-            _VARIANT_TYPES,
-            paths.input_path.as_posix(),
-        ],
-        ["grep", "-w", "synonymous_variant"],
-        *_FMT_COMMANDS,
-        output_path=paths.variants_silent,
-    )
+    if variant_in_input("synonymous_variant", paths.input_path):
+        pipe(
+            [
+                "egrep",
+                "-v",
+                "-e",
+                _VARIANT_TYPES,
+                paths.input_path.as_posix(),
+            ],
+            ["grep", "-w", "synonymous_variant"],
+            *_FMT_COMMANDS,
+            output_path=paths.variants_silent,
+        )
+    else:
+        paths.variants_silent.touch(exist_ok=False)
 
 
 def _get_nonsilent_variant_counts(paths: AnalysisPaths):
@@ -136,19 +149,23 @@ def _get_missense_variant_counts(paths: AnalysisPaths):
     :param paths:
     :return:
     """
-    pipe(
-        [
-            "egrep",
-            "-v",
-            "-e",
-            _VARIANT_TYPES,
-            paths.input_path.as_posix(),
-        ],
-        ["grep", "-w", "-v", "synonymous_variant"],
-        ["grep", "-w", "missense_variant"],
-        *_FMT_COMMANDS,
-        output_path=paths.variants_missense,
-    )
+
+    if variant_in_input("missense_variant", paths.input_path):
+        pipe(
+            [
+                "egrep",
+                "-v",
+                "-e",
+                _VARIANT_TYPES,
+                paths.input_path.as_posix(),
+            ],
+            ["grep", "-w", "-v", "synonymous_variant"],  # TODO: both possible?
+            ["grep", "-w", "missense_variant"],
+            *_FMT_COMMANDS,
+            output_path=paths.variants_missense,
+        )
+    else:
+        paths.variants_missense.touch(exist_ok=False)
 
 
 def _get_intronic_variant_counts(paths: AnalysisPaths):
@@ -169,14 +186,17 @@ def _get_intronic_variant_counts(paths: AnalysisPaths):
     :return:
     """
 
-    pipe(
-        ["grep", "-v", r"^#", paths.input_path.as_posix()],
-        ["grep", "-w", "intron_variant"],
-        ["grep", "-v", "splice"],
-        ["tr", "_", "\t"],
-        ["awk", '{print $1"_"$7"\t"$2"\t"$2"\t"$3}'],
-        output_path=paths.variants_intronic,
-    )
+    if variant_in_input("intron_variant", paths.input_path):
+        pipe(
+            ["grep", "-v", r"^#", paths.input_path.as_posix()],
+            ["grep", "-w", "intron_variant"],
+            ["grep", "-v", "splice"],
+            ["tr", "_", "\t"],
+            ["awk", '{print $1"_"$7"\t"$2"\t"$2"\t"$3}'],
+            output_path=paths.variants_intronic,
+        )
+    else:
+        paths.variants_intronic.touch(exist_ok=False)
 
 
 def _count_mutations(variant_counts: pathlib.Path, output_path: pathlib.Path):
