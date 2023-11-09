@@ -1,34 +1,37 @@
-import os
-
-import pytest
-
 from SOPRANO.utils.env_utils import (
-    _has_conda,
-    _has_mamba,
+    app_installed,
     bedtools_installed,
-    running_soprano_env,
-    vep_installed,
+    cli_installed,
+    get_genome_installed,
+    link_vep_installed,
+    perl_installed,
+    rscript_installed,
 )
 
-IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
-
-@pytest.mark.dependency(name="has_conda")
-def test__has_conda():
-    assert _has_conda() or _has_mamba()
-
-
-@pytest.mark.dependency(depends=["has_conda"])
-def test_running_soprano_env():
-    assert running_soprano_env()
-
-
-@pytest.mark.skipif(IN_GITHUB_ACTIONS, reason="Not built in CI (for now)")
-@pytest.mark.dependency(depends=["has_conda"])
-def test_vep_installed():
-    assert vep_installed()
-
-
-@pytest.mark.dependency(depends=["has_conda"])
 def test_bedtools_installed():
     assert bedtools_installed()
+
+
+def test_rscript_installed():
+    assert rscript_installed()
+
+
+def test_perl_installed():
+    assert perl_installed()
+
+
+def test_app_installed():
+    assert app_installed()
+
+
+def test_cli_installed():
+    assert cli_installed()
+
+
+def test_link_vep_installed():
+    assert link_vep_installed()
+
+
+def test_get_genome_installed():
+    assert get_genome_installed()
