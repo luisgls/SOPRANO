@@ -10,14 +10,18 @@ def find_vcf_files(vcf_sources_dir: Path):
 
     exts = {x + y for x in vcf_exts for y in gz_exts}
 
-    detected = 0
+    detected = []
 
     for ext in exts:
-        for _ in vcf_sources_dir.glob(f"*{ext}"):
-            detected += 1
+        for vcf_file_path in vcf_sources_dir.glob(f"*{ext}"):
+            detected.append(vcf_file_path)
 
-    if detected > 0:
-        print(f"Detected {detected} vcf files in {vcf_sources_dir.as_posix()}")
+    n_detected = len(detected)
+
+    if n_detected > 0:
+        print(
+            f"Detected {n_detected} vcf files in {vcf_sources_dir.as_posix()}"
+        )
     else:
         raise FileNotFoundError(
             f"No VCF files detected in {vcf_sources_dir.as_posix()}"
