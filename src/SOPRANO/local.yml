@@ -4,14 +4,14 @@ channels:
   - anaconda
 dependencies:
   - perl
-  - bedtools=2.31.0
+  - bedtools>=2.31.0
   - ca-certificates
   - openssl
   - samtools
   - coreutils # [osx]
   - python>=3.10,<3.12
   - pip
-  - r-base=4.3.2
+  - r-base>=4.0.0
   - r-devtools
   - r-vcfr
   - r-readr
