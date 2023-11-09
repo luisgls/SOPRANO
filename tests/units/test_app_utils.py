@@ -128,7 +128,7 @@ def test_pipeline_processing_genome_reference(mock_genome_dir):
 
     selection_string = "{} - Ensembl release {}".format(assembly, release)
 
-    output = PipelineUIProcessing.genome_reference(selection_string)
+    condition, output = PipelineUIProcessing.genome_reference(selection_string)
 
     assert isinstance(output, GenomePaths)
     assert output.fasta.name.endswith(".fa")
@@ -139,10 +139,11 @@ def test_pipeline_processing_annotated_mutations():
     with TemporaryFiles.tmp_in_dir(
         Directories.app_annotated_inputs(), "anno"
     ) as c:
-        assert (
-            PipelineUIProcessing.annotated_mutations(c._pass_ext.name)
-            == c._pass_ext
+        condition, processed_option = PipelineUIProcessing.annotated_mutations(
+            c._pass_ext.name
         )
+
+        assert processed_option == c._pass_ext
 
         with pytest.raises(KeyError):
             PipelineUIProcessing.annotated_mutations(c._fail_ext.name)
@@ -152,18 +153,24 @@ def test_pipeline_processing_immunopeptidome():
     with TemporaryFiles.tmp_in_dir(
         Directories.app_immunopeptidomes(), "bed"
     ) as c:
-        assert (
-            PipelineUIProcessing.immunopeptidome(c._pass_ext.name)
-            == c._pass_ext
-        )
+        (
+            condition,
+            processed_immunopeptidome,
+        ) = PipelineUIProcessing.immunopeptidome(c._pass_ext.name)
+
+        assert processed_immunopeptidome == c._pass_ext
 
         with pytest.raises(KeyError):
             PipelineUIProcessing.immunopeptidome(c._fail_ext.name)
 
 
 def test_pipeline_processing_substitution_method():
-    assert PipelineUIProcessing.substitution_method("SSB192") == 192
-    assert PipelineUIProcessing.substitution_method("SSB7") == 7
+    condition, processed_192 = PipelineUIProcessing.substitution_method(
+        "SSB192"
+    )
+    assert processed_192 == 192
+    condition, processed_7 = PipelineUIProcessing.substitution_method("SSB7")
+    assert processed_7 == 7
 
     with pytest.raises(KeyError):
         PipelineUIProcessing.substitution_method("SSB000")
@@ -180,7 +187,8 @@ def test_pipeline_processing_job_name():
         mock_dir = Path("/just/for/pytest")
         os.environ[cache_key] = mock_dir.as_posix()
         job_name = "soprano"
-        assert PipelineUIProcessing.job_name(job_name) == mock_dir / job_name
+        condition, processed_name = PipelineUIProcessing.job_name(job_name)
+        assert processed_name == mock_dir / job_name
     finally:
         os.environ[cache_key] = _soprano_cache
 
