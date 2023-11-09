@@ -18,7 +18,7 @@ requires-python = ">=3.10"
 dependencies = [
     "pandas",
     "numpy",
-    "streamlit == 1.27.0",
+    "streamlit >= 1.27.0",
     "requests",
     "types-requests",
     "clint"
@@ -30,6 +30,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Perl",
+    "Programming Language :: R",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Intended Audience :: Science/Research"
 ]
@@ -64,6 +65,7 @@ soprano-app = "SOPRANO.run:run_app"
 soprano-get-genome = "SOPRANO.run:download_genome"
 soprano-link-vep = "SOPRANO.run:link_vep_cache"
 soprano-hla2ip = "SOPRANO.run:hla2pip"
+soprano-annotate = "SOPRANO.run:annotate_vcfs"
 
 [tool.hatch]
 version.source = "vcs"

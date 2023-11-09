@@ -11,6 +11,7 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 from SOPRANO.core.objects import EnsemblData, Parameters
 from SOPRANO.hla2ip import immunopeptidome_from_hla
 from SOPRANO.pipeline import run_pipeline
+from SOPRANO.utils import anno_utils
 from SOPRANO.utils.parse_utils import fix_species_arg
 from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.sh_utils import pipe
@@ -341,15 +342,71 @@ class DownloaderUIProcessing(_DownloaderUI):
 
 
 class _AnnotatorUI:
-    pass
+    @staticmethod
+    def vcf_dir(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def genome_assembly(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def output_name(*args, **kwargs):
+        pass
 
 
 class AnnotatorUIOptions(_AnnotatorUI):
-    pass
+    @staticmethod
+    def genome_assembly():
+        return "GRCh38", "GRCh37"
 
 
 class AnnotatorUIProcessing(_AnnotatorUI):
-    pass
+    @staticmethod
+    def genome_assembly(genome_assembly_selection: str):
+        if genome_assembly_selection == "GRCh38":
+            assembly_ready = True
+        else:
+            st.warning(
+                "Currently only supporting GRCh38. "
+                "GRCh37 will soon be supported."
+            )
+            assembly_ready = False
+
+        return assembly_ready, genome_assembly_selection
+
+    @staticmethod
+    def vcf_dir(vcf_dir_selected: str):
+        vcf_dir_path = pathlib.Path(vcf_dir_selected)
+
+        try:
+            detected = anno_utils.find_vcf_files(vcf_dir_path)
+        except FileNotFoundError:
+            detected = []
+
+        detected = [d.as_posix() for d in detected]
+
+        if len(detected) < 1:
+            vcf_files_ready = False
+            st.warning(f"No vcf files detected in {vcf_dir_path}")
+        else:
+            vcf_files_ready = True
+            vcf_text = "\n".join(detected)
+            st.text(f"Annotated file will be constructed from: \n{vcf_text}")
+
+        return vcf_files_ready, vcf_dir_path
+
+    @staticmethod
+    def output_name(name: str):
+        if name == "":
+            st.warning("File name must be provided.")
+            name_ready = False
+        else:
+            dest = Directories.app_annotated_inputs(name).with_suffix(".anno")
+            st.text(f"Output path: {dest}")
+            name_ready = True
+
+        return name_ready, name
 
 
 class _ImmunopeptidomeUI:
@@ -498,8 +555,15 @@ class RunTab:
         st.text(f"... in {int(t_end - t_start)} seconds")
 
     @staticmethod
-    def annotate(*args, **kwargs):
-        pass
+    def annotate(
+        sources_dir: pathlib.Path,
+        output_name: str,
+    ):
+        anno_utils.annotate_source(
+            vcf_sources_dir=sources_dir,
+            output_name=output_name,
+            cache_directory=Directories.app_annotated_inputs(),
+        )
 
     @staticmethod
     def immunopeptidome(

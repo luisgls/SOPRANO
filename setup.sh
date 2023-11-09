@@ -116,8 +116,13 @@ function activate_env() {
   fi
   if [ $? == 0 ]
   then
-    echo "Installing SOPRANO python package"
+    echo "Installing SOPRANO Python packages"
     eval "$_PIP_CMD"
+  fi
+  if [ $? == 0 ]
+  then
+    echo "Installing SOPRANO R packages"
+    Rscript "src/SOPRANO/R/pkgs.R"
   fi
 }
 
@@ -144,7 +149,6 @@ then
       echo "Installation failed."
     fi
   fi
-
 
 else
   echo "Fatal: Conda not detected."

@@ -239,3 +239,33 @@ def parse_hla(argv=None):
     )
 
     return parser.parse_args(argv)
+
+
+def parse_vcf_sources(argv=None):
+    parser = argparse.ArgumentParser(description="VCF file annotations")
+
+    parser.add_argument(
+        "--source_dir",
+        "-s",
+        dest="sources_dir",
+        type=pathlib.Path,
+        help="Provide path to directory containing VCF files.",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        dest="output_name",
+        type=str,
+        help="Provide name for output file. No extension required.",
+    )
+    parser.add_argument(
+        "--cache_dir",
+        "-d",
+        dest="cache_dir",
+        type=pathlib.Path,
+        default=Directories.app_annotated_inputs(),
+        help=f"Provide path to directory that will contain output. Default: "
+        f"{Directories.app_annotated_inputs()}",
+    )
+
+    return parser.parse_args(argv)

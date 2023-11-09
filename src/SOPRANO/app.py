@@ -1,10 +1,13 @@
 import os
+import pathlib
 
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
 
 from SOPRANO.core import objects
 from SOPRANO.utils.app_utils import (
+    AnnotatorUIOptions,
+    AnnotatorUIProcessing,
     DownloaderUIOptions,
     DownloaderUIProcessing,
     ImmunopeptidomesUIOptions,
@@ -187,13 +190,37 @@ def with_tab_genomes(tab: DeltaGenerator):
 def with_tab_annotator(tab: DeltaGenerator):
     with tab:
         st.title("Annotate VCF File")
-        st.caption(
-            "Upload a VCF file to annotate for use in the SOPRANO pipeline."
+        st.markdown(
+            "Generate an annotated mutation file from a directory containing "
+            "VCF files suitable for consumption by SOPRANO."
         )
-        st.file_uploader("Select a VCF file:", key="vcf_selection")
 
-        if st.button("Annotate", disabled=True):
-            RunTab.annotate()
+        vcf_dir_selection = st.text_input(
+            "Directory containing VCF files:", value=pathlib.Path.home()
+        )
+        vcf_dir_ready, vcf_dir_processed = AnnotatorUIProcessing.vcf_dir(
+            vcf_dir_selection
+        )
+
+        assembly_selection = st.selectbox(
+            "Genome reference assembly:",
+            options=AnnotatorUIOptions.genome_assembly(),
+        )
+        (
+            assembly_ready,
+            assembly_processed,
+        ) = AnnotatorUIProcessing.genome_assembly(assembly_selection)
+
+        name_selection = st.text_input(
+            "Choose a name for the annotated output:"
+        )
+        name_ready, name = AnnotatorUIProcessing.output_name(name_selection)
+
+        if st.button(
+            "Annotate",
+            disabled=not (vcf_dir_ready and assembly_ready and name_ready),
+        ):
+            RunTab.annotate(sources_dir=vcf_dir_processed, output_name=name)
 
 
 def with_tab_info(tab: DeltaGenerator):
@@ -289,8 +316,6 @@ def with_tab_immunopeptidome(tab: DeltaGenerator):
         ) = ImmunopeptidomeUIProcessing.subset_method(
             transcripts_processed, subset_method_selected
         )
-
-        st.header("Ensembl transcript selections")
 
         st.markdown(
             "Once you are happy with your immunopeptidome choices, "
