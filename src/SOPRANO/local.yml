@@ -4,8 +4,6 @@ channels:
   - anaconda
 dependencies:
   - perl
-  - ensembl-vep>=110
-  - bedtools=2.31.0
   - ca-certificates
   - openssl
   - samtools
@@ -13,3 +11,19 @@ dependencies:
   - python>=3.10,<3.12
   - pip
   - r-base=4.3.2
+  - r-devtools
+  - r-vcfr
+  - r-readr
+  - r-stringr
+  - r-tidyr
+  - r-optparse
+  - r-seqinr
+  - r-dplyr
+  - r-plyr
+  - r-mass
+  - r-tibble
+  - r-magrittr
+  - bioconductor-genomicranges
+  - bioconductor-biostrings
+  - bioconductor-iranges
+  - bioconductor-rsamtools
