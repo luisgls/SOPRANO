@@ -124,7 +124,7 @@ def st_capture(output_func):
 
 def _select_from_dict(selection: str, selection_dict: dict):
     selection_value = selection_dict[selection]
-    st.text(f"Selected: {selection_value}")
+    # st.text(f"Selected: {selection_value}")
     return selection_value
 
 
@@ -150,6 +150,10 @@ class _PipelineUI:
         pass
 
     @staticmethod
+    def job_name(*args, **kwargs):
+        pass
+
+    @staticmethod
     def cache(*args, **kwargs):
         pass
 
@@ -161,7 +165,7 @@ class PipelineUIOptions(_PipelineUI):
 
         genome_dirs = [
             item for item in homo_sapiens_dir.glob("*") if item.is_dir()
-        ]
+        ][::-1]
 
         # Remove bad options (i.e. no toplevel fa and chrom files)
         for item in genome_dirs[::-1]:
@@ -223,49 +227,66 @@ class PipelineUIProcessing(_PipelineUI):
     def genome_reference(genome_selection: str | None):
         if genome_selection is None:
             st.warning("Warning: No genome selection.")
-            return None
+            genome_ready = False
+            genome_reference_path = None
+        else:
+            genome_ready = True
+            assembly, release = genome_selection.split(" - Ensembl release ")
+            data = EnsemblData(species="homo_sapiens", assembly=assembly)
+            fasta_path = data.toplevel_fa_path(int(release))
+            chrom_path = data.toplevel_chrom_path(int(release))
+            st.text(
+                f"Selected reference: {fasta_path}\n"
+                f"Selected chrom sizes: {chrom_path}"
+            )
+            genome_reference_path = data.get_genome_reference_paths(
+                int(release)
+            )
 
-        assembly, release = genome_selection.split(" - Ensembl release ")
-        data = EnsemblData(species="homo_sapiens", assembly=assembly)
-        fasta_path = data.toplevel_fa_path(int(release))
-        chrom_path = data.toplevel_chrom_path(int(release))
-        st.text(f"Selected: {fasta_path}, {chrom_path}")
-        return data.get_genome_reference_paths(int(release))
+        return genome_ready, genome_reference_path
 
     @staticmethod
     def annotated_mutations(annotation_selection: str):
         options_dict = PipelineUIOptions.annotated_mutations()
-        return _select_from_dict(annotation_selection, options_dict)
+        return True, _select_from_dict(annotation_selection, options_dict)
 
     @staticmethod
     def immunopeptidome(immunopeptidome_selection: str):
         options_dict = PipelineUIOptions.immunopeptidome()
-        return _select_from_dict(immunopeptidome_selection, options_dict)
+        return True, _select_from_dict(immunopeptidome_selection, options_dict)
 
     @staticmethod
     def substitution_method(subs_selection: str):
         options_dict = PipelineUIOptions.substitution_method()
-        return _select_from_dict(subs_selection, options_dict)
+        return True, _select_from_dict(subs_selection, options_dict)
 
     @staticmethod
     def coordinates(coordinates_selection: str):
         options_dict = PipelineUIOptions.coordinates()
-        return _select_from_dict(coordinates_selection, options_dict)
+        return True, _select_from_dict(coordinates_selection, options_dict)
 
     @staticmethod
     def job_name(job_name: str):
-        cache_dir = Directories.cache(job_name)
-        st.text(f"Selected: {cache_dir}")
-        return cache_dir
+        if job_name == "":
+            job_name_ready = False
+            cache_dir = None
+        else:
+            cache_dir = Directories.cache(job_name)
+            st.text(f"Pipeline results cache: {cache_dir}")
+            job_name_ready = True
+        return job_name_ready, cache_dir
 
     @staticmethod
     def cache(cache_selected: str):
         if os.path.exists(cache_selected):
             os.environ["SOPRANO_CACHE"] = cache_selected
-            st.text(f"Selected: {cache_selected}")
+            # st.text(f"Selected: {cache_selected}")
+            cache_ready = True
         else:
             st.warning(f"Cache directory does not exist: {cache_selected}")
-        return cache_selected
+            cache_ready = False
+
+        return cache_ready, cache_selected
 
 
 class _LinkVEPUI:
