@@ -4,6 +4,7 @@ import pathlib
 # Common dirs from source root src/SOPRANO
 _SOPRANO_SRC = pathlib.Path(__file__).parent.parent
 _SOPRANO_SCRIPTS = _SOPRANO_SRC / "scripts"
+_SOPRANO_R = _SOPRANO_SRC / "R"
 _SOPRANO_DATA = _SOPRANO_SRC / "data"
 _SOPRANO_HOMO_SAPIENS = _SOPRANO_DATA / "homo_sapiens"
 _SOPRANO_IMMUNO = _SOPRANO_SRC / "immunopeptidomes"
@@ -39,6 +40,10 @@ class Directories:
     @staticmethod
     def scripts(sub_path_item="") -> pathlib.Path:
         return _SOPRANO_SCRIPTS.joinpath(sub_path_item)
+
+    @staticmethod
+    def r_scripts(sub_path_item="") -> pathlib.Path:
+        return _SOPRANO_R.joinpath(sub_path_item)
 
     @staticmethod
     def data(sub_path_item="") -> pathlib.Path:
