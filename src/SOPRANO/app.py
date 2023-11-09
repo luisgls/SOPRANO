@@ -116,8 +116,6 @@ def with_tab_pipeline(tab: DeltaGenerator):
             job_name_selection
         )
 
-        not_calculating = True
-
         ready = (
             genome_ready
             and annotation_ready
@@ -127,11 +125,9 @@ def with_tab_pipeline(tab: DeltaGenerator):
             and coordinates_ready
             and cache_ready
             and job_name_ready
-            and not_calculating
         )
 
         if st.button("Run Pipeline", disabled=not ready):
-            not_calculating = False
             params = objects.Parameters(
                 analysis_name=job_name_selection,
                 input_path=annotation_processed,
@@ -146,7 +142,6 @@ def with_tab_pipeline(tab: DeltaGenerator):
                 genomes=genome_processed,
             )
             RunTab.pipeline(params=params)
-            not_calculating = True
 
 
 def with_tab_genomes(tab: DeltaGenerator):
