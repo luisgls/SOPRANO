@@ -184,7 +184,7 @@ _NAMESPACE_KEYS = (
     "input_path",
     "bed_path",
     "cache_dir",
-    "target_regions",
+    "random_regions",
     "transcript",
     "protein_transcript",
     "transcript_ids",
