@@ -11,7 +11,7 @@ def _add_core_genome_args(parser: argparse.ArgumentParser):
         "-s",
         dest="species",
         type=str,
-        help="Ensembl species Latin name. E.g., 'Homo sapiens'/homo_sapiens.",
+        help="Ensembl species Latin name. " "Default: homo_sapiens.",
         default="homo_sapiens",
     )
 
@@ -20,7 +20,7 @@ def _add_core_genome_args(parser: argparse.ArgumentParser):
         "-a",
         dest="assembly",
         type=str,
-        help="Ensembl genome assembly ID. E.g., GRCh38.",
+        help="Ensembl genome assembly ID. Default: GRCh38.",
         default="GRCh38",
     )
 
@@ -29,7 +29,7 @@ def _add_core_genome_args(parser: argparse.ArgumentParser):
         "-r",
         dest="release",
         type=int,
-        help="Ensembl release number. E.g., 110.",
+        help="Ensembl release number. Default: 110.",
         default=110,
     )
 
@@ -70,7 +70,7 @@ def parse_args(argv=None):
         "-i",
         dest="input_path",
         type=pathlib.Path,
-        help="Prove the path to the input VEP annotated file.",
+        help="Prove the path to the input annotated file.",
         required=True,
     )
 
@@ -137,7 +137,7 @@ def parse_args(argv=None):
 
     analysis_params_group.add_argument(
         "--seed",
-        "-s",
+        "-x",
         dest="seed",
         default=-1,
         type=int,
@@ -152,7 +152,8 @@ def parse_args(argv=None):
         "--transcript",
         "-t",
         dest="transcript",
-        help="Provide path to transcript file",
+        help=f"Provide path to transcript file. Default: "
+        f"{objects.TranscriptPaths.defaults().transcript_length}",
         default=objects.TranscriptPaths.defaults().transcript_length,
         type=pathlib.Path,
     )
@@ -161,7 +162,8 @@ def parse_args(argv=None):
         "--protein_transcript",
         "-p",
         dest="protein_transcript",
-        help="Provide path to protein transcript file",
+        help=f"Provide path to protein transcript file. Default: "
+        f"{objects.TranscriptPaths.defaults().protein_transcript_length}",
         default=objects.TranscriptPaths.defaults().protein_transcript_length,
         type=pathlib.Path,
     )
@@ -170,7 +172,8 @@ def parse_args(argv=None):
         "--fasta",
         "-f",
         dest="transcript_ids",
-        help="Provide path to the ensembl transcript IDs fasta file",
+        help=f"Provide path to the ensembl transcript IDs fasta file. "
+        f"Default: {objects.TranscriptPaths.defaults().transcript_fasta}",
         default=objects.TranscriptPaths.defaults().transcript_fasta,
         type=pathlib.Path,
     )
@@ -216,6 +219,8 @@ def parse_hla(argv=None):
         dest="cache_dir",
         type=pathlib.Path,
         default=Directories.app_immunopeptidomes(),
+        help=f"Cache location for immunopeptidome file. "
+        f"Default: {Directories.app_immunopeptidomes()}",
     )
     parser.add_argument(
         "--restrict",
@@ -224,7 +229,7 @@ def parse_hla(argv=None):
         nargs="*",
         type=str,
         required=False,
-        help="Space seperated Ensembl transcript IDs.",
+        help="Space seperated Ensembl transcript IDs. Default: []",
         default=[],
     )
     parser.add_argument(
@@ -234,7 +239,7 @@ def parse_hla(argv=None):
         nargs="*",
         type=str,
         required=False,
-        help="Space seperated Ensembl transcript IDs.",
+        help="Space seperated Ensembl transcript IDs. Default: []",
         default=[],
     )
 
