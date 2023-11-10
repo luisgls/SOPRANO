@@ -1,10 +1,10 @@
 # Installation
 
-SOPRANO is supported on Linux and Mac OS.
+SOPRANO is supported on Linux and MacOS.
 
 ## Quick start installation
 
-Users with `conda` or `mamba` available on their system can attempt an 
+Users with `conda` or `mamba` available on their system can attempt an
 automated installation procedure with:
 
 ```shell
@@ -40,6 +40,15 @@ After creation, the environment can be activated with
 conda activate soprano
 ```
 
+#### MacOS note:
+
+Mac users with the latest system architecture may require the additional
+command after activating their environment:
+
+```shell
+conda config --env --set subdir osx-64
+```
+
 ### Non-conda users
 
 Users who do not wish to use `conda` should ensure that they have appropriate
@@ -56,6 +65,15 @@ After creation, the environment can be activated with
 
 ```shell
 source .venv/bin/activate
+```
+
+#### MacOS note:
+
+Some GNU command line utilities are not shipped with MacOS natively, but can
+can be installed with e.g.,
+
+```shell
+brew install coreutils
 ```
 
 ### Installing R package dependencies
@@ -80,6 +98,14 @@ pip install -e .
 ```
 
 This will install a standard (though editable version of SOPRANO).
+
+### Decompressing transcripts
+
+Ensure that transcript data is decompressed via
+
+```shell
+gzip -k "src/SOPRANO/data/ensemble_transcriptID.fasta.gz"
+```
 
 ### Validating the installation
 

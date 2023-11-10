@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ENV_NAME="soprano-dev"
+ENV_NAME="soprano"
 DEPS_FILE="src/SOPRANO/local.yml"
 DEPS_FATAL=false
 
