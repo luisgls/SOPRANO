@@ -42,8 +42,14 @@ conda activate soprano
 
 #### MacOS note:
 
-Mac users with the latest system architecture may require the additional
-command after activating their environment:
+Mac users with the latest system architecture may instead be required to:
+
+```shell
+conda create --name soprano
+conda activate soprano
+conda config --env --set subdir osx-64
+conda env update --file $DEPS_FILE
+```
 
 ```shell
 conda config --env --set subdir osx-64
