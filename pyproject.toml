@@ -21,7 +21,8 @@ dependencies = [
     "streamlit >= 1.27.0",
     "requests",
     "types-requests",
-    "clint"
+    "clint",
+    "pytest"
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
