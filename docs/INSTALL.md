@@ -1,5 +1,20 @@
 # Installation
 
+SOPRANO is supported on Linux and Mac OS.
+
+## Quick start installation
+
+Users with `conda` or `mamba` available on their system can attempt an 
+automated installation procedure with:
+
+```shell
+. setup.sh 
+```
+
+with a trailing `dev` argument for the developer tools.
+
+## Manual installation
+
 ### Dependencies
 
 Though SOPRANO has been developed as a Python package, it relies on a variety
