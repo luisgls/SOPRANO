@@ -80,7 +80,7 @@ def _sum_possible_across_region(
     :param sum_trans_regs: output path for summation
     """
 
-    pipe(
+    pipe(  # TODO: This appears to be a memory bottleneck ...
         ["awk", '{print "test_"$2"_"$3"\t0\t1\t"$0}', trans_regs.as_posix()],
         ["sortBed", "-i", "stdin"],
         ["mergeBed", "-i", "stdin", "-c", "7,8", "-o", "sum,sum"],
