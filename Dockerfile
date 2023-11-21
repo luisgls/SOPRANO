@@ -2,31 +2,48 @@ FROM condaforge/mambaforge:23.3.1-1 as conda
 
 WORKDIR /app
 
-COPY pyproject.toml ./
-COPY install_R_pkgs.R ./
-COPY src ./src
-RUN touch README.md
-
 # Construct conda environment and clean up cache files
-RUN mamba env create -f src/SOPRANO/local.yml --name soprano
-RUN mamba clean -afy
+COPY src/SOPRANO/local.yml ./
+RUN mamba env create -f local.yml --name soprano &&  \
+    mamba clean -afy &&  \
+    rm local.yml
 
 # Install R dependencies pulled from GH
-RUN ["mamba", "run", "--no-capture-output", "-n", "soprano", "Rscript", "install_R_pkgs.R"]
+COPY install_R_pkgs.R ./
+RUN mamba run --no-capture-output -n soprano Rscript install_R_pkgs.R &&  \
+    rm install_R_pkgs.R
 
-# Tweak TOML to support pip installation (basically omit hatch version bits)
-RUN sed -i '71,84d' pyproject.toml
-RUN sed -i '38d' pyproject.toml
-RUN sed -i '/name = "SOPRANO"/a version="0.0.1"' pyproject.toml
+# Prepare Python dependencies (this could be better...)
+COPY pyproject.toml ./
+RUN sed -i '71,84d' pyproject.toml &&  \
+    sed -i '38d' pyproject.toml &&  \
+    sed -i '/name = "SOPRANO"/a version="0.0.1"' pyproject.toml && \
+    touch README.md
 
 # Run pip install
-RUN ["mamba", "run", "--no-capture-output", "-n", "soprano", "pip", "install", "-e", "."]
+COPY src ./src
+RUN mamba run --no-capture-output -n soprano pip install -e . &&  \
+    mamba run --no-capture-output -n soprano pip cache purge
+
+# Clean up additional stuff ...
+RUN rm -rf ./src/SOPRANO/immunopeptidomes/mouse && \
+    find ./src/SOPRANO/scripts -name "*.R" -delete && \
+    find -name "*.yml" -delete &&  \
+    find -name "*.gz" -delete &&  \
+    find -name '__pycache__' -type d -exec rm -rf {} + && \
+    cd /opt/conda &&  \
+    rm -rf conda-meta && \
+    find -name '__pycache__' -type d -exec rm -rf {} + && \
+    cd /opt/conda/lib && \
+    find -name 'tests' -type d -exec rm -rf {} +
 
 # Expose port for streamlit interface
 EXPOSE 8501
 
-# Run health check
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
-
 # Define streamlit run as entry point
-ENTRYPOINT ["mamba", "run", "-n", "soprano", "streamlit", "run", "./src/SOPRANO/app.py", "--server.port=8501", "--server.address=0.0.0.0"] # , ">", "dev/null"]
+ENTRYPOINT ["mamba", "run", "-n", "soprano", "streamlit", "run", "./src/SOPRANO/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+
+# Bind mount to downloads with:
+# docker run -d -p 8501:8501 --name devtest -v "$(pwd)"/ensembl_downloads/homo_sapiens:/app/ensembl_downloads/homo_sapiens soprano
+# docker run -d -p 8501:8501 --name devtest -e SOPRANO_DISABLE_DOWNLOADS=True -v "$(pwd)"/ensembl_downloads/homo_sapiens:/app/ensembl_downloads/homo_sapiens soprano
+# Should be visible on e.g. http://localhost:8501/
