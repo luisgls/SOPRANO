@@ -50,9 +50,9 @@ function _create_for_osx() {
   if command -v mamba &> /dev/null
   then
     echo "  ... building with mamba"
-    mamba config env update --file $DEPS_FILE
+    mamba env update --file $DEPS_FILE
   else
-    conda config env update --file $DEPS_FILE
+    conda env update --file $DEPS_FILE
   fi
   conda activate $ENV_NAME
 }
