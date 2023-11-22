@@ -50,3 +50,11 @@ ENTRYPOINT ["mamba", "run", "-n", "soprano", "streamlit", "run", "./src/SOPRANO/
 # docker run -d -p 8501:8501 --name devtest -v "$(pwd)"/ensembl_downloads/homo_sapiens:/app/ensembl_downloads/homo_sapiens soprano
 # docker run -d -p 8501:8501 --name devtest -e SOPRANO_DISABLE_DOWNLOADS=True -v "$(pwd)"/ensembl_downloads/homo_sapiens:/app/ensembl_downloads/homo_sapiens soprano
 # Should be visible on e.g. http://localhost:8501/
+
+# Download and from registry:
+# docker run -d -p 8501:8501 --name hub_soprano -e SOPRANO_DISABLE_DOWNLOADS=True icrsc/soprano:latest
+
+# Mount data volumes with
+# docker run -d -p 8501:8501 --name hub_soprano -e SOPRANO_DISABLE_DOWNLOADS=True -v /path/to/ensembl/downloads/:/app/ensembl_downloads/homo_sapiens icrsc/soprano:latest
+# e.g.
+# docker run -d -p 8501:8501 --name hub_soprano -e SOPRANO_DISABLE_DOWNLOADS=True -v "$(pwd)"/ensembl_downloads/homo_sapiens:/app/ensembl_downloads/homo_sapiens icrsc/soprano:latest
