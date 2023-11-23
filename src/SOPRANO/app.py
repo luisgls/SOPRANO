@@ -1,3 +1,4 @@
+import os
 import pathlib
 
 import streamlit as st
@@ -180,6 +181,17 @@ def with_tab_genomes(tab: DeltaGenerator):
             "may be used to accelerate the annotation procedure; though this "
             "is _not_ essential."
         )
+        feature_disabled = (
+            os.environ.get("SOPRANO_DISABLE_DOWNLOADS", "False") == "True"
+        )
+
+        if feature_disabled:
+            st.warning(
+                "Downloading genome references is currently disabled at this "
+                "app hosting.\n\n"
+                "Contact the administrators scientificcomputingteam@icr.ac.uk "
+                "to request additional genomic files to be added."
+            )
 
         species_selection = st.text_input(
             "Define the species",
@@ -210,7 +222,7 @@ def with_tab_genomes(tab: DeltaGenerator):
         )
         type_processed = DownloaderUIProcessing.type(type_selection)
 
-        if st.button("Download", disabled=False):
+        if st.button("Download", disabled=feature_disabled):
             RunTab.download(
                 species=species_processed,
                 assembly=assembly_processed,
