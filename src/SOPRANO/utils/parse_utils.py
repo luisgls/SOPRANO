@@ -272,5 +272,13 @@ def parse_vcf_sources(argv=None):
         help=f"Provide path to directory that will contain output. Default: "
         f"{Directories.app_annotated_inputs()}",
     )
+    parser.add_argument(
+        "--assembly",
+        "-a",
+        dest="assembly",
+        type=str,
+        help="Provide the genome assembly associated with the VCF sources."
+        "Default: GRCh38.",
+    )
 
     return parser.parse_args(argv)

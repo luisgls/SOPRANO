@@ -75,6 +75,7 @@ def annotate_vcfs():
         vcf_sources_dir=args.sources_dir,
         output_name=args.output_name,
         cache_directory=args.cache_dir,
+        assembly=args.assembly,
     )
 
 

@@ -24,6 +24,13 @@ opt_parser <- optparse::add_option(
   help = "Location of translator files.", metavar = "character"
 )
 
+# Genome assembly
+opt_parser <- optparse::add_option(
+  opt_parser, c("-a", "--assembly"),
+  type = "character", default = "GRCh38",
+  help = "Homo sapiens genome assembly", metavar = "character"
+)
+
 # Parse inputs
 args <- optparse::parse_args(opt_parser)
 
@@ -47,6 +54,14 @@ if (is.null(trans_dir)) {
 
 if (!dir.exists(trans_dir)) {
     stop(paste("Translator directory does not exits:", trans_dir))
+}
+
+# Get assembly
+assembly <- args$assembly
+if (! assembly %in% c("GRCh38", "GRCh37")){
+  stop(paste(
+    "Currently only supporting GRCh37 and GRCh38 assemblies, not", assembly
+  ))
 }
 
 ensp_2_enst_path <- file.path(trans_dir, "ENSP2ENST.txt")
@@ -102,9 +117,6 @@ names(df_all_with_vaf) <- c(
 )
 
 # Read transcript and annotation info
-
-
-
 transcriptlist <- readr::read_delim(
   ensp_2_enst_path, delim = "\t", col_names = TRUE
 )
@@ -128,18 +140,29 @@ load(covs_path) # Loads the covs object
 #   how-to-know-if-rsync-did-not-change-any-files
 df_all_with_vaf$chr <- gsub("chr", "", as.vector(df_all_with_vaf$chr))
 
-
-res1dnds <- dndscv::dndscv(
-  mutations = df_all_with_vaf,
-  outmats = TRUE,
-  max_muts_per_gene_per_sample = Inf,
-  max_coding_muts_per_sample = Inf,
-  outp = 2,
-  use_indel_sites = TRUE,
-  min_indels = 1,
-  refdb = refdb_path,
-  cv = covs
-)
+if (assembly == "GRCh38") {
+    res1dnds <- dndscv::dndscv(
+      mutations = df_all_with_vaf,
+      outmats = TRUE,
+      max_muts_per_gene_per_sample = Inf,
+      max_coding_muts_per_sample = Inf,
+      outp = 2,
+      use_indel_sites = TRUE,
+      min_indels = 1,
+      refdb = refdb_path,
+      cv = covs
+    )
+} else {
+    res1dnds <- dndscv::dndscv(
+      mutations = df_all_with_vaf,
+      outmats = TRUE,
+      max_muts_per_gene_per_sample = Inf,
+      max_coding_muts_per_sample = Inf,
+      outp = 2,
+      use_indel_sites = TRUE,
+      min_indels = 1
+    )
+}
 
 
 ## Get table for annotated mutations

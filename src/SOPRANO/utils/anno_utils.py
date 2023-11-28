@@ -32,6 +32,7 @@ def find_vcf_files(vcf_sources_dir: Path):
 
 def annotate_source(
     vcf_sources_dir: Path,
+    assembly: str,
     output_name: str | None = None,
     cache_directory: Path = Directories.app_annotated_inputs(),
 ):
@@ -56,10 +57,7 @@ def annotate_source(
             vcf_sources_dir.as_posix(),
             "-t",
             Directories.data().as_posix(),
+            "-a",
+            assembly,
         ]
     )
-
-
-if __name__ == "__main__":
-    x = Path("/mnt/c/Users/kmarzouk/software/misc/vcf_parser/data")
-    annotate_source(x)

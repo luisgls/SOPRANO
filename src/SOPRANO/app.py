@@ -264,7 +264,11 @@ def with_tab_annotator(tab: DeltaGenerator):
             "Annotate",
             disabled=not (vcf_dir_ready and assembly_ready and name_ready),
         ):
-            RunTab.annotate(sources_dir=vcf_dir_processed, output_name=name)
+            RunTab.annotate(
+                sources_dir=vcf_dir_processed,
+                output_name=name,
+                assembly=assembly_processed,
+            )
 
 
 def with_tab_info(tab: DeltaGenerator):
