@@ -385,13 +385,10 @@ class AnnotatorUIOptions(_AnnotatorUI):
 class AnnotatorUIProcessing(_AnnotatorUI):
     @staticmethod
     def genome_assembly(genome_assembly_selection: str):
-        if genome_assembly_selection == "GRCh38":
+        if genome_assembly_selection in ("GRCh38", "GRCh37"):
             assembly_ready = True
         else:
-            st.warning(
-                "Currently only supporting GRCh38. "
-                "GRCh37 will soon be supported."
-            )
+            st.warning("Currently only supporting GRCh38 and GRCh37.")
             assembly_ready = False
 
         return assembly_ready, genome_assembly_selection
@@ -579,11 +576,13 @@ class RunTab:
     def annotate(
         sources_dir: pathlib.Path,
         output_name: str,
+        assembly: str,
     ):
         anno_utils.annotate_source(
             vcf_sources_dir=sources_dir,
             output_name=output_name,
             cache_directory=Directories.app_annotated_inputs(),
+            assembly=assembly,
         )
 
     @staticmethod
