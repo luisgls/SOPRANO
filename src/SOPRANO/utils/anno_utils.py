@@ -4,6 +4,14 @@ from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.sh_utils import pipe
 
 
+class NotGZ(Exception):
+    pass
+
+
+class NotVCF(Exception):
+    pass
+
+
 def find_vcf_files(vcf_source: Path):
     vcf_exts = {".vcf", ".VCF"}
     gz_exts = {".gz", ".GZ", ".Gz"}
@@ -12,12 +20,12 @@ def find_vcf_files(vcf_source: Path):
 
     if vcf_source.is_file():
         if vcf_source.suffix not in gz_exts:
-            raise ValueError(
+            raise NotGZ(
                 f"Input source should be gzip compressed: " f"{vcf_source}"
             )
 
         if (vcf_source.with_suffix("")).suffix not in vcf_exts:
-            raise ValueError(
+            raise NotVCF(
                 f"Input sourse should contain vcf extension: " f"{vcf_source}"
             )
 
