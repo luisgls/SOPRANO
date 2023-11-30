@@ -5,9 +5,10 @@ opt_parser <- optparse::OptionParser()
 
 # Data directory containing vcf.gz files
 opt_parser <- optparse::add_option(
-  opt_parser, c("-d", "--dir"),
+  opt_parser, c("-s", "--source"),
   type = "character",
-  help = "Directory containing .vcf.gz files.", metavar = "character",
+  help = "Path to .vcf.gz file, or directory containing .vcf.gz files.",
+  metavar = "character",
 )
 
 # Output filename
@@ -35,13 +36,13 @@ opt_parser <- optparse::add_option(
 args <- optparse::parse_args(opt_parser)
 
 # Get data sources
-data_dir <- args$dir
+source_path <- args$dir
 
-if (is.null(data_dir)) {
-    stop("Data directory not defined. Flag -d | --d <directory path> required")
+if (is.null(source_path)) {
+    stop("VCF source(s) path not defined. Flag -s | --sources required")
 }
-if (!dir.exists(data_dir)) {
-    stop(paste("Data directory does not exist:", data_dir))
+if (!dir.exists(source_path)) {
+    stop(paste("Source(s) path does not exist:", source_path))
 }
 
 
@@ -79,13 +80,21 @@ for (p in c(ensp_2_enst_path, variant_list_path, covs_path, refdb_path)) {
 
 # Get output file name
 if (is.null(args$out)) {
-  out_name <- file.path(data_dir, paste0(basename(data_dir), ".anno"))
+  out_name <- file.path(source_path, paste0(basename(source_path), ".anno"))
 } else {
   out_name <- args$out
 }
 
+# Get VCF files in appropriate format
+if (dir.exists(source_path)) {
+  vcf_files <- Sys.glob(file.path(source_path, "*.vcf.gz"))
+}
+else {
+  vcf_files <- c(source_path)
+}
+
+
 # Read mutations from VCF files
-vcf_files <- Sys.glob(file.path(args$dir, "*.vcf.gz"))
 vcf_names <- sub(
   "_TAIL_somatic_snvs_snpEff.ann.vcf.gz", "", sub("\\.\\/", "", vcf_files)
 )
