@@ -66,7 +66,7 @@ if (! assembly %in% c("GRCh38", "GRCh37")){
 
 ensp_2_enst_path <- file.path(trans_dir, "ENSP2ENST.txt")
 variant_list_path <- file.path(trans_dir, "REF2VEP.txt")
-covs_path = file.path(trans_dir, "covariates_hg19_hg38_epigenome_pcawg.rda")
+covs_path <- file.path(trans_dir, "covariates_hg19_hg38_epigenome_pcawg.rda")
 refdb_path <- file.path(
     trans_dir, "RefCDS_human_GRCh38_GencodeV18_recommended.rda"
 )
