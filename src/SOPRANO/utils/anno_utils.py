@@ -12,6 +12,10 @@ class NotVCF(Exception):
     pass
 
 
+class NoVCFs(Exception):
+    pass
+
+
 def find_vcf_files(vcf_source: Path):
     vcf_exts = {".vcf", ".VCF"}
     gz_exts = {".gz", ".GZ", ".Gz"}
@@ -47,9 +51,7 @@ def find_vcf_files(vcf_source: Path):
     if n_detected > 0:
         print(f"Detected {n_detected} vcf files in {vcf_source.as_posix()}")
     else:
-        raise FileNotFoundError(
-            f"No VCF files detected in {vcf_source.as_posix()}"
-        )
+        raise NoVCFs(f"No VCF files detected in {vcf_source.as_posix()}")
 
     return detected
 
