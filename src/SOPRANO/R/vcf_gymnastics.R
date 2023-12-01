@@ -17,7 +17,6 @@ extract_gt_tidy <- function(vcf) {
   vcfR::extract_gt_tidy(vcf)
 }
 
-
 fix_vcf_fields <- function(vcf) {
   vcf@fix %>% tibble::as_tibble()
 }
