@@ -462,7 +462,6 @@ class AnnotatorUIProcessing(_AnnotatorUI):
             st.warning(
                 "Name will be automatically constructed using input files."
             )
-            name = ""
 
         name_ready = True
         return name_ready, name
