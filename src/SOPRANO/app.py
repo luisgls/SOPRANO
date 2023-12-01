@@ -1,5 +1,6 @@
 import os
 import pathlib
+import shutil
 
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
@@ -231,44 +232,94 @@ def with_tab_genomes(tab: DeltaGenerator):
             )
 
 
+class AnnoCache:
+    def __init__(self):
+        self.path = pathlib.Path("/tmp") / "soprano-anno"
+        try:
+            self.clean_up()
+        except FileNotFoundError:
+            pass
+        finally:
+            self.path.mkdir(exist_ok=True)
+
+    def clean_up(self):
+        shutil.rmtree(self.path)
+
+
 def with_tab_annotator(tab: DeltaGenerator):
     with tab:
-        st.title("Annotate VCF File")
-        st.markdown(
-            "Generate an annotated mutation file from a directory containing "
-            "VCF files suitable for consumption by SOPRANO."
+        anno_cache = AnnoCache()
+        tmp_dir = anno_cache.path
+
+        st.title("Annotate VCF files")
+
+        st.markdown("Generate an annotated mutation file from VCF files.")
+
+        vcf_definition_method_selection = st.radio(
+            "Method for defining VCF files to annoatate:",
+            options=AnnotatorUIOptions.vcf_definition_method(),
         )
 
-        vcf_dir_selection = st.text_input(
-            "Directory containing VCF files:", value=pathlib.Path.home()
-        )
-        vcf_dir_ready, vcf_dir_processed = AnnotatorUIProcessing.vcf_dir(
-            vcf_dir_selection
-        )
+        if vcf_definition_method_selection == "File uploader":
+            vcf_exts = {"vcf", "VCF"}
+            gz_exts = {"Gz", "gz", "GZ"}
+
+            vcf_upload_selection = st.file_uploader(
+                "Upload VCF files to annotate.",
+                accept_multiple_files=True,
+                type=[".".join([v, g]) for v in vcf_exts for g in gz_exts],
+            )
+
+            (
+                vcf_dir_ready,
+                vcf_dir_processed,
+            ) = AnnotatorUIProcessing.vcf_upload_sources(
+                vcf_upload_selection=vcf_upload_selection, tmp_dir=tmp_dir
+            )
+
+        else:
+            vcf_dir_selection = st.text_input(
+                "Directory containing VCF files:", value=pathlib.Path.home()
+            )
+            (
+                vcf_dir_ready,
+                vcf_dir_processed,
+            ) = AnnotatorUIProcessing.vcf_path_sources(vcf_dir_selection)
 
         assembly_selection = st.selectbox(
             "Genome reference assembly:",
-            options=AnnotatorUIOptions.genome_assembly(),
+            options=AnnotatorUIOptions.assembly_type(),
         )
         (
             assembly_ready,
             assembly_processed,
-        ) = AnnotatorUIProcessing.genome_assembly(assembly_selection)
+        ) = AnnotatorUIProcessing.assembly_type(assembly_selection)
+
+        st.markdown(
+            "Note: _For multiple file uploads, this name will be applied "
+            "to the concatenation of output annotated files. "
+            "Otherwise no concatenation will be generated._"
+        )
 
         name_selection = st.text_input(
             "Choose a name for the annotated output:"
         )
-        name_ready, name = AnnotatorUIProcessing.output_name(name_selection)
+
+        name_ready, name_processed = AnnotatorUIProcessing.output_name(
+            name_selection
+        )
 
         if st.button(
             "Annotate",
             disabled=not (vcf_dir_ready and assembly_ready and name_ready),
         ):
             RunTab.annotate(
-                sources_dir=vcf_dir_processed,
-                output_name=name,
+                source_path=vcf_dir_processed,
+                output_name=name_processed,
                 assembly=assembly_processed,
             )
+            st.text(f"Processed sources @ {vcf_dir_processed}")
+            anno_cache.clean_up()
 
 
 def with_tab_info(tab: DeltaGenerator):

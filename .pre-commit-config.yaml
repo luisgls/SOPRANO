@@ -1,6 +1,6 @@
 repos:
 -   repo: https://github.com/python/black
-    rev: 23.9.1
+    rev: 23.11.0
     hooks:
     - id: black
       pass_filenames: true
@@ -10,11 +10,11 @@ repos:
     - id: isort
       name: isort (python)
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v1.5.1'
+    rev: 'v1.7.1'
     hooks:
     -   id: mypy
         additional_dependencies: ['types-requests']
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.292
+    rev: v0.1.6
     hooks:
     -   id: ruff

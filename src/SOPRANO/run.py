@@ -72,7 +72,7 @@ def hla2pip():
 def annotate_vcfs():
     args = parse_vcf_sources()
     annotate_source(
-        vcf_sources_dir=args.sources_dir,
+        source_path=args.sources_dir,
         output_name=args.output_name,
         cache_directory=args.cache_dir,
         assembly=args.assembly,
