@@ -364,11 +364,19 @@ class DownloaderUIProcessing(_DownloaderUI):
 
 class _AnnotatorUI:
     @staticmethod
-    def vcf_dir(*args, **kwargs):
+    def vcf_definition_method(*args, **kwargs):
         pass
 
     @staticmethod
-    def genome_assembly(*args, **kwargs):
+    def vcf_upload_sources(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def vcf_path_sources(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def assembly_type(*args, **kwargs):
         pass
 
     @staticmethod
@@ -378,13 +386,42 @@ class _AnnotatorUI:
 
 class AnnotatorUIOptions(_AnnotatorUI):
     @staticmethod
-    def genome_assembly():
+    def vcf_definition_method():
+        return "System path", "File uploader"
+
+    @staticmethod
+    def assembly_type():
         return "GRCh38", "GRCh37"
 
 
 class AnnotatorUIProcessing(_AnnotatorUI):
     @staticmethod
-    def genome_assembly(genome_assembly_selection: str):
+    def vcf_upload_sources(
+        vcf_upload_selection: list[UploadedFile], tmp_dir: pathlib.Path
+    ):
+        assert tmp_dir.exists()
+
+        n_uploads = len(vcf_upload_selection)
+
+        if n_uploads < 1:
+            upload_ready = False
+            st.warning("No vcf files uploaded to annotate.")
+        else:
+            upload_ready = True
+            st.text(f"{n_uploads} vcf files will be processed.")
+
+        for file in vcf_upload_selection:
+            bytes = file.getvalue()
+            filename = file.name
+            cached_path = tmp_dir / filename
+
+            with open(cached_path, "wb") as bytes_file:
+                bytes_file.write(bytes)
+
+        return upload_ready, tmp_dir
+
+    @staticmethod
+    def assembly_type(genome_assembly_selection: str):
         if genome_assembly_selection in ("GRCh38", "GRCh37"):
             assembly_ready = True
         else:
@@ -394,11 +431,11 @@ class AnnotatorUIProcessing(_AnnotatorUI):
         return assembly_ready, genome_assembly_selection
 
     @staticmethod
-    def vcf_dir(vcf_dir_selected: str):
-        vcf_dir_path = pathlib.Path(vcf_dir_selected)
+    def vcf_path_sources(sources_path_selection: str):
+        sources_path = pathlib.Path(sources_path_selection)
 
         try:
-            detected = anno_utils.find_vcf_files(vcf_dir_path)
+            detected = anno_utils.find_vcf_files(sources_path)
         except anno_utils.NoVCFs:
             detected = []
 
@@ -406,24 +443,28 @@ class AnnotatorUIProcessing(_AnnotatorUI):
 
         if len(detected) < 1:
             vcf_files_ready = False
-            st.warning(f"No vcf files detected in {vcf_dir_path}")
+            st.warning(f"No vcf files detected in {sources_path}")
         else:
             vcf_files_ready = True
             vcf_text = "\n".join(detected)
             st.text(f"Annotated file will be constructed from: \n{vcf_text}")
 
-        return vcf_files_ready, vcf_dir_path
+        return vcf_files_ready, sources_path
 
     @staticmethod
     def output_name(name: str):
-        if name == "":
-            st.warning("File name must be provided.")
-            name_ready = False
-        else:
-            dest = Directories.app_annotated_inputs(name).with_suffix(".anno")
+        if name != "":
+            dest = Directories.app_annotated_inputs(name).with_suffix(
+                ".vcf.anno"
+            )
             st.text(f"Output path: {dest}")
-            name_ready = True
+        else:
+            st.warning(
+                "Name will be automatically constructed using input files."
+            )
+            name = ""
 
+        name_ready = True
         return name_ready, name
 
 
@@ -574,13 +615,13 @@ class RunTab:
 
     @staticmethod
     def annotate(
-        sources_dir: pathlib.Path,
+        source_path: pathlib.Path,
         output_name: str,
         assembly: str,
     ):
         anno_utils.annotate_source(
-            source_path=sources_dir,
-            output_name=output_name,
+            source_path=source_path,
+            output_name=None if output_name == "" else output_name,
             cache_directory=Directories.app_annotated_inputs(),
             assembly=assembly,
         )

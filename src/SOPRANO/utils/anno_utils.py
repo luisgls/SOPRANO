@@ -34,6 +34,8 @@ def find_vcf_files(vcf_source: Path):
             )
 
         return [vcf_source]
+    elif not vcf_source.exists():
+        raise FileNotFoundError(vcf_source)
     elif not vcf_source.is_dir():
         raise ValueError(
             "Sources input must be a file of vcf.gz format, or a directory"
@@ -68,7 +70,7 @@ def annotate_source(
 ):
     vcf_paths = find_vcf_files(source_path)
     target_filenames = [
-        (v.with_suffix("").with_suffix(".vcf")).name for v in vcf_paths
+        (v.with_suffix("").with_suffix(".vcf.anno")).name for v in vcf_paths
     ]
     target_paths = [cache_directory / tf for tf in target_filenames]
 
@@ -86,7 +88,7 @@ def annotate_source(
                 "-w",
                 _RSCRIPTS_DIR.as_posix(),
                 "-o",
-                target,
+                target.as_posix(),
             ]
         )
 
