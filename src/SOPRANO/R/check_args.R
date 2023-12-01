@@ -1,9 +1,9 @@
-check_source_path <- function(source_path) {
+check_vcf_path <- function(source_path) {
   if (is.null(source_path)) {
-    stop("VCF source(s) path not defined. Flag -s | --sources required")
+    stop("VCF source path not defined. Flag -v | --vcf required")
   }
   if (!file.exists(source_path)) {
-    stop(paste("Source(s) path does not exist:", source_path))
+    stop(paste("Source path does not exist:", source_path))
   }
 }
 
