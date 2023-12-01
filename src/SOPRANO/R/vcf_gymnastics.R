@@ -1,8 +1,7 @@
 select_vcf_files <- function(source_path) {
   if (dir.exists(source_path)) {
     vcf_files <- Sys.glob(file.path(source_path, "*.vcf.gz"))
-  }
-  else {
+  } else {
     vcf_files <- c(source_path)
   }
 }
@@ -10,7 +9,7 @@ select_vcf_files <- function(source_path) {
 extract_biallelic_indels <- function(vcf_path) {
   vcf_data <- vcfR::read.vcfR(vcf_path, verbose = FALSE)
   vcf_data <- vcfR::extract.indels(vcf_data)
-  vcf_data <- vcf_data[vcfR::is.biallelic(vcf_data),]
+  vcf_data <- vcf_data[vcfR::is.biallelic(vcf_data), ]
   return(vcf_data)
 }
 
@@ -36,9 +35,10 @@ reduce_tibble_id_to_chr_pos_ref_alt <- function(merged_data) {
 
 correct_chr_patterns <- function(data) {
   data$chr <- gsub("chr", "", as.vector(data$chr))
+  return(data)
 }
 
-add_transcript_and_variant_info <- function(dndscv_result) {
+add_transcript_and_variant_info <- function(dndscv_result, transcriptlist, variantlist) {
   annotation <- dplyr::as_tibble(dndscv_result$annotmuts)
   annotation <- annotation %>%
     dplyr::left_join(., transcriptlist, by = c("pid" = "ProteinstableID")) %>%
@@ -65,7 +65,7 @@ update_annotation_formatting <- function(annotated_data) {
 }
 
 prepare_ssb_input_file <- function(processed_data, output_path) {
-  ssb_daata <- processed_data %>%
+  ssb_data <- processed_data %>%
     dplyr::mutate(
       col1 = "NA", col2 = "NA", col3 = "NA", col4 = "Transcript", col5 = "NA",
       col6 = "NA", col7 = "NA", col8 = "NA"
@@ -75,14 +75,14 @@ prepare_ssb_input_file <- function(processed_data, output_path) {
       col4, VEP, col5, cdspos, protpos, aachange2, codonsub2
     )
 
-  ssb_daata %<>% dplyr::mutate(aachange2 = as.character(aachange2))
-  ssb_daata %<>% dplyr::mutate(codonsub2 = as.character(codonsub2))
+  ssb_data %<>% dplyr::mutate(aachange2 = as.character(aachange2))
+  ssb_data %<>% dplyr::mutate(codonsub2 = as.character(codonsub2))
 
-  ssb_daata <- as.data.frame(ssb_daata)
-  ssb_daata <- ssb_daata[!is.na(df_ssb$TranscriptstableID),]
+  ssb_data <- as.data.frame(ssb_data)
+  ssb_data <- ssb_data[!is.na(ssb_data$TranscriptstableID), ]
 
   write.table(
-    ssb_daata,
+    ssb_data,
     file = output_path, quote = FALSE, sep = "\t",
     col.names = FALSE, row.names = FALSE
   )

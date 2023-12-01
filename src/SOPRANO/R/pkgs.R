@@ -10,9 +10,9 @@ get_installed <- function() {
 for (pkg in package_list) {
   if (!pkg %in% get_installed()) {
     install.packages(
-        pkg,
-        character.only = TRUE,
-        repos = "https://cloud.r-project.org/"
+      pkg,
+      character.only = TRUE,
+      repos = "https://cloud.r-project.org/"
     )
   }
   library(pkg, character.only = TRUE)
