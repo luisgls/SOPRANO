@@ -250,9 +250,9 @@ def parse_vcf_sources(argv=None):
     parser = argparse.ArgumentParser(description="VCF file annotations")
 
     parser.add_argument(
-        "--source_dir",
+        "--source",
         "-s",
-        dest="sources_dir",
+        dest="source_path",
         type=pathlib.Path,
         help="Provide path to directory containing VCF files.",
     )
@@ -264,7 +264,7 @@ def parse_vcf_sources(argv=None):
         help="Provide name for output file. No extension required.",
     )
     parser.add_argument(
-        "--cache_dir",
+        "--cache",
         "-d",
         dest="cache_dir",
         type=pathlib.Path,
@@ -279,6 +279,7 @@ def parse_vcf_sources(argv=None):
         type=str,
         help="Provide the genome assembly associated with the VCF sources."
         "Default: GRCh38.",
+        default="GRCh38",
     )
 
     return parser.parse_args(argv)
