@@ -86,6 +86,7 @@ app_sources/
 src/SOPRANO/data/ensembl.releases
 
 # Ensembl downloads
+data/
 ensembl_downloads/**/*.fa
 ensembl_downloads/**/*.fa.gz
 /src/SOPRANO/R/tmp/
