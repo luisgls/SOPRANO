@@ -399,7 +399,7 @@ class AnnotatorUIProcessing(_AnnotatorUI):
 
         try:
             detected = anno_utils.find_vcf_files(vcf_dir_path)
-        except FileNotFoundError:
+        except anno_utils.NoVCFs:
             detected = []
 
         detected = [d.as_posix() for d in detected]
@@ -579,7 +579,7 @@ class RunTab:
         assembly: str,
     ):
         anno_utils.annotate_source(
-            vcf_sources_dir=sources_dir,
+            source_path=sources_dir,
             output_name=output_name,
             cache_directory=Directories.app_annotated_inputs(),
             assembly=assembly,
