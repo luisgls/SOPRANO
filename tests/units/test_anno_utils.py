@@ -32,7 +32,10 @@ class TestFindVCFs:
         for p in vcf_paths:
             p.touch()
 
-        assert anno_utils.find_vcf_files(tmp_path) == vcf_paths
+        expected = sorted(vcf_paths)
+        found = sorted(anno_utils.find_vcf_files(tmp_path))
+
+        assert expected == found
 
     @staticmethod
     def test_some_files_ok(tmp_path):
