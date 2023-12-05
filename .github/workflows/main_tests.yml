@@ -39,4 +39,4 @@ jobs:
       - name: Test units
         run: |
           conda activate soprano-dev
-          pytest -s tests/test_units
+          pytest -s tests/units
