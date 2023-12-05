@@ -11,6 +11,7 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 from SOPRANO.core.objects import EnsemblData, Parameters
 from SOPRANO.hla2ip import immunopeptidome_from_hla
 from SOPRANO.pipeline import run_pipeline
+from SOPRANO.utils import anno_utils
 from SOPRANO.utils.parse_utils import fix_species_arg
 from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.sh_utils import pipe
@@ -123,7 +124,7 @@ def st_capture(output_func):
 
 def _select_from_dict(selection: str, selection_dict: dict):
     selection_value = selection_dict[selection]
-    st.text(f"Selected: {selection_value}")
+    # st.text(f"Selected: {selection_value}")
     return selection_value
 
 
@@ -149,6 +150,10 @@ class _PipelineUI:
         pass
 
     @staticmethod
+    def job_name(*args, **kwargs):
+        pass
+
+    @staticmethod
     def cache(*args, **kwargs):
         pass
 
@@ -160,7 +165,7 @@ class PipelineUIOptions(_PipelineUI):
 
         genome_dirs = [
             item for item in homo_sapiens_dir.glob("*") if item.is_dir()
-        ]
+        ][::-1]
 
         # Remove bad options (i.e. no toplevel fa and chrom files)
         for item in genome_dirs[::-1]:
@@ -222,49 +227,66 @@ class PipelineUIProcessing(_PipelineUI):
     def genome_reference(genome_selection: str | None):
         if genome_selection is None:
             st.warning("Warning: No genome selection.")
-            return None
+            genome_ready = False
+            genome_reference_path = None
+        else:
+            genome_ready = True
+            assembly, release = genome_selection.split(" - Ensembl release ")
+            data = EnsemblData(species="homo_sapiens", assembly=assembly)
+            fasta_path = data.toplevel_fa_path(int(release))
+            chrom_path = data.toplevel_chrom_path(int(release))
+            st.text(
+                f"Selected reference: {fasta_path}\n"
+                f"Selected chrom sizes: {chrom_path}"
+            )
+            genome_reference_path = data.get_genome_reference_paths(
+                int(release)
+            )
 
-        assembly, release = genome_selection.split(" - Ensembl release ")
-        data = EnsemblData(species="homo_sapiens", assembly=assembly)
-        fasta_path = data.toplevel_fa_path(int(release))
-        chrom_path = data.toplevel_chrom_path(int(release))
-        st.text(f"Selected: {fasta_path}, {chrom_path}")
-        return data.get_genome_reference_paths(int(release))
+        return genome_ready, genome_reference_path
 
     @staticmethod
     def annotated_mutations(annotation_selection: str):
         options_dict = PipelineUIOptions.annotated_mutations()
-        return _select_from_dict(annotation_selection, options_dict)
+        return True, _select_from_dict(annotation_selection, options_dict)
 
     @staticmethod
     def immunopeptidome(immunopeptidome_selection: str):
         options_dict = PipelineUIOptions.immunopeptidome()
-        return _select_from_dict(immunopeptidome_selection, options_dict)
+        return True, _select_from_dict(immunopeptidome_selection, options_dict)
 
     @staticmethod
     def substitution_method(subs_selection: str):
         options_dict = PipelineUIOptions.substitution_method()
-        return _select_from_dict(subs_selection, options_dict)
+        return True, _select_from_dict(subs_selection, options_dict)
 
     @staticmethod
     def coordinates(coordinates_selection: str):
         options_dict = PipelineUIOptions.coordinates()
-        return _select_from_dict(coordinates_selection, options_dict)
+        return True, _select_from_dict(coordinates_selection, options_dict)
 
     @staticmethod
     def job_name(job_name: str):
-        cache_dir = Directories.cache(job_name)
-        st.text(f"Selected: {cache_dir}")
-        return cache_dir
+        if job_name == "":
+            job_name_ready = False
+            cache_dir = None
+        else:
+            cache_dir = Directories.cache(job_name)
+            st.text(f"Pipeline results cache: {cache_dir}")
+            job_name_ready = True
+        return job_name_ready, cache_dir
 
     @staticmethod
     def cache(cache_selected: str):
         if os.path.exists(cache_selected):
             os.environ["SOPRANO_CACHE"] = cache_selected
-            st.text(f"Selected: {cache_selected}")
+            # st.text(f"Selected: {cache_selected}")
+            cache_ready = True
         else:
             st.warning(f"Cache directory does not exist: {cache_selected}")
-        return cache_selected
+            cache_ready = False
+
+        return cache_ready, cache_selected
 
 
 class _LinkVEPUI:
@@ -341,15 +363,108 @@ class DownloaderUIProcessing(_DownloaderUI):
 
 
 class _AnnotatorUI:
-    pass
+    @staticmethod
+    def vcf_definition_method(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def vcf_upload_sources(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def vcf_path_sources(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def assembly_type(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def output_name(*args, **kwargs):
+        pass
 
 
 class AnnotatorUIOptions(_AnnotatorUI):
-    pass
+    @staticmethod
+    def vcf_definition_method():
+        return "System path", "File uploader"
+
+    @staticmethod
+    def assembly_type():
+        return "GRCh38", "GRCh37"
 
 
 class AnnotatorUIProcessing(_AnnotatorUI):
-    pass
+    @staticmethod
+    def vcf_upload_sources(
+        vcf_upload_selection: list[UploadedFile], tmp_dir: pathlib.Path
+    ):
+        assert tmp_dir.exists()
+
+        n_uploads = len(vcf_upload_selection)
+
+        if n_uploads < 1:
+            upload_ready = False
+            st.warning("No vcf files uploaded to annotate.")
+        else:
+            upload_ready = True
+            st.text(f"{n_uploads} vcf files will be processed.")
+
+        for file in vcf_upload_selection:
+            bytes = file.getvalue()
+            filename = file.name
+            cached_path = tmp_dir / filename
+
+            with open(cached_path, "wb") as bytes_file:
+                bytes_file.write(bytes)
+
+        return upload_ready, tmp_dir
+
+    @staticmethod
+    def assembly_type(genome_assembly_selection: str):
+        if genome_assembly_selection in ("GRCh38", "GRCh37"):
+            assembly_ready = True
+        else:
+            st.warning("Currently only supporting GRCh38 and GRCh37.")
+            assembly_ready = False
+
+        return assembly_ready, genome_assembly_selection
+
+    @staticmethod
+    def vcf_path_sources(sources_path_selection: str):
+        sources_path = pathlib.Path(sources_path_selection)
+
+        try:
+            detected = anno_utils.find_vcf_files(sources_path)
+        except anno_utils.NoVCFs:
+            detected = []
+
+        detected = [d.as_posix() for d in detected]
+
+        if len(detected) < 1:
+            vcf_files_ready = False
+            st.warning(f"No vcf files detected in {sources_path}")
+        else:
+            vcf_files_ready = True
+            vcf_text = "\n".join(detected)
+            st.text(f"Annotated file will be constructed from: \n{vcf_text}")
+
+        return vcf_files_ready, sources_path
+
+    @staticmethod
+    def output_name(name: str):
+        if name != "":
+            dest = Directories.app_annotated_inputs(name).with_suffix(
+                ".vcf.anno"
+            )
+            st.text(f"Output path: {dest}")
+        else:
+            st.warning(
+                "Name will be automatically constructed using input files."
+            )
+
+        name_ready = True
+        return name_ready, name
 
 
 class _ImmunopeptidomeUI:
@@ -498,8 +613,17 @@ class RunTab:
         st.text(f"... in {int(t_end - t_start)} seconds")
 
     @staticmethod
-    def annotate(*args, **kwargs):
-        pass
+    def annotate(
+        source_path: pathlib.Path,
+        output_name: str,
+        assembly: str,
+    ):
+        anno_utils.annotate_source(
+            source_path=source_path,
+            output_name=None if output_name == "" else output_name,
+            cache_directory=Directories.app_annotated_inputs(),
+            assembly=assembly,
+        )
 
     @staticmethod
     def immunopeptidome(

@@ -4,8 +4,8 @@ import pathlib
 # Common dirs from source root src/SOPRANO
 _SOPRANO_SRC = pathlib.Path(__file__).parent.parent
 _SOPRANO_SCRIPTS = _SOPRANO_SRC / "scripts"
+_SOPRANO_R = _SOPRANO_SRC / "R"
 _SOPRANO_DATA = _SOPRANO_SRC / "data"
-_SOPRANO_HOMO_SAPIENS = _SOPRANO_DATA / "homo_sapiens"
 _SOPRANO_IMMUNO = _SOPRANO_SRC / "immunopeptidomes"
 _SOPRANO_IMMUNO_HUMANS = _SOPRANO_IMMUNO / "human"
 _SOPRANO_EXAMPLES = _SOPRANO_SRC / "examples"
@@ -14,11 +14,13 @@ _SOPRANO_INSTALLERS = _SOPRANO_SRC / "shell_utils"
 # Common dirs from repository root
 _SOPRANO_REPO = _SOPRANO_SRC.parent.parent
 _SOPRANO_DEFAULT_CACHE = _SOPRANO_REPO / "pipeline_cache"
+_SOPRANO_ENSEMBL_CACHE = _SOPRANO_REPO / "ensembl_downloads"
+_SOPRANO_HOMO_SAPIENS = _SOPRANO_ENSEMBL_CACHE / "homo_sapiens"
 
 # Test dirs
 _SOPRANO_TESTS = _SOPRANO_REPO / "tests"
-_SOPRANO_UNIT_TESTS = _SOPRANO_TESTS / "test_units"
-_SOPRANO_INT_TESTS = _SOPRANO_TESTS / "test_integrations"
+_SOPRANO_UNIT_TESTS = _SOPRANO_TESTS / "units"
+_SOPRANO_INT_TESTS = _SOPRANO_TESTS / "e2e"
 _SOPRANO_CFG_TESTS = _SOPRANO_TESTS / "test_configuration"
 
 # Common dirs from app sources
@@ -41,8 +43,16 @@ class Directories:
         return _SOPRANO_SCRIPTS.joinpath(sub_path_item)
 
     @staticmethod
+    def r_scripts(sub_path_item="") -> pathlib.Path:
+        return _SOPRANO_R.joinpath(sub_path_item)
+
+    @staticmethod
     def data(sub_path_item="") -> pathlib.Path:
         return _SOPRANO_DATA.joinpath(sub_path_item)
+
+    @staticmethod
+    def ensembl_downloads(sub_path_item="") -> pathlib.Path:
+        return _SOPRANO_ENSEMBL_CACHE.joinpath(sub_path_item)
 
     @staticmethod
     def genomes_homo_sapiens(sub_path_item="") -> pathlib.Path:

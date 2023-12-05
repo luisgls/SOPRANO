@@ -35,8 +35,8 @@ jobs:
       - name: Test conda environment
         run: |
           conda activate soprano-dev
-          pytest -s tests/test_configuration
+          pytest -s tests/test_installation.py
       - name: Test units
         run: |
           conda activate soprano-dev
-          pytest -s tests/test_units
+          pytest -s tests/units

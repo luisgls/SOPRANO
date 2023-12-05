@@ -80,7 +80,7 @@ def _sum_possible_across_region(
     :param sum_trans_regs: output path for summation
     """
 
-    pipe(
+    pipe(  # TODO: This appears to be a memory bottleneck ...
         ["awk", '{print "test_"$2"_"$3"\t0\t1\t"$0}', trans_regs.as_posix()],
         ["sortBed", "-i", "stdin"],
         ["mergeBed", "-i", "stdin", "-c", "7,8", "-o", "sum,sum"],
@@ -315,12 +315,16 @@ def _check_triplet_counts(paths: AnalysisPaths):
     back = pipe(
         ["wc", "-l", paths.triplet_counts.as_posix()], ["awk", "{ print $1 }"]
     )
-    fails = pipe(["grep", "-c", "FAIL", paths.flagged.as_posix()])
+    try:
+        fails = pipe(["grep", "-c", "FAIL", paths.flagged.as_posix()])
+    except RuntimeError:
+        # If no FAIL are found, exit code is non-zero (confusingly!) so except
+        fails = "0"
 
     print(
         f"Rate parameter file {paths.triplet_counts.as_posix()} has {back} "
         f"lines of data.\n"
-        f"Processed {mutations} from VEP file. {fails} mutations were "
+        f"Processed {mutations} from annotated file. {fails} mutations were "
         f"discarded (indels or reference conflicts)."
     )
 

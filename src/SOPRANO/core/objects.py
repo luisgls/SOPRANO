@@ -184,7 +184,7 @@ _NAMESPACE_KEYS = (
     "input_path",
     "bed_path",
     "cache_dir",
-    "target_regions",
+    "random_regions",
     "transcript",
     "protein_transcript",
     "transcript_ids",
@@ -293,7 +293,10 @@ class _GatherReferences:
     sizes_done: Set[int] = set()
 
     def _dest_directory(self, release: int):
-        return Directories.data(self.species) / f"{release}_{self.assembly}"
+        return (
+            Directories.ensembl_downloads(self.species)
+            / f"{release}_{self.assembly}"
+        )
 
     def _dest_fa_gz(self, release: int, _toplevel: bool):
         return self._dest_directory(release) / filename_from_url(

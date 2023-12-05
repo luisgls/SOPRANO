@@ -42,7 +42,7 @@ These arguments have short (`-s`) or long (`--long`) argument flags.
     Defaults to None, implying arbitrary randomization.
 
 
-- `-s | --seed`
+- `-x | --seed`
 
     The seed value to be used in randomization process. If defined, users 
     should be able to reproduce their results when randomization is applied.

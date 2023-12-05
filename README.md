@@ -1,3 +1,5 @@
+[![SOPRANO (Dev) Tests](https://github.com/instituteofcancerresearch/SOPRANO/actions/workflows/dev_tests.yml/badge.svg)](https://github.com/instituteofcancerresearch/SOPRANO/actions/workflows/dev_tests.yml)
+
 # SOPRANO: Selection On PRotein ANnotated regiOns
 The SOPRANO method was developed to quantify selection in specific regions of 
 the genome (Zapata et al, in revision). It calculates ON- and OFF-target dN/dS 

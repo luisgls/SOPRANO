@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ENV_NAME="soprano-dev"
+ENV_NAME="soprano"
 DEPS_FILE="src/SOPRANO/local.yml"
 DEPS_FATAL=false
 
@@ -50,9 +50,9 @@ function _create_for_osx() {
   if command -v mamba &> /dev/null
   then
     echo "  ... building with mamba"
-    mamba config env update --file $DEPS_FILE
+    mamba env update --file $DEPS_FILE
   else
-    conda config env update --file $DEPS_FILE
+    conda env update --file $DEPS_FILE
   fi
   conda activate $ENV_NAME
 }
@@ -116,8 +116,13 @@ function activate_env() {
   fi
   if [ $? == 0 ]
   then
-    echo "Installing SOPRANO python package"
+    echo "Installing SOPRANO Python packages"
     eval "$_PIP_CMD"
+  fi
+  if [ $? == 0 ]
+  then
+    echo "Installing SOPRANO R packages"
+    Rscript "src/SOPRANO/R/pkgs.R"
   fi
 }
 
@@ -144,7 +149,6 @@ then
       echo "Installation failed."
     fi
   fi
-
 
 else
   echo "Fatal: Conda not detected."

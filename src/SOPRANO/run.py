@@ -3,7 +3,13 @@ import subprocess
 from SOPRANO import hla2ip
 from SOPRANO.core import objects
 from SOPRANO.pipeline import run_pipeline
-from SOPRANO.utils.parse_utils import parse_args, parse_genome_args, parse_hla
+from SOPRANO.utils.anno_utils import annotate_source
+from SOPRANO.utils.parse_utils import (
+    parse_args,
+    parse_genome_args,
+    parse_hla,
+    parse_vcf_sources,
+)
 from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.print_utils import startup_output
 from SOPRANO.utils.vep_utils import (
@@ -60,6 +66,16 @@ def hla2pip():
         cache_loc=args.cache_dir,
         restricted_transcript_ids=args.restricted_transcript_ids,
         excluded_transcript_ids=args.excluded_transcript_ids,
+    )
+
+
+def annotate_vcfs():
+    args = parse_vcf_sources()
+    annotate_source(
+        source_path=args.source_path,
+        output_name=args.output_name,
+        cache_directory=args.cache_dir,
+        assembly=args.assembly,
     )
 
 

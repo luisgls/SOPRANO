@@ -51,3 +51,31 @@ def vep_installed():
 
 def bedtools_installed():
     return _check_exec("bedtools")
+
+
+def rscript_installed():
+    return _check_exec("Rscript")
+
+
+def perl_installed():
+    return _check_exec("perl")
+
+
+def app_installed():
+    return _check_exec("soprano-app")
+
+
+def cli_installed():
+    return _check_exec("soprano-run")
+
+
+def link_vep_installed():
+    return _check_exec("soprano-link-vep")
+
+
+def get_genome_installed():
+    return _check_exec("soprano-get-genome")
+
+
+def annotate_vcfs_installed():
+    return _check_exec("soprano-annotate")

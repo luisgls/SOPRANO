@@ -84,3 +84,9 @@ app_sources/
 
 # Ignore release cache file
 src/SOPRANO/data/ensembl.releases
+
+# Ensembl downloads
+data/
+ensembl_downloads/**/*.fa
+ensembl_downloads/**/*.fa.gz
+/src/SOPRANO/R/tmp/
