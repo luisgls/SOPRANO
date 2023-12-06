@@ -26,7 +26,7 @@ RUN mamba run --no-capture-output -n soprano pip install -e . &&  \
     mamba run --no-capture-output -n soprano pip cache purge
 
 # Decompress transcript ID
-RUN if [[ ! -f "./src/SOPRANO/data/ensemble_transcriptID.fasta" ]] ; then gunzip -v ./src/SOPRANO/data/ensemble_transcriptID.fasta.gz ; fi
+RUN gunzip -c "/app/src/SOPRANO/data/ensemble_transcriptID.fasta.gz" > "/app/src/SOPRANO/data/ensemble_transcriptID.fasta"
 
 # Clean up additional stuff ...
 RUN rm -rf ./src/SOPRANO/immunopeptidomes/mouse && \
@@ -39,6 +39,14 @@ RUN rm -rf ./src/SOPRANO/immunopeptidomes/mouse && \
     find -name '__pycache__' -type d -exec rm -rf {} + && \
     cd /opt/conda/lib && \
     find -name 'tests' -type d -exec rm -rf {} +
+
+# Make app_sources & pipeline_cache directories
+RUN mkdir /app/app_sources &&  \
+    mkdir /app/app_sources/annotated_inputs &&  \
+    mkdir /app/app_sources/coordinate_files &&  \
+    mkdir /app/app_sources/immunopeptidomes &&  \
+    mkdir /app/app_sources/example_input_files &&  \
+    mkdir /app/pipeline_cache
 
 # Expose port for streamlit interface
 EXPOSE 8501
