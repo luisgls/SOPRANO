@@ -26,7 +26,7 @@ RUN mamba run --no-capture-output -n soprano pip install -e . &&  \
     mamba run --no-capture-output -n soprano pip cache purge
 
 # Decompress transcript ID
-RUN if [[ ! -f "./src/SOPRANO/data/ensemble_transcriptID.fasta" ]] ; then gunzip -v ./src/SOPRANO/data/ensemble_transcriptID.fasta.gz ; fi
+RUN gunzip -c "/app/src/SOPRANO/data/ensemble_transcriptID.fasta.gz" > "/app/src/SOPRANO/data/ensemble_transcriptID.fasta"
 
 # Clean up additional stuff ...
 RUN rm -rf ./src/SOPRANO/immunopeptidomes/mouse && \
