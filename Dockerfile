@@ -40,6 +40,14 @@ RUN rm -rf ./src/SOPRANO/immunopeptidomes/mouse && \
     cd /opt/conda/lib && \
     find -name 'tests' -type d -exec rm -rf {} +
 
+# Make app_sources & pipeline_cache directories
+RUN mkdir /app/app_sources &&  \
+    mkdir /app/app_sources/annotated_inputs &&  \
+    mkdir /app/app_sources/coordinate_files &&  \
+    mkdir /app/app_sources/immunopeptidomes &&  \
+    mkdir /app/app_sources/example_input_files &&  \
+    mkdir /app/pipeline_cache
+
 # Expose port for streamlit interface
 EXPOSE 8501
 
