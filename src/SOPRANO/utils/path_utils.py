@@ -5,7 +5,6 @@ import pathlib
 _SOPRANO_SRC = pathlib.Path(__file__).parent.parent
 _SOPRANO_SCRIPTS = _SOPRANO_SRC / "scripts"
 _SOPRANO_R = _SOPRANO_SRC / "R"
-_SOPRANO_DATA = _SOPRANO_SRC / "data"
 _SOPRANO_IMMUNO = _SOPRANO_SRC / "immunopeptidomes"
 _SOPRANO_IMMUNO_HUMANS = _SOPRANO_IMMUNO / "human"
 _SOPRANO_EXAMPLES = _SOPRANO_SRC / "examples"
@@ -13,6 +12,7 @@ _SOPRANO_INSTALLERS = _SOPRANO_SRC / "shell_utils"
 
 # Common dirs from repository root
 _SOPRANO_REPO = _SOPRANO_SRC.parent.parent
+_SOPRANO_DATA = _SOPRANO_REPO / "data"
 _SOPRANO_DEFAULT_CACHE = _SOPRANO_REPO / "pipeline_cache"
 _SOPRANO_ENSEMBL_CACHE = _SOPRANO_REPO / "ensembl_downloads"
 _SOPRANO_HOMO_SAPIENS = _SOPRANO_ENSEMBL_CACHE / "homo_sapiens"
