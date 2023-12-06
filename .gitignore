@@ -72,6 +72,7 @@ data/aux_soprano/ensemble_transcriptID.fasta
 
 # App output files
 pipeline_cache/
+!pipeline_cache/.gitkeep
 
 # User defined app sources
 app_sources/
