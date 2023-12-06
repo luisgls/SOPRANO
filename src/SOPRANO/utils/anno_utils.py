@@ -4,10 +4,6 @@ from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.sh_utils import pipe
 
 
-class NotGZ(Exception):
-    pass
-
-
 class NotVCF(Exception):
     pass
 
@@ -18,21 +14,18 @@ class NoVCFs(Exception):
 
 def find_vcf_files(vcf_source: Path):
     vcf_exts = {".vcf", ".VCF"}
-    gz_exts = {".gz", ".GZ", ".Gz"}
-
-    exts = {x + y for x in vcf_exts for y in gz_exts}
+    gzip_exts = {".gz", ".GZ", ".Gz"}
 
     if vcf_source.is_file():
-        if vcf_source.suffix not in gz_exts:
-            raise NotGZ(
-                f"Input source should be gzip compressed: " f"{vcf_source}"
-            )
+        if vcf_source.suffix in gzip_exts:
+            decompressed_path = vcf_source.with_suffix("")
+        else:
+            decompressed_path = vcf_source
 
-        if (vcf_source.with_suffix("")).suffix not in vcf_exts:
+        if decompressed_path.suffix not in vcf_exts:
             raise NotVCF(
-                f"Input sourse should contain vcf extension: " f"{vcf_source}"
+                f"Input source should contain vcf extension: " f"{vcf_source}"
             )
-
         return [vcf_source]
     elif not vcf_source.exists():
         raise FileNotFoundError(vcf_source)
@@ -44,8 +37,10 @@ def find_vcf_files(vcf_source: Path):
 
     detected = []
 
-    for ext in exts:
-        for vcf_file_path in vcf_source.glob(f"*{ext}"):
+    for extension in vcf_exts.union(
+        {f"{x}{y}" for x in vcf_exts for y in gzip_exts}
+    ):
+        for vcf_file_path in vcf_source.glob(f"*{extension}"):
             detected.append(vcf_file_path)
 
     n_detected = len(detected)
