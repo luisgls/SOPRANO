@@ -20,7 +20,7 @@ assuming the input is in the default Ensembl input format.
 
 If you want to filter putative germline variants, use the option `--plugin ExAC`
 when running VEP. It is important that you restrict your analysis to the list
-of [Ensembl transcripts](../src/SOPRANO/data/ensemble_transcriptID.fasta) 
+of [Ensembl transcripts](../data/aux_soprano/ensemble_transcriptID.fasta) 
 observed in SOPRANO `src/SOPRANO/data` folder. Be aware of updates on the 
 EnsemblID from previous versions.
 
@@ -39,7 +39,7 @@ vep-annotation-reporter -o <OUTPUT>.tsv <INPUT>.vcf.annotated Allele Gene Featur
 ### Examples
 Example input files are bundled with SOPRANO:
 
-- [TCGA-05-4396-01A-21D-1855-08.annotated](../src/SOPRANO/examples/TCGA-05-4396-01A-21D-1855-08.annotated)
-- [rand100K.annotated](../src/SOPRANO/examples/rand100K.annotated)
+- [TCGA-05-4396-01A-21D-1855-08.annotated](../data/example_annotations/TCGA-05-4396-01A-21D-1855-08.annotated)
+- [rand100K.annotated](../data/example_annotations/rand100K.annotated)
 
 More examples can be found on synapse: ID syn11681983.
