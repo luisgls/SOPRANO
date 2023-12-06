@@ -12,17 +12,21 @@ class NoVCFs(Exception):
     pass
 
 
-def find_vcf_files(vcf_source: Path):
-    vcf_exts = {".vcf", ".VCF"}
-    gzip_exts = {".gz", ".GZ", ".Gz"}
+VCF_EXTENSIONS = {".vcf", ".VCF"}
+GZIP_EXTENSIONS = {".gz", ".GZ", ".Gz"}
+PERMITTED_EXTENSIONS = VCF_EXTENSIONS.union(
+    {f"{x}{y}" for x in VCF_EXTENSIONS for y in GZIP_EXTENSIONS}
+)
 
+
+def find_vcf_files(vcf_source: Path):
     if vcf_source.is_file():
-        if vcf_source.suffix in gzip_exts:
+        if vcf_source.suffix in GZIP_EXTENSIONS:
             decompressed_path = vcf_source.with_suffix("")
         else:
             decompressed_path = vcf_source
 
-        if decompressed_path.suffix not in vcf_exts:
+        if decompressed_path.suffix not in VCF_EXTENSIONS:
             raise NotVCF(
                 f"Input source should contain vcf extension: " f"{vcf_source}"
             )
@@ -37,9 +41,7 @@ def find_vcf_files(vcf_source: Path):
 
     detected = []
 
-    for extension in vcf_exts.union(
-        {f"{x}{y}" for x in vcf_exts for y in gzip_exts}
-    ):
+    for extension in PERMITTED_EXTENSIONS:
         for vcf_file_path in vcf_source.glob(f"*{extension}"):
             detected.append(vcf_file_path)
 

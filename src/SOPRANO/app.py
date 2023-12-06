@@ -261,13 +261,10 @@ def with_tab_annotator(tab: DeltaGenerator):
         )
 
         if vcf_definition_method_selection == "File uploader":
-            vcf_exts = {"vcf", "VCF"}
-            gz_exts = {"Gz", "gz", "GZ"}
-
             vcf_upload_selection = st.file_uploader(
                 "Upload VCF files to annotate.",
                 accept_multiple_files=True,
-                type=[".".join([v, g]) for v in vcf_exts for g in gz_exts],
+                type=["vcf", "vcf.gz"],
             )
 
             (
