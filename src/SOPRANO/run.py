@@ -27,7 +27,7 @@ def run_cli(_namespace=None):
 
 
 def run_app():
-    app_path = Directories.src("app.py")
+    app_path = Directories.src_root("app.py")
     subprocess.run(["streamlit", "run", app_path.as_posix()])
 
 

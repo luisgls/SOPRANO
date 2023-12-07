@@ -79,7 +79,7 @@ def annotate_source(
                 "-v",
                 source.as_posix(),
                 "-t",
-                Directories.data().as_posix(),
+                Directories.annotation_aux_files().as_posix(),
                 "-a",
                 assembly,
                 "-w",

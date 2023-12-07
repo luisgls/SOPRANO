@@ -161,7 +161,7 @@ class _PipelineUI:
 class PipelineUIOptions(_PipelineUI):
     @staticmethod
     def genome_reference():
-        homo_sapiens_dir = Directories.genomes_homo_sapiens()
+        homo_sapiens_dir = Directories.homo_sapien_reference_files()
 
         genome_dirs = [
             item for item in homo_sapiens_dir.glob("*") if item.is_dir()
@@ -192,7 +192,7 @@ class PipelineUIOptions(_PipelineUI):
     def annotated_mutations():
         options_dict = {}
         for directory in (
-            Directories.examples(),
+            Directories.annotation_example_files(),
             Directories.app_annotated_inputs(),
         ):
             for x in directory.glob("*.anno*"):
@@ -203,7 +203,7 @@ class PipelineUIOptions(_PipelineUI):
     def immunopeptidome():
         options_dict = {}
         for directory in (
-            Directories.immunopeptidomes_humans(),
+            Directories.immunopeptidome_example_files(),
             Directories.app_immunopeptidomes(),
         ):
             for x in directory.glob("*.bed"):
@@ -271,7 +271,7 @@ class PipelineUIProcessing(_PipelineUI):
             job_name_ready = False
             cache_dir = None
         else:
-            cache_dir = Directories.cache(job_name)
+            cache_dir = Directories.soprano_cache(job_name)
             st.text(f"Pipeline results cache: {cache_dir}")
             job_name_ready = True
         return job_name_ready, cache_dir
@@ -488,7 +488,9 @@ class _ImmunopeptidomeUI:
 class ImmunopeptidomesUIOptions(_ImmunopeptidomeUI):
     @staticmethod
     def hla_alleles():
-        hla_types_path = Directories.examples("TCGA_hlaTypesAll.tsv")
+        hla_types_path = Directories.immunopeptidome_aux_files(
+            "TCGA_hlaTypesAll.tsv"
+        )
         options = pipe(
             ["cut", "-f3", hla_types_path.as_posix()],
             ["tr", ",", "\n"],
@@ -498,7 +500,7 @@ class ImmunopeptidomesUIOptions(_ImmunopeptidomeUI):
 
     @staticmethod
     def transcript_ids():
-        hla_binders_path = Directories.data(
+        hla_binders_path = Directories.immunopeptidome_aux_files(
             "allhlaBinders_exprmean1.IEDBpeps.bed.unique_ids"
         )
 

@@ -26,11 +26,15 @@ class TranscriptPaths:
     @classmethod
     def defaults(cls):
         return cls(
-            transcript_length=Directories.data("ensemble_transcript.length"),
-            protein_transcript_length=Directories.data(
+            transcript_length=Directories.soprano_aux_files(
+                "ensemble_transcript.length"
+            ),
+            protein_transcript_length=Directories.soprano_aux_files(
                 "ensemble_transcript_protein.length"
             ),
-            transcript_fasta=Directories.data("ensemble_transcriptID.fasta"),
+            transcript_fasta=Directories.soprano_aux_files(
+                "ensemble_transcriptID.fasta"
+            ),
         )
 
 
@@ -58,8 +62,12 @@ class AuxiliaryPaths:
     @classmethod
     def defaults(cls):
         return cls(
-            genes_to_exclude=Directories.data("genes2exclude.txt"),
-            intron_length=Directories.data("transcript_intron_length.bed"),
+            genes_to_exclude=Directories.soprano_aux_files(
+                "genes2exclude.txt"
+            ),
+            intron_length=Directories.soprano_aux_files(
+                "transcript_intron_length.bed"
+            ),
         )
 
 

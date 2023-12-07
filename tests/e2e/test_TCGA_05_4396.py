@@ -5,8 +5,10 @@ from SOPRANO.pipeline import run_pipeline
 from SOPRANO.utils.path_utils import Directories
 
 # Common definitions for test file
-input_file = Directories.examples("TCGA-05-4396-01A-21D-1855-08.annotated")
-bed_file = Directories.immunopeptidomes_humans(
+input_file = Directories.annotation_example_files(
+    "TCGA-05-4396-01A-21D-1855-08.annotated"
+)
+bed_file = Directories.immunopeptidome_example_files(
     "TCGA-05-4396.Expressed.IEDBpeps.SB.epitope.bed"
 )
 name = "TCGA-05-4396"

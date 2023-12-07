@@ -102,7 +102,7 @@ def with_tab_pipeline(tab: DeltaGenerator):
 
         cache_selected = st.text_input(
             "Cache directory:",
-            value=Directories.cache().as_posix(),
+            value=Directories.soprano_cache().as_posix(),
             help="This is the root folder for caching results (it must exist)."
             " A sub-folder will be created using the name of the "
             "analysis as given below.",
