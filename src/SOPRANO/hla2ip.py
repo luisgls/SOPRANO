@@ -24,7 +24,9 @@ def prior_filter_restrictions(
     transcript_ids: List[str], output_path: pathlib.Path
 ):
     tmp_path = output_path.with_suffix(".tmp")
-    hla_binders_path = Directories.data("allhlaBinders_exprmean1.IEDBpeps.bed")
+    hla_binders_path = Directories.immunopeptidome_aux_files(
+        "allhlaBinders_exprmean1.IEDBpeps.bed"
+    )
     print(f"Retaining transcripts {join_transcript_ids(transcript_ids)}")
     pipe(
         [
@@ -46,7 +48,10 @@ def prior_filter_exclusions(
     assert output_path is not None
 
     tmp_path = output_path.with_suffix(".tmp")
-    hla_binders_path = Directories.data("allhlaBinders_exprmean1.IEDBpeps.bed")
+    # TODO: Should this be a runtime option?
+    hla_binders_path = Directories.immunopeptidome_aux_files(
+        "allhlaBinders_exprmean1.IEDBpeps.bed"
+    )
     print(f"Excluding transcripts {join_transcript_ids(transcript_ids)}")
     pipe(
         [
@@ -90,12 +95,14 @@ def immunopeptidome_from_hla(
             restricted_transcript_ids, output_path=output_path
         )
     elif n_excluded > 0:
-        print(excluded_transcript_ids, output_path)
         use_input = prior_filter_exclusions(
             excluded_transcript_ids, output_path=output_path
         )
     else:
-        use_input = Directories.data("allhlaBinders_exprmean1.IEDBpeps.bed")
+        # TODO: Should this be an option, e.g. use netMHCpan version, etc
+        use_input = Directories.immunopeptidome_aux_files(
+            "allhlaBinders_exprmean1.IEDBpeps.bed"
+        )
 
     joined_alleles = join_hla_alleles(*hla_alleles)
 

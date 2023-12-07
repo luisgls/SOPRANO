@@ -68,13 +68,11 @@ dmypy.json
 src/SOPRANO/tmp/
 
 # Data files
-src/SOPRANO/data/ensemble_transcriptID.fasta
-src/SOPRANO/data/homo_sapiens/**/Homo_sapiens.GRCh*.fa
-src/SOPRANO/data/homo_sapiens/**/Homo_sapiens.GRCh*.fa.gz
-/example_output.txt
+data/aux_soprano/ensemble_transcriptID.fasta
 
 # App output files
 pipeline_cache/
+!pipeline_cache/.gitkeep
 
 # User defined app sources
 app_sources/
@@ -83,10 +81,9 @@ app_sources/
 !app_sources/immunopeptidomes/.gitkeep
 
 # Ignore release cache file
-src/SOPRANO/data/ensembl.releases
+data/ensembl.releases
 
 # Ensembl downloads
-data/
 ensembl_downloads/**/*.fa
 ensembl_downloads/**/*.fa.gz
 /src/SOPRANO/R/tmp/

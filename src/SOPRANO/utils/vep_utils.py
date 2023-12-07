@@ -2,7 +2,6 @@ import argparse
 import pathlib
 from typing import List, Tuple
 
-from SOPRANO.utils import sh_utils
 from SOPRANO.utils.path_utils import Directories
 from SOPRANO.utils.sh_utils import pipe
 
@@ -33,7 +32,7 @@ def _get_src_dst_link_pairs(vep_cache: pathlib.Path):
         pathlib.Path(vr.parts[-2]).joinpath(vr.parts[-1]) for vr in src_dirs
     ]
 
-    dst_dirs = [Directories.data(sd) for sd in _src_dirs]
+    dst_dirs = [Directories.ensembl_downloads(sd) for sd in _src_dirs]
 
     src_dst_link_pairs = [
         (std_sys, soprano)
@@ -139,44 +138,3 @@ def _link_vep_cache_parser():
         raise NotADirectoryError(src_cache)
 
     return src_cache
-
-
-def annotate_homo_sapiens(
-    input_file: pathlib.Path,
-    assembly="GRCh38",
-    output_file: pathlib.Path | None = None,
-    overwrite=False,
-    fasta_file=Directories.data("ensemble_transcriptID.translated.fasta"),
-):
-    # TODO: Complete and test ! This is place holding...
-
-    if output_file is None:
-        output_file = input_file.with_suffix(".anno")
-
-    sh_utils.pipe(
-        [
-            "vep",
-            "-i",
-            input_file.as_posix(),
-            "-o",
-            output_file.as_posix(),
-            "--cache",
-            "--dir_cache",
-            Directories.data().as_posix(),
-            "--assembly",
-            assembly,
-            "--all_refseq",
-            "--pick",
-            "--symbol",
-            "--no_stats",
-            "--force_overwrite",  # TODO: Fix optional
-            "--fasta",
-            fasta_file.as_posix(),
-        ]
-    )
-
-
-if __name__ == "__main__":
-    # Check annotation procedure on vcf input
-    test_input = Directories.examples("homo_sapiens_GRCh38.vcf")
-    annotate_homo_sapiens(test_input)

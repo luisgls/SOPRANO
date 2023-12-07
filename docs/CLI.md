@@ -71,19 +71,19 @@ These arguments have short (`-s`) or long (`--long`) argument flags.
 - `-t | --transcript`
 
     Path to transcript lengths.
-    ([Default](../src/SOPRANO/data/transcript_length.txt))
+    ([Default](../data/transcript_length.txt))
 
 
 - `-p | --protein_transcript`
 
     Path to protein transcript lengths.
-    ([Default](../src/SOPRANO/data/protein_length.txt))
+    ([Default](../data/protein_length.txt))
 
 
 - `-f | --fasta`
 
   Path to ensembl transcript IDs (fasta file).
-  ([Default](../src/SOPRANO/data/ensemble_transcriptID.fasta))
+  ([Default](../data/aux_soprano/ensemble_transcriptID.fasta))
 
 
 ### Optional switches
@@ -105,4 +105,4 @@ line with no subsequent argument. They alter the runtime behaviour of SOPRANO.
 - `--keep_drivers`
 
     Run SOPRANO with driver genes included. Otherwise, 
-    [driver genes](../src/SOPRANO/data/genes2exclude.txt) are excluded.
+    [driver genes](../data/genes2exclude.txt) are excluded.

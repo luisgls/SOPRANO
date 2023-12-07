@@ -249,7 +249,9 @@ def _transform_192_to_7(paths: AnalysisPaths):
     """
 
     perl_path = Directories.scripts("transform192to7.pl")
-    translation_data_path = Directories.data("final_translate_SSB192toSSB7")
+    translation_data_path = Directories.soprano_aux_files(
+        "final_translate_SSB192toSSB7"
+    )
 
     if is_empty(paths.triplet_counts):
         raise Warning(
