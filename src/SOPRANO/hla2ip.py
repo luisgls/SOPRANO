@@ -86,15 +86,25 @@ def immunopeptidome_from_hla(
     n_restricted = len(restricted_transcript_ids)
     n_excluded = len(excluded_transcript_ids)
 
+    if (
+        len(hla_alleles)
+        == len(excluded_transcript_ids)
+        == len(restricted_transcript_ids)
+        == 0
+    ):
+        raise ValueError("No hla alleles or transcript IDs to filter by!")
+
     if (n_restricted > 0) and (n_excluded > 0):
         raise ValueError(
             "Cannot restrict and exclude transcripts simultaneously"
         )
     elif n_restricted > 0:
+        print("Filtering by restricting transcript IDs...")
         use_input = prior_filter_restrictions(
             restricted_transcript_ids, output_path=output_path
         )
     elif n_excluded > 0:
+        print("Filtering by excluding transcript IDs...")
         use_input = prior_filter_exclusions(
             excluded_transcript_ids, output_path=output_path
         )
@@ -104,16 +114,21 @@ def immunopeptidome_from_hla(
             "allhlaBinders_exprmean1.IEDBpeps.bed"
         )
 
-    joined_alleles = join_hla_alleles(*hla_alleles)
+    if len(hla_alleles) > 0:
+        joined_alleles = join_hla_alleles(*hla_alleles)
 
-    print(f"Filtering by alleles: {joined_alleles}")
+        print(f"Filtering by alleles: {joined_alleles}")
 
-    pipe(
-        ["grep", "-w", "-e", joined_alleles, use_input.as_posix()],
-        ["sortBed", "-i", "stdin"],
-        ["mergeBed", "-i", "stdin"],
-        output_path=output_path,
-    )
+        pipe(
+            ["grep", "-w", "-e", joined_alleles, use_input.as_posix()],
+            ["sortBed", "-i", "stdin"],
+            ["mergeBed", "-i", "stdin"],
+            output_path=output_path,
+        )
+
+    else:
+        print("No allele choice detected: filtering by transcripts only.")
+        output_path.with_suffix(".tmp").rename(output_path)
 
     tmp_path = output_path.with_suffix(".tmp")
     tmp_path.unlink(missing_ok=True)
