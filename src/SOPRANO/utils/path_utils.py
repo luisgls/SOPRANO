@@ -8,7 +8,6 @@ _SOPRANO_R = _SOPRANO_SRC / "R"
 _SOPRANO_IMMUNO = _SOPRANO_SRC / "immunopeptidomes"
 _SOPRANO_IMMUNO_HUMANS = _SOPRANO_IMMUNO / "human"
 _SOPRANO_EXAMPLES = _SOPRANO_SRC / "examples"
-_SOPRANO_INSTALLERS = _SOPRANO_SRC / "shell_utils"
 
 # Common dirs from repository root
 _SOPRANO_REPO = _SOPRANO_SRC.parent.parent
@@ -97,10 +96,6 @@ class Directories:
     @staticmethod
     def cfg_tests(sub_path_item="") -> pathlib.Path:
         return _SOPRANO_CFG_TESTS.joinpath(sub_path_item)
-
-    @staticmethod
-    def installers(sub_path_item="") -> pathlib.Path:
-        return _SOPRANO_INSTALLERS.joinpath(sub_path_item)
 
     @staticmethod
     def std_sys_vep(sub_path_item="") -> pathlib.Path:
