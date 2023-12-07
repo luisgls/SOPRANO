@@ -247,35 +247,71 @@ def test_immunopeptidome_options_subset_method():
 
 
 def test_immunopeptidome_processing_hla_alleles():
-    assert ImmunopeptidomeUIProcessing.hla_alleles([1, 2, 3]) == [1, 2, 3]
+    expected_value = [1, 2, 3]
+    expected_ready = True
+    computed_ready, computed_value = ImmunopeptidomeUIProcessing.hla_alleles(
+        [1, 2, 3]
+    )
+    assert expected_ready == computed_ready
+    assert expected_value == computed_value
 
 
 def test_immunopeptidome_processing_transcript_ids():
-    assert ImmunopeptidomeUIProcessing.transcript_ids([1, 2, 3]) == [1, 2, 3]
+    expected_value = [1, 2, 3]
+    expected_ready = True
+    (
+        computed_ready,
+        computed_value,
+    ) = ImmunopeptidomeUIProcessing.transcript_ids([1, 2, 3])
+    assert expected_ready == computed_ready
+    assert expected_value == computed_value
 
 
-def test_immunopeptidome_processing_subset_method():
-    assert ImmunopeptidomeUIProcessing.subset_method([], "foo") == ([], [])
-    assert ImmunopeptidomeUIProcessing.subset_method([1, 2, 3], "None") == (
-        [],
-        [],
+# Feedstock for test immunopeptidome processing
+transcript_inputs = [[1, 2, 3], [1, 2], [1, 2]]
+method_inputs = ["None", "Retention", "Exclusion"]
+ready_outputs = [False, True, True]
+retained_excluded_outputs = [([], []), ([1, 2], []), ([], [1, 2])]
+_test_values = list(
+    zip(
+        transcript_inputs,
+        method_inputs,
+        ready_outputs,
+        retained_excluded_outputs,
     )
+)
 
-    assert ImmunopeptidomeUIProcessing.subset_method([1, 2], "Retention") == (
-        [1, 2],
-        [],
-    )
-    assert ImmunopeptidomeUIProcessing.subset_method([1, 2], "Exclusion") == (
-        [],
-        [1, 2],
-    )
+
+@pytest.mark.parametrize(
+    "transcripts,method,ready,retained_excluded", _test_values
+)
+def test_immunopeptidome_processing_subset_method(
+    transcripts, method, ready, retained_excluded
+):
+    (
+        computed_ready,
+        computed_retained_excluded,
+    ) = ImmunopeptidomeUIProcessing.subset_method(transcripts, method)
+
+    assert computed_ready == ready
+    assert computed_retained_excluded == retained_excluded
+
+
+def test_invalid_method_raises_exception():
     with pytest.raises(ValueError):
-        ImmunopeptidomeUIProcessing.subset_method([1, 2], "bar")
+        ImmunopeptidomeUIProcessing.subset_method(
+            ["ESP283923829", "ENST22"], "bar"
+        )
 
 
-def test_immunopeptidome_processing_name():
-    assert ImmunopeptidomeUIProcessing.name("x") == "x.bed"
-    assert ImmunopeptidomeUIProcessing.name("x.bed") == "x.bed"
+@pytest.mark.parametrize(
+    "name,ready,output", [["x", True, "x.bed"], ["x.bed", True, "x.bed"]]
+)
+def test_immunopeptidome_processing_name(name, ready, output):
+    computed_ready, computed_name = ImmunopeptidomeUIProcessing.name(name)
+
+    assert computed_name == output
+    assert computed_ready == ready
 
 
 def test__lines_ok():
