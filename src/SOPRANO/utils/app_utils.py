@@ -518,40 +518,69 @@ class ImmunopeptidomeUIProcessing(_ImmunopeptidomeUI):
     @staticmethod
     def hla_alleles(alleles_selected: list):
         st.text(f"Selected: {sorted(alleles_selected)}")
-        return alleles_selected
+        alleles_ready = len(alleles_selected) > 0
+        return alleles_ready, alleles_selected
 
     @staticmethod
-    def transcript_ids(transcript_ids: list):
-        st.text(f"Selected: {sorted(transcript_ids)}")
-        return transcript_ids
+    def transcript_ids(transcript_ids: list | None):
+        if transcript_ids is None:
+            st.text("No transcript IDs selected.")
+            return True, []
+        else:
+            st.text(f"Selected: {sorted(transcript_ids)}")
+            ready = len(transcript_ids) > 0
+            return ready, transcript_ids
 
     @staticmethod
-    def subset_method(transcripts: list, method: str):
-        if len(transcripts) == 0 or method == "None":
-            st.text("No subset selected.")
-            return [], []
+    def subset_method(transcripts: list[str], method: str):
+        retained: list[str] = []
+        excluded: list[str] = []
+        if len(transcripts) > 0 and method == "None":
+            st.warning("Transcripts selected without filtering method choice.")
+            ready = False
+        elif len(transcripts) == 0 and method == "None":
+            st.text("No subset method required: no transcripts")
+            ready = True
         elif method == "Retention":
             st.text(f"Retaining subset of transcripts: {transcripts}")
-            return transcripts, []
+            ready = True
+            retained = transcripts
         elif method == "Exclusion":
             st.text(f"Excluding subset of transcripts: {transcripts}")
-            return [], transcripts
+            ready = True
+            excluded = transcripts
         else:
             raise ValueError(
                 f"Method does not belong to options: "
                 f"{ImmunopeptidomesUIOptions.subset_method()}"
             )
 
+        retained_excluded = retained, excluded
+
+        return ready, retained_excluded
+
     @staticmethod
     def name(name: str):
         if not name.endswith(".bed"):
             name += ".bed"
 
-        st.text(
-            f"Output file will be saved to "
-            f"{Directories.app_immunopeptidomes(name)}"
-        )
-        return name
+        output_path = Directories.app_immunopeptidomes(name)
+
+        st.text(f"Output file will be saved to {output_path}")
+
+        if name == ".bed":
+            st.warning("Immunopeptidome output name is required.")
+            ready = False
+        elif output_path.exists():
+            st.warning(
+                f"Output file already exists: {output_path}\n"
+                f"Please change or delete existing file"
+            )
+            ready = False
+        else:
+            ready = True
+
+        return ready, name
 
 
 class RunTab:
