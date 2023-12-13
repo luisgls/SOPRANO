@@ -79,7 +79,13 @@ def compute_fasta_index(fa_path: pathlib.Path):
     if not index_path.exists():
         task_output(f"Computing fasta index file from {fa_path}")
         pipe(
-            ["samtools", "faidx", fa_path.as_posix(), "-o", index_path.as_posix()]
+            [
+                "samtools",
+                "faidx",
+                fa_path.as_posix(),
+                "-o",
+                index_path.as_posix(),
+            ]
         )
     else:
         task_output(f"Fasta index file already exists {fa_path}")
@@ -101,6 +107,7 @@ def compute_chrom_sizes(fai_path: pathlib.Path):
     else:
         task_output(f"Chromosome sizes file already exists {chrom_path}")
     return chrom_path
+
 
 def get_dna_url(species: str):
     return (
