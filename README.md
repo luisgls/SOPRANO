@@ -1,6 +1,8 @@
 # SOPRANO: Selection On PRotein ANnotated regiOns
 
-------------Please use our new version of the tool -> https://github.com/instituteofcancerresearch/SOPRANO/
+------------ Please use our new github version of the tool -> https://github.com/instituteofcancerresearch/SOPRANO/ ------------
+
+------------ Even better use our webserver! https://software.icr.ac.uk/app/soprano ---------------------------------------------
 
 SOPRANO method was developed to quantify selection in specific regions of the genome (Zapata et al, in revision). It calculates ON- and OFF-target dN/dS using a set of annotated somatic point mutations and a transcript coordinates file. 
 
